@@ -13,6 +13,7 @@ sys_data ReadSysFile(sys_data initialization_data)
 	auxstr = (char *)malloc(30);
 	initialization_data = InitializationDefaultValues(initialization_data);
 	FILE *fdCONFSYS = fopen("/mnt/mmc/sys/CONFIG.sys", "r");
+	
 	if (fdCONFSYS == NULL)
 	{
 		printf("\nUnable to read CONFIG.sys file. Loading default values.\n");

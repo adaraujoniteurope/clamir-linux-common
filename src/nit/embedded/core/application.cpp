@@ -1,0 +1,1 @@
+#include <nit/embedded/core/application.hpp>
