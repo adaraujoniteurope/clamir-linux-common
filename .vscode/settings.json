@@ -70,9 +70,10 @@
         "fstream": "cpp",
         "iomanip": "cpp",
         "iostream": "cpp",
-        "mutex": "cpp"
+        "mutex": "cpp",
+        "source_location": "cpp"
     },
     "cmake.configureSettings": {
-        "NIT_CLAMIR_ENABLE_TESTING": "Yes"
+        "NIT_CLAMIR_ENABLE_TESTING": "No"
     },
 }

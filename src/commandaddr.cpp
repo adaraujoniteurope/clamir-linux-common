@@ -1,18 +1,25 @@
+/*
+ * commandaddr.h
+ *
+ *  Created on: 27 dec. 2024
+ *      Author: arthur
+ */
+
 #include "commandaddr.h"
 #include <cstdint>
 
-gestion_comandos CommandManager(uint16_t buffercomm)
+gestion_comandos command_manager(uint16_t command)
 {
     gestion_comandos gestor;
     // Lectura o escritura
-    gestor.lectura = (buffercomm & 0x00F0); // 1XXX XXXX lectura, 0XXX XXXX escritura
+    gestor.lectura = (command & 0x00F0); // 1XXX XXXX lectura, 0XXX XXXX escritura
     // Inicializacion de gestor en modo escritura en FPGA
     gestor.fpga_write = 1; // 1 escritura en FPGA, 0 no escritura en FPGA
     // Tipo de comando
-    if ((buffercomm & 0xFF00) == 0x0500)
+    if ((command & 0xFF00) == 0x0500)
     {
-        gestor.baseaddress = BASEADDRESS_NIT_COMMAND;
-        switch (buffercomm)
+        gestor.baseaddress = NIT_CONTROL_UNIT_BASE_ADDRESS;
+        switch (command)
         {
         case 0x0501:
         case 0x0581:
@@ -112,10 +119,10 @@ gestion_comandos CommandManager(uint16_t buffercomm)
             break;
         }
     }
-    else if (((buffercomm & 0xFF00) == 0x0400) || ((buffercomm & 0xFF00) == 0x0300))
+    else if (((command & 0xFF00) == 0x0400) || ((command & 0xFF00) == 0x0300))
     {
-        gestor.baseaddress = BASEADDRESS_AIMEN_COMMAND;
-        switch (buffercomm)
+        gestor.baseaddress = NIT_MB_CORE_BASE_ADDRESS;
+        switch (command)
         {
 
         // No escriben en FPGA
@@ -324,7 +331,7 @@ gestion_comandos CommandManager(uint16_t buffercomm)
             break;
 
         case 0x040E: // STARTUP
-            gestor.baseaddress = BASEADDRESS_AIMEN_STARTUP;
+            gestor.baseaddress = NIT_ARM_CORE_BASE_ADDRESS;
             gestor.offset = SOFT_RST;
             break;
 
@@ -364,7 +371,7 @@ gestion_comandos CommandManager(uint16_t buffercomm)
             break;
 
         case 0x0416: // TOOGLE DEBUG
-            gestor.baseaddress = BASEADDRESS_AIMEN_STARTUP;
+            gestor.baseaddress = NIT_ARM_CORE_BASE_ADDRESS;
             gestor.offset = IP_OP_MODE;
             break;
 
@@ -375,19 +382,19 @@ gestion_comandos CommandManager(uint16_t buffercomm)
 
         case 0x041A:
         case 0x049A:
-            gestor.baseaddress = BASEADDRESS_AIMEN_STARTUP;
+            gestor.baseaddress = NIT_ARM_CORE_BASE_ADDRESS;
             gestor.offset = LED_R;
             break;
 
         case 0x041B:
         case 0x049B:
-            gestor.baseaddress = BASEADDRESS_AIMEN_STARTUP;
+            gestor.baseaddress = NIT_ARM_CORE_BASE_ADDRESS;
             gestor.offset = LED_G;
             break;
 
         case 0x041C:
         case 0x049C:
-            gestor.baseaddress = BASEADDRESS_AIMEN_STARTUP;
+            gestor.baseaddress = NIT_ARM_CORE_BASE_ADDRESS;
             gestor.offset = LED_B;
             break;
 

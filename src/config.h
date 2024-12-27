@@ -1,8 +1,8 @@
 /*
- * Inicializacion.h
+ * config.h
  *
- *  Created on: 7 ago. 2018
- *      Author: sfuentel
+ *  Created on: 27 dec. 2024
+ *      Author: adaraujo
  */
 
 #ifndef SRC_INICIALIZACION_H_
@@ -120,54 +120,54 @@
 // Structure with all the values to initialize
 typedef struct
 {
-    uint16_t conf_KI;
-    uint16_t conf_KP;
-    uint16_t conf_KD;
-    uint16_t conf_MAX_POWER;
-    int16_t conf_MIN_POWER;
-    uint16_t conf_START_TRACK_MOM;
-    uint16_t conf_POWER;
-    uint16_t conf_STOP_TRACK_MOM;
-    uint16_t conf_MODE;
-    uint16_t conf_TRACK_REFERENCE;
-    uint16_t conf_TRACK_LENGTH;
-    uint16_t conf_WIDTH_MANUAL;
-    uint16_t conf_THRESHOLD;
-    uint16_t conf_ROI_ENABLE;
-    uint16_t conf_X2_PIXEL;
-    uint16_t conf_X1_PIXEL;
-    uint16_t conf_Y2_PIXEL;
-    uint16_t conf_Y1_PIXEL;
-    uint16_t conf_MAX_POWER_LIMIT;
-    uint16_t conf_MIN_POWER_LIMIT;
-    uint16_t conf_END_OF_PROCESS;
-    uint16_t conf_PIXEL_MM_RATIO;
-    uint16_t conf_LIMIT_SLEW;
-    uint16_t conf_BLACK_LEVEL;
-    uint16_t conf_ALARM_ENABLE;
-    uint16_t conf_ALARM_MAX;
-    uint16_t conf_ALARM_MIN;
-    uint16_t conf_ALARM_TIME;
-    uint16_t conf_AUTOMEASURE;
-    uint16_t conf_LIMIT_INTEGRAL;
-    uint16_t conf_CIRCULAR_BUFFER_SIZE;
-    uint16_t conf_INTEGRATION_TIME;
-    uint16_t conf_CONF_DIGITALIO;
-    uint16_t conf_TRACK_REF_START;
-    uint16_t conf_CONF_AUTOSHUTTER;
-    uint16_t conf_DRIFT_TEMP_AUTOSHUTTER;
-    uint16_t conf_TIMER_AUTOSHUTTER;
-    uint16_t conf_BIAS_VOLTAGE;
-    uint16_t conf_LASER_EXTERNAL_CONTROL;
-    uint16_t conf_DELAY_LASER_ON;
-    uint16_t conf_PREHEATING_ENA;
-    uint16_t conf_PREHEATING_TIME;
-    uint16_t conf_PREHEATING_POWER;
-    uint16_t conf_ROI_ROUND;
-    uint16_t conf_ENA_DRIFT;
-    uint16_t conf_DRIFT_INTENSITY;
-} sys_data;
+    uint16_t ki;
+    uint16_t kp;
+    uint16_t kd;
+    uint16_t max_power;
+    int16_t min_power;
+    uint16_t start_track_mom;
+    uint16_t power;
+    uint16_t stop_track_mom;
+    uint16_t mode;
+    uint16_t track_reference;
+    uint16_t track_length;
+    uint16_t width_manual;
+    uint16_t threshold;
+    uint16_t roi_enable;
+    uint16_t x2_pixel;
+    uint16_t x1_pixel;
+    uint16_t y2_pixel;
+    uint16_t y1_pixel;
+    uint16_t max_power_limit;
+    uint16_t min_power_limit;
+    uint16_t end_of_process;
+    uint16_t pixel_mm_ratio;
+    uint16_t limit_slew;
+    uint16_t black_level;
+    uint16_t alarm_enable;
+    uint16_t alarm_max;
+    uint16_t alarm_min;
+    uint16_t alarm_time;
+    uint16_t automeasure;
+    uint16_t limit_integral;
+    uint16_t circular_buffer_size;
+    uint16_t integration_time;
+    uint16_t digitalio;
+    uint16_t track_ref_start;
+    uint16_t autoshutter;
+    uint16_t drift_temp_autoshutter;
+    uint16_t timer_autoshutter;
+    uint16_t bias_voltage;
+    uint16_t laser_external_control;
+    uint16_t delay_laser_on;
+    uint16_t preheating_ena;
+    uint16_t preheating_time;
+    uint16_t preheating_power;
+    uint16_t roi_round;
+    uint16_t ena_drift;
+    uint16_t drift_intensity;
+} config_data_t;
 
-sys_data ReadSysFile(sys_data initialization_data);
-sys_data InitializationDefaultValues(sys_data s_dat);
-sys_data GetValuesOfString(FILE *fdCONFSYS, sys_data s_dat, char *auxString);
+config_data_t config_file_read(config_data_t initialization_data);
+config_data_t config_initialize(config_data_t s_dat);
+int config_save(const char* dest, volatile int *shm_proc_var, volatile int *shm_ai_men_com, volatile int *shm_nit_command);

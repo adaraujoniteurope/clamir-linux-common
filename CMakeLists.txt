@@ -1,18 +1,29 @@
 cmake_minimum_required(VERSION 3.12)
 project(clamir LANGUAGES C CXX VERSION 0.1.0)
 
+include(FindPkgConfig)
+if(!${PKG_CONFIG_FOUND})
+  MESSAGE(FATAL_ERROR "pkg-config required. Please install it")
+  return ("Error - pkg-config not found")
+endif()
+
 include(FetchContent)
 
+pkg_check_modules(GSTREAMER gstreamer-1.0>=1.6 gstreamer-video-1.0>=1.6 REQUIRED)
+include_directories(${GSTREAMER_INCLUDE_DIRS})
+link_directories(${GSTREAMER_LIBRARY_DIRS})
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
-
-add_library(${PROJECT_NAME}_OBJECT_LIBRARY ${${PROJECT_NAME}_SOURCES})
-
+add_library(${PROJECT_NAME}-obj ${${PROJECT_NAME}_SOURCES})
+target_link_libraries(${PROJECT_NAME}-obj PUBLIC ${GSTREAMER_LIBRARIES})
+add_compile_definitions(DEMOSEMAFORO)
 configure_file(version.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/include/nit/embedded/core/version.hpp @ONLY)
 
-add_executable(${PROJECT_NAME} src/main.cpp)
-
+add_executable(${PROJECT_NAME} src/clamir.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}-obj)
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
 if(NIT_CLAMIR_ENABLE_RAW)

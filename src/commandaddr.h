@@ -1,21 +1,23 @@
 /*
- * commaddr.h
+ * commandaddr.h
  *
- *  Created on: 7 ago. 2018
- *      Author: sfuentel
+ *  Created on: 27 dec. 2024
+ *      Author: arthur
  */
 
 #ifndef SRC_COMMADDR_H_
 #define SRC_COMMADDR_H_
-
-#include <cstdint>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-#define BASEADDRESS_NIT_COMMAND 0x40000000
+#include <stddef.h>
+#include <stdint.h>
+#include <inttypes.h>
+
+#define NIT_CONTROL_UNIT_BASE_ADDRESS 0x40000000
 #define NIT_INT_TIME 0			  // 0
 #define NIT_BIAS_V 1			  // 4
 #define NIT_OFFSET_EN 2			  // 8
@@ -53,15 +55,13 @@ extern "C"
 #define NIT_21 37				  // 152
 
 #define BRAM_NIT_SIZE 32
-#define BRAM_IMG_ADDRESS 0x42000000
-// #define BRAM_IMG_ADDRESS 0x43000000
-#define BRAM_IMG_SIZE 8192
-#define BRAM_IMG_METADATOS 0x42002000
+#define NIT_IMAGE_BRAM_BASE_ADDRESS 0x42000000
+#define NIT_IMAGE_BRAM_SIZE 8192
+#define NIT_IMAGE_METADATA_BRAM_BASE_ADDRESS 0x42002000
 
-#define BASEADDRESS_BPC_TABLE 0x44000000
-
-#define BASEADDRESS_AIMEN_COMMAND 0x50000000
-#define BASEADDRESS_AIMEN_STARTUP 0x44A40000
+#define NIT_BPCC_TABLE_BASE_ADDRESS 0x44000000
+#define NIT_MB_CORE_BASE_ADDRESS 0x50000000
+#define NIT_ARM_CORE_BASE_ADDRESS 0x44A40000
 
 /*
  * Bank 0 "GEN" offsets 0x0000
@@ -138,14 +138,13 @@ extern "C"
 /*
  *  Bank 1 AIMEN_STARTUP "LED" offsets 0x4000 en memoria shmemReset
  */
-#define LED_R 0x4000 + 0
-#define LED_B 0x4000 + 1
-#define LED_G 0x4000 + 2
+#define LED_R (0x4000 + 0)
+#define LED_B (0x4000 + 1)
+#define LED_G (0x4000 + 2)
 
-	/*
-	 * Offsets para memoria virtual empleada para comandos que no se escriben en la FPGA
-	 */
-
+/*
+* Offsets para memoria virtual empleada para comandos que no se escriben en la FPGA
+*/
 #define KI 0
 #define KP 1
 #define KD 2
@@ -180,15 +179,35 @@ extern "C"
 #define PREHEATING_TIME 31
 #define PREHEATING_POWER 32
 
-	typedef struct
-	{
-		unsigned int lectura;
-		int baseaddress;
-		int offset;
-		unsigned int fpga_write;
-	} gestion_comandos;
+// Definiciones para imagen debug
+// #define MEM_IMG_DEBUG_ADDRESS 0x46000000  //Prueba NIT
+#define MEM_IMG_DEBUG_ADDRESS 0x41000000
+#define MEM_IMG_DEBUG_SIZE 8192
 
-	gestion_comandos CommandManager(uint16_t buffercomm);
+// Definicion para el semaforo
+#define SEM_NAME "semaforo"
+
+// Definiciones de estados
+#define MANUAL 0
+#define IDLE 8
+#define MIDIENDO 9
+#define CONTROL 10
+#define PREHEATING 11
+
+#define WAIT_START_CALIBRATION 150
+#define WAIT_STOP_CALIBRATION 100 // 30
+#define WAIT_SECOND_APERTURE 400
+#define NAP_DURATION 750 // 300
+
+typedef struct
+{
+	unsigned int lectura;
+	int baseaddress;
+	int offset;
+	unsigned int fpga_write;
+} gestion_comandos;
+
+gestion_comandos command_manager(uint16_t command);
 
 #ifdef __cplusplus
 }
