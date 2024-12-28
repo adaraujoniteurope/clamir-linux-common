@@ -32,12 +32,12 @@ pthread_mutex_t mutex;
 int logging;
 int stop_logging;
 
-void memory_initialize(config_data_t config_data, process_variables_t *shm_proc_var, volatile int *shm_ai_men_com, volatile int *shm_nit_command);
-void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, volatile int *shm_ai_men_com, volatile int *shm_reset, volatile int *shm_nit_command);
+void memory_initialize(config_data_t config_data, process_variables_t *shm_proc_var, volatile int *shm_nit_mb_core, volatile int *shm_nit_control_unit);
+void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, volatile int *shm_nit_mb_core, volatile int *shm_arm_core, volatile int *shm_nit_control_unit);
 int read_serial_number(const char *path, process_variables_t *process_variables);
 int read_bpcc_table(const char *path);
-void command_host(int newsockfd, volatile int *shm_nit_command, process_variables_t *shm_proc_var, volatile int *shm_ai_men_com, volatile int *shm_reset);
-void image_writer(int newsockimgfd, metadata_t *metadata, volatile int *shm_nit_command);
+void command_host(int newsockfd, volatile int *shm_nit_control_unit, process_variables_t *shm_proc_var, volatile int *shm_nit_mb_core, volatile int *shm_arm_core);
+void image_writer(int newsockimgfd, metadata_t *metadata, volatile int *shm_nit_control_unit);
 
 int main(int argc, char *argv[])
 {
@@ -53,34 +53,35 @@ int main(int argc, char *argv[])
 	process_variables_t process_variables;
 
 	// Bancos de AIMEN
-	int fd_dev_mem;
-	fd_dev_mem = open("/dev/mem", O_RDWR | O_SYNC);
+	int fd_nit_mb_core;
+	fd_nit_mb_core = open("/dev/mem", O_RDWR | O_SYNC);
 
-	if (fd_dev_mem < 0) {
+	if (fd_nit_mb_core < 0)
+	{
 		printf("Failed to open /dev/mem for %d\n", NIT_MB_CORE_BASE_ADDRESS);
 	}
 
-	volatile int *shm_ai_men_com = NULL;
-	shm_ai_men_com = (volatile int *)mmap(NULL, 5242888, PROT_READ | PROT_WRITE, MAP_SHARED, fd_dev_mem, NIT_MB_CORE_BASE_ADDRESS);
+	volatile int *shm_nit_mb_core = NULL;
+	shm_nit_mb_core = (volatile int *)mmap(NULL, 5242888, PROT_READ | PROT_WRITE, MAP_SHARED, fd_nit_mb_core, NIT_MB_CORE_BASE_ADDRESS);
 
-	// Shared memory, lee y escribe comandos de NIT en la FPGA de configuraciones relativas de la c�mara
-	int fd_dev_mem_2;
-	fd_dev_mem_2 = open("/dev/mem", O_RDWR | O_SYNC);
-	if (fd_dev_mem_2 < 0)
+	// Shared memory, lee y escribe comandos de NIT en la FPGA de configuraciones relativas de la cámara
+	int fd_nit_control_unit;
+	fd_nit_control_unit = open("/dev/mem", O_RDWR | O_SYNC);
+	if (fd_nit_control_unit < 0)
 	{
 		printf("Failed to open /dev/mem\n");
 		exit(-1);
 	}
-	volatile int *shm_nit_command = NULL;
-	shm_nit_command = (volatile int *)mmap(NULL, BRAM_NIT_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd_dev_mem_2, NIT_CONTROL_UNIT_BASE_ADDRESS);
+	volatile int *shm_nit_control_unit = NULL;
+	shm_nit_control_unit = (volatile int *)mmap(NULL, BRAM_NIT_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd_nit_control_unit, NIT_CONTROL_UNIT_BASE_ADDRESS);
 
 	/*
 	 * Mapeado de memoria para reset
 	 */
-	int fd_dev_mem_3;
-	fd_dev_mem_3 = open("/dev/mem", O_RDWR | O_SYNC);
-	volatile int *shm_reset = NULL;
-	shm_reset = (volatile int *)mmap(NULL, 131072, PROT_READ | PROT_WRITE, MAP_SHARED, fd_dev_mem_3, NIT_ARM_CORE_BASE_ADDRESS);
+	int fd_arm_core;
+	fd_arm_core = open("/dev/mem", O_RDWR | O_SYNC);
+	volatile int *shm_arm_core = NULL;
+	shm_arm_core = (volatile int *)mmap(NULL, 131072, PROT_READ | PROT_WRITE, MAP_SHARED, fd_arm_core, NIT_ARM_CORE_BASE_ADDRESS);
 
 	/*
 	 * Load Serial Number
@@ -95,7 +96,7 @@ int main(int argc, char *argv[])
 	 */
 	if (read_bpcc_table("/etc/clamir/bpcc_table.conf"))
 	{
-		shm_nit_command[NIT_BPC_EN] = 1;
+		shm_nit_control_unit[NIT_BPC_EN] = 1;
 	}
 
 	/*
@@ -103,7 +104,7 @@ int main(int argc, char *argv[])
 	 */
 	config_data_t config_data;
 	config_data = config_file_read(config_data);
-	memory_initialize(config_data, &process_variables, shm_ai_men_com, shm_nit_command);
+	memory_initialize(config_data, &process_variables, shm_nit_mb_core, shm_nit_control_unit);
 
 	signal(SIGPIPE, SIGPIPE_handler);
 
@@ -119,7 +120,7 @@ int main(int argc, char *argv[])
 	{
 		for (;;)
 		{
-			controller_loop(&metadata, &process_variables, shm_ai_men_com, shm_reset, shm_nit_command);
+			controller_loop(&metadata, &process_variables, shm_nit_mb_core, shm_arm_core, shm_nit_control_unit);
 			std::cout << "Closed Loop Control: Closed" << std::endl;
 		}
 	};
@@ -179,7 +180,7 @@ int main(int argc, char *argv[])
 				continue;
 			}
 
-			command_host(sock, shm_nit_command, &process_variables, shm_ai_men_com, shm_reset);
+			command_host(sock, shm_nit_control_unit, &process_variables, shm_nit_mb_core, shm_arm_core);
 			close(sock);
 		}
 	};
@@ -239,7 +240,7 @@ int main(int argc, char *argv[])
 				exit(-1);
 			}
 
-			image_writer(sock, &metadata, shm_nit_command);
+			image_writer(sock, &metadata, shm_nit_control_unit);
 		}
 	};
 
@@ -259,56 +260,56 @@ int main(int argc, char *argv[])
  * Funcion que inicializa las memorias con la estructura de datos obtenida de un fichero.
  * En caso de conflicto prioriza los Maximos a los Minimos.
  */
-void memory_initialize(config_data_t config_data, process_variables_t *shm_proc_var, volatile int *shm_ai_men_com, volatile int *shm_nit_command)
+void memory_initialize(config_data_t config_data, process_variables_t *process_variables, volatile int *shm_nit_mb_core, volatile int *shm_nit_control_unit)
 {
 
 	uint64_t time_track_aux = 0;
 
 	// inicializacion de la memoria mapeada digitalmente shm_proc_var
 
-	shm_proc_var->ki = config_data.ki;
-	shm_proc_var->kp = config_data.kp;
-	shm_proc_var->kd = config_data.kd;
+	process_variables->ki = config_data.ki;
+	process_variables->kp = config_data.kp;
+	process_variables->kd = config_data.kd;
 	if (config_data.max_power < config_data.min_power)
 	{
 		config_data.min_power = config_data.max_power - 1;
 	}
-	shm_proc_var->max_power = config_data.max_power;
-	shm_proc_var->min_power = config_data.min_power;
-	shm_proc_var->power_man = config_data.power;
+	process_variables->max_power = config_data.max_power;
+	process_variables->min_power = config_data.min_power;
+	process_variables->power_man = config_data.power;
 	if (config_data.max_power_limit < config_data.min_power_limit)
 	{
 		config_data.min_power_limit = config_data.max_power_limit - 1;
 	}
-	shm_proc_var->power_limit_max = config_data.max_power_limit;
-	shm_ai_men_com[PWM_LIMIT_MAX] = (unsigned int)((double)config_data.max_power_limit - (double)shm_proc_var->min_power) * (16383 / ((double)shm_proc_var->max_power - (double)shm_proc_var->min_power));
-	shm_proc_var->power_limit_min = config_data.min_power_limit;
-	shm_ai_men_com[PWM_LIMIT_MIN] = (unsigned int)((double)config_data.min_power_limit - (double)shm_proc_var->min_power) * (16383 / ((double)shm_proc_var->max_power - (double)shm_proc_var->min_power));
-	shm_proc_var->width_ref = config_data.width_manual;
-	shm_proc_var->set_ref_width = 1; // Cuando comience el hilo de procesamiento de control se tomara el ancho de referencia
-	shm_proc_var->pixel_mm_ratio = config_data.pixel_mm_ratio;
-	shm_proc_var->end_of_process = config_data.end_of_process;
-	shm_proc_var->limit_integral = config_data.limit_integral;
-	shm_proc_var->limit_slew = config_data.limit_slew;
-	shm_proc_var->buff_size = config_data.circular_buffer_size;
-	shm_proc_var->enable_alarm = config_data.alarm_enable;
+	process_variables->power_limit_max = config_data.max_power_limit;
+	shm_nit_mb_core[PWM_LIMIT_MAX] = (unsigned int)((double)config_data.max_power_limit - (double)process_variables->min_power) * (16383 / ((double)process_variables->max_power - (double)process_variables->min_power));
+	process_variables->power_limit_min = config_data.min_power_limit;
+	shm_nit_mb_core[PWM_LIMIT_MIN] = (unsigned int)((double)config_data.min_power_limit - (double)process_variables->min_power) * (16383 / ((double)process_variables->max_power - (double)process_variables->min_power));
+	process_variables->width_ref = config_data.width_manual;
+	process_variables->set_ref_width = 1; // Cuando comience el hilo de procesamiento de control se tomara el ancho de referencia
+	process_variables->pixel_mm_ratio = config_data.pixel_mm_ratio;
+	process_variables->end_of_process = config_data.end_of_process;
+	process_variables->limit_integral = config_data.limit_integral;
+	process_variables->limit_slew = config_data.limit_slew;
+	process_variables->buff_size = config_data.circular_buffer_size;
+	process_variables->enable_alarm = config_data.alarm_enable;
 	if (config_data.alarm_max < config_data.alarm_min)
 	{
 		config_data.alarm_min = config_data.alarm_max - 1;
 	}
-	shm_proc_var->alarm_max = config_data.alarm_max;
-	shm_proc_var->alarm_min = config_data.alarm_min;
-	shm_proc_var->alarm_time = config_data.alarm_time;
-	shm_proc_var->automeasure = config_data.automeasure;
-	shm_proc_var->autoshutter_config = config_data.autoshutter;
-	shm_proc_var->autoshutter_temp = config_data.drift_temp_autoshutter;
-	shm_proc_var->autoshutter_timer = config_data.timer_autoshutter;
-	shm_proc_var->track_ref_start = config_data.track_ref_start;
-	shm_proc_var->laser_exteral_control = config_data.laser_external_control;
-	shm_proc_var->delay_laser_on = config_data.delay_laser_on;
-	shm_proc_var->preheating_ena = config_data.preheating_ena;
-	shm_proc_var->preheating_time = config_data.preheating_time;
-	shm_proc_var->preheating_power = config_data.preheating_power;
+	process_variables->alarm_max = config_data.alarm_max;
+	process_variables->alarm_min = config_data.alarm_min;
+	process_variables->alarm_time = config_data.alarm_time;
+	process_variables->automeasure = config_data.automeasure;
+	process_variables->autoshutter_config = config_data.autoshutter;
+	process_variables->autoshutter_temp = config_data.drift_temp_autoshutter;
+	process_variables->autoshutter_timer = config_data.timer_autoshutter;
+	process_variables->track_ref_start = config_data.track_ref_start;
+	process_variables->laser_exteral_control = config_data.laser_external_control;
+	process_variables->delay_laser_on = config_data.delay_laser_on;
+	process_variables->preheating_ena = config_data.preheating_ena;
+	process_variables->preheating_time = config_data.preheating_time;
+	process_variables->preheating_power = config_data.preheating_power;
 
 	// inicializacion de la memoria Baseaddress aimen command
 
@@ -316,44 +317,46 @@ void memory_initialize(config_data_t config_data, process_variables_t *shm_proc_
 	{
 		config_data.stop_track_mom = config_data.start_track_mom - 1;
 	}
-	shm_ai_men_com[START_TRACK_MOM_T] = config_data.start_track_mom;
-	shm_ai_men_com[END_OF_TRACK] = config_data.stop_track_mom;
-	shm_ai_men_com[MODE] = config_data.mode;
-	shm_ai_men_com[REFERENCE_TRACK] = config_data.track_reference;
+
+	mb_core_	
+	shm_nit_mb_core[START_TRACK_MOM_T] = config_data.start_track_mom;
+	shm_nit_mb_core[END_OF_TRACK] = config_data.stop_track_mom;
+	shm_nit_mb_core[MODE] = config_data.mode;
+	shm_nit_mb_core[REFERENCE_TRACK] = config_data.track_reference;
 
 	time_track_aux = (uint64_t)(((double)config_data.track_length) * (CLK_100MHZ / 10));
-	shm_ai_men_com[TIME_TRACK_LOW] = (unsigned int)(0x00000000FFFFFFFF & time_track_aux);
-	shm_ai_men_com[TIME_TRACK_HIGH] = (unsigned int)((0xFFFFFFFF00000000 & time_track_aux) >> 32);
+	shm_nit_mb_core[TIME_TRACK_LOW] = (unsigned int)(0x00000000FFFFFFFF & time_track_aux);
+	shm_nit_mb_core[TIME_TRACK_HIGH] = (unsigned int)((0xFFFFFFFF00000000 & time_track_aux) >> 32);
 
-	shm_ai_men_com[THRESHOLD] = config_data.threshold;
-	shm_ai_men_com[ROI_ROUND] = config_data.roi_round;
-	shm_ai_men_com[ENABLE_ROI] = config_data.roi_enable;
+	shm_nit_mb_core[THRESHOLD] = config_data.threshold;
+	shm_nit_mb_core[ROI_ROUND] = config_data.roi_round;
+	shm_nit_mb_core[ENABLE_ROI] = config_data.roi_enable;
 	if (config_data.x2_pixel < config_data.x1_pixel)
 	{
 		config_data.x2_pixel = config_data.x1_pixel;
 	}
-	shm_ai_men_com[ROI_X1] = config_data.x1_pixel;
-	shm_ai_men_com[ROI_X2] = config_data.x2_pixel;
+	shm_nit_mb_core[ROI_X1] = config_data.x1_pixel;
+	shm_nit_mb_core[ROI_X2] = config_data.x2_pixel;
 	if (config_data.y2_pixel < config_data.y1_pixel)
 	{
 		config_data.y2_pixel = config_data.y1_pixel;
 	}
-	shm_ai_men_com[ROI_Y1] = config_data.y1_pixel;
-	shm_ai_men_com[ROI_Y2] = config_data.y2_pixel;
-	shm_ai_men_com[DIGITAL_OUT_CONF] = config_data.digitalio;
+	shm_nit_mb_core[ROI_Y1] = config_data.y1_pixel;
+	shm_nit_mb_core[ROI_Y2] = config_data.y2_pixel;
+	shm_nit_mb_core[DIGITAL_OUT_CONF] = config_data.digitalio;
 
 	// Inicializacion de la memoria Baseaddress NIT command
-	shm_nit_command[NIT_BLACK_LEVEL] = config_data.black_level;
-	shm_nit_command[NIT_BIAS_V] = config_data.bias_voltage;
-	shm_nit_command[NIT_INT_TIME] = config_data.integration_time;
+	shm_nit_control_unit[NIT_BLACK_LEVEL] = config_data.black_level;
+	shm_nit_control_unit[NIT_BIAS_V] = config_data.bias_voltage;
+	shm_nit_control_unit[NIT_INT_TIME] = config_data.integration_time;
 
 	// printf("Drift enable:		%d\n", config_data.ena_drift);
 	// printf("Drift intensity:	%d\n", config_data.drift_intensity);
-	shm_nit_command[NIT_DRIFT_ENABLE] = config_data.ena_drift;
-	shm_nit_command[NIT_DRIFT_POSITION] = config_data.drift_intensity;
+	shm_nit_control_unit[NIT_DRIFT_ENABLE] = config_data.ena_drift;
+	shm_nit_control_unit[NIT_DRIFT_POSITION] = config_data.drift_intensity;
 
-	shm_ai_men_com[CHANGE_OP_MODE] = 1; // Indica a la memoria el cambio al nuevo modo al finalizar la inicializacion.
-	shm_proc_var->auto_shutter = 1;		// realizará un autoshutter con la nueva configuracion en cuanto se inicie el proceso de control
+	shm_nit_mb_core[CHANGE_OP_MODE] = 1; // Indica a la memoria el cambio al nuevo modo al finalizar la inicializacion.
+	process_variables->auto_shutter = 1; // realizará un autoshutter con la nueva configuracion en cuanto se inicie el proceso de control
 }
 
 int read_serial_number(const char *path, process_variables_t *process_variables)
@@ -387,7 +390,7 @@ int read_serial_number(const char *path, process_variables_t *process_variables)
  */
 int read_bpcc_table(const char *path)
 {
-	int resultado = 0;
+	int result = 0;
 	int fd_bpcc_table_dev;
 	volatile int *shm_bpcc_table_dev = nullptr;
 
@@ -399,7 +402,8 @@ int read_bpcc_table(const char *path)
 
 	fd_bpcc_table_dev = open("/dev/mem", O_RDWR | O_SYNC);
 
-	if (fd_bpcc_table_dev < 0) {
+	if (fd_bpcc_table_dev < 0)
+	{
 		fclose(fd_bpcc_table_config);
 		return 0;
 	}
@@ -533,12 +537,12 @@ void *Logger(void *sharedMetadatos)
 }
 
 /*
- * Funci�n de escritura de imagenes desde el CLAMIR
+ * Funcián de escritura de imagenes desde el CLAMIR
  */
-void image_writer(int newsockimgfd, metadata_t *metadata, volatile int *shm_nit_command)
+void image_writer(int newsockimgfd, metadata_t *metadata, volatile int *shm_nit_control_unit)
 {
 	int frame_counter = 0;
-	int cont = 0;
+	int counter = 0;
 	int status1 = 0;
 	int status2 = 0;
 	int nw = 0;
@@ -558,12 +562,12 @@ void image_writer(int newsockimgfd, metadata_t *metadata, volatile int *shm_nit_
 	_metadata = *metadata;
 
 	/*Inicializacion de los metadatos de temperatura*/
-	lVoltage = 3.0f / 4096.0f * (float)shm_nit_command[NIT_TEMP1]; // temp1
+	lVoltage = 3.0f / 4096.0f * (float)shm_nit_control_unit[NIT_TEMP1]; // temp1
 	lResistance = 10000.f * ((3.3f / lVoltage) - 1.f);
 	auxTemp = (3380.0f / (log(lResistance) + 2.126235177f)) - 273.15f; // Translate to deg C assuming B=3380
 	_metadata.t1 = (int)(auxTemp * 10);
 
-	lVoltage = 3.0f / 4096.0f * (float)shm_nit_command[NIT_TEMP2];
+	lVoltage = 3.0f / 4096.0f * (float)shm_nit_control_unit[NIT_TEMP2];
 	lResistance = 10000.f * ((3.3f / lVoltage) - 1.f);
 	auxTemp = (3380.0f / (log(lResistance) + 2.126235177f)) - 273.15f; // Translate to deg C assuming B=3380
 	_metadata.t2 = (int)(auxTemp * 10);
@@ -577,12 +581,12 @@ void image_writer(int newsockimgfd, metadata_t *metadata, volatile int *shm_nit_
 
 		_metadata = *metadata;
 
-		cont = 0;
-		lVoltage = 3.0f / 4096.0f * (float)shm_nit_command[NIT_TEMP1]; // temp1
+		counter = 0;
+		lVoltage = 3.0f / 4096.0f * (float)shm_nit_control_unit[NIT_TEMP1]; // temp1
 		lResistance = 10000.f * ((3.3f / lVoltage) - 1.f);
 		_metadata.t1 = (int)(10 * ((3380.0f / (log(lResistance) + 2.126235177f)) - 273.15f)); // Translate to deg C assuming B=3380
 
-		lVoltage = 3.0f / 4096.0f * (float)shm_nit_command[NIT_TEMP2];
+		lVoltage = 3.0f / 4096.0f * (float)shm_nit_control_unit[NIT_TEMP2];
 		lResistance = 10000.f * ((3.3f / lVoltage) - 1.f);
 		_metadata.t2 = (int)(10 * ((3380.0f / (log(lResistance) + 2.126235177f)) - 273.15f)); // Translate to deg C assuming B=3380
 
@@ -625,7 +629,7 @@ void image_writer(int newsockimgfd, metadata_t *metadata, volatile int *shm_nit_
 /*
  * Función de gestion de comandos
  */
-void command_host(int newsockfd, volatile int *shm_nit_command, process_variables_t *shm_proc_var, volatile int *shm_ai_men_com, volatile int *shm_reset)
+void command_host(int newsockfd, volatile int *shm_nit_control_unit, process_variables_t *shm_proc_var, volatile int *shm_nit_mb_core, volatile int *shm_arm_core)
 {
 	int nr, nw = 1;
 	uint64_t time_track_aux;
@@ -685,21 +689,21 @@ void command_host(int newsockfd, volatile int *shm_nit_command, process_variable
 					{
 					case POWER_LIMIT_MAX:
 						((int *)shm_proc_var)[gest.offset] = buffer[1];
-						shm_ai_men_com[PWM_LIMIT_MAX] = (unsigned int)((double)buffer[1] - (double)shm_proc_var->min_power) * (16383 / ((double)shm_proc_var->max_power - (double)shm_proc_var->min_power));
+						shm_nit_mb_core[PWM_LIMIT_MAX] = (unsigned int)((double)buffer[1] - (double)shm_proc_var->min_power) * (16383 / ((double)shm_proc_var->max_power - (double)shm_proc_var->min_power));
 						break;
 					case POWER_LIMIT_MIN:
 						((int *)shm_proc_var)[gest.offset] = buffer[1];
-						shm_ai_men_com[PWM_LIMIT_MIN] = (unsigned int)((double)buffer[1] - (double)shm_proc_var->min_power) * (16383 / ((double)shm_proc_var->max_power - (double)shm_proc_var->min_power));
+						shm_nit_mb_core[PWM_LIMIT_MIN] = (unsigned int)((double)buffer[1] - (double)shm_proc_var->min_power) * (16383 / ((double)shm_proc_var->max_power - (double)shm_proc_var->min_power));
 						break;
 					case MAX_POWER:
 						((int *)shm_proc_var)[gest.offset] = buffer[1];
-						shm_ai_men_com[PWM_LIMIT_MAX] = (unsigned int)((double)shm_proc_var->power_limit_max - (int16_t)shm_proc_var->min_power) * (16383 / ((double)shm_proc_var->max_power - (int16_t)shm_proc_var->min_power));
-						shm_ai_men_com[PWM_LIMIT_MIN] = (unsigned int)((double)shm_proc_var->power_limit_min - (int16_t)shm_proc_var->min_power) * (16383 / ((double)shm_proc_var->max_power - (int16_t)shm_proc_var->min_power));
+						shm_nit_mb_core[PWM_LIMIT_MAX] = (unsigned int)((double)shm_proc_var->power_limit_max - (int16_t)shm_proc_var->min_power) * (16383 / ((double)shm_proc_var->max_power - (int16_t)shm_proc_var->min_power));
+						shm_nit_mb_core[PWM_LIMIT_MIN] = (unsigned int)((double)shm_proc_var->power_limit_min - (int16_t)shm_proc_var->min_power) * (16383 / ((double)shm_proc_var->max_power - (int16_t)shm_proc_var->min_power));
 						break;
 					case MIN_POWER:
 						((int *)shm_proc_var)[gest.offset] = (int16_t)buffer[1];
-						shm_ai_men_com[PWM_LIMIT_MAX] = (unsigned int)((double)shm_proc_var->power_limit_max - (int16_t)buffer[1]) * (16383 / ((double)shm_proc_var->max_power - (int16_t)buffer[1]));
-						shm_ai_men_com[PWM_LIMIT_MIN] = (unsigned int)((double)shm_proc_var->power_limit_min - (int16_t)buffer[1]) * (16383 / ((double)shm_proc_var->max_power - (int16_t)buffer[1]));
+						shm_nit_mb_core[PWM_LIMIT_MAX] = (unsigned int)((double)shm_proc_var->power_limit_max - (int16_t)buffer[1]) * (16383 / ((double)shm_proc_var->max_power - (int16_t)buffer[1]));
+						shm_nit_mb_core[PWM_LIMIT_MIN] = (unsigned int)((double)shm_proc_var->power_limit_min - (int16_t)buffer[1]) * (16383 / ((double)shm_proc_var->max_power - (int16_t)buffer[1]));
 						break;
 					default:
 						((int *)shm_proc_var)[gest.offset] = buffer[1];
@@ -726,12 +730,12 @@ void command_host(int newsockfd, volatile int *shm_nit_command, process_variable
 						}
 						else if ((gest.offset == NIT_FPGA_VERSION) && (buffer[0] == 0x05A6))
 						{
-							buffer[1] = (uint16_t)((shm_nit_command[gest.offset] & 0xFFFF0000) >> 16);
+							buffer[1] = (uint16_t)((shm_nit_control_unit[gest.offset] & 0xFFFF0000) >> 16);
 							nw = write(newsockfd, buffer, 4);
 						}
 						else
 						{
-							buffer[1] = (uint16_t)(shm_nit_command[gest.offset] & 0x0000FFFF);
+							buffer[1] = (uint16_t)(shm_nit_control_unit[gest.offset] & 0x0000FFFF);
 							nw = write(newsockfd, buffer, 4);
 						}
 						// printf("Respondiendo NIT lectura address-command 0x%x, data %d\n",buffer[0],buffer[1]);
@@ -740,14 +744,14 @@ void command_host(int newsockfd, volatile int *shm_nit_command, process_variable
 					{ // escritura de datos en memoria
 						if (gest.offset == NIT_SAVE_EMBEDDED_CONF)
 						{
-							if (config_save("/mnt/mmc/sys/CONFIG.sys", (volatile int *)shm_proc_var, shm_ai_men_com, shm_nit_command) == 0)
+							if (config_save("/mnt/mmc/sys/CONFIG.sys", (volatile int *)shm_proc_var, shm_nit_mb_core, shm_nit_control_unit) == 0)
 							{
 								printf("Couldn't save current configuration\n");
 							}
 						}
 						else
 						{
-							shm_nit_command[gest.offset] = buffer[1];
+							shm_nit_control_unit[gest.offset] = buffer[1];
 						}
 					}
 					break;
@@ -757,13 +761,13 @@ void command_host(int newsockfd, volatile int *shm_nit_command, process_variable
 					{
 						if (gest.offset != TIME_TRACK_LOW)
 						{
-							buffer[1] = (uint16_t)(shm_ai_men_com[gest.offset] & 0x0000FFFF);
+							buffer[1] = (uint16_t)(shm_nit_mb_core[gest.offset] & 0x0000FFFF);
 							nw = write(newsockfd, buffer, 4);
 						}
 						else
 						{
-							time_track_aux = ((unsigned int)shm_ai_men_com[TIME_TRACK_HIGH]);
-							time_track_aux = ((time_track_aux << 32) | ((unsigned int)shm_ai_men_com[TIME_TRACK_LOW]));
+							time_track_aux = ((unsigned int)shm_nit_mb_core[TIME_TRACK_HIGH]);
+							time_track_aux = ((time_track_aux << 32) | ((unsigned int)shm_nit_mb_core[TIME_TRACK_LOW]));
 							buffer[1] = ((uint16_t)(((double)time_track_aux / CLK_100MHZ) * 10));
 							nw = write(newsockfd, buffer, 4);
 						}
@@ -775,24 +779,24 @@ void command_host(int newsockfd, volatile int *shm_nit_command, process_variable
 
 						case TIME_TRACK_LOW:
 							time_track_aux = (uint64_t)(((double)buffer[1]) * (CLK_100MHZ / 10));
-							shm_ai_men_com[gest.offset] = (unsigned int)(0x00000000FFFFFFFF & time_track_aux);
-							shm_ai_men_com[TIME_TRACK_HIGH] = (unsigned int)((0xFFFFFFFF00000000 & time_track_aux) >> 32);
+							shm_nit_mb_core[gest.offset] = (unsigned int)(0x00000000FFFFFFFF & time_track_aux);
+							shm_nit_mb_core[TIME_TRACK_HIGH] = (unsigned int)((0xFFFFFFFF00000000 & time_track_aux) >> 32);
 							break;
 
 						case MODE:
-							shm_ai_men_com[gest.offset] = buffer[1];
-							shm_ai_men_com[CHANGE_OP_MODE] = 1;
+							shm_nit_mb_core[gest.offset] = buffer[1];
+							shm_nit_mb_core[CHANGE_OP_MODE] = 1;
 							break;
 
 						default:
-							shm_ai_men_com[gest.offset] = buffer[1];
+							shm_nit_mb_core[gest.offset] = buffer[1];
 							break;
 						}
 						// printf("escribiendo en  0x%x +  0x%x = 0x%x\n",gest.baseaddress,(gest.offset*4),gest.baseaddress+ (gest.offset*4));
 					}
 					break;
 				case NIT_ARM_CORE_BASE_ADDRESS:
-					shm_reset[gest.offset] = buffer[1];
+					shm_arm_core[gest.offset] = buffer[1];
 					break;
 				default:
 					printf("Error in ADDRESS identification :%d \n", gest.baseaddress);
@@ -809,11 +813,11 @@ void command_host(int newsockfd, volatile int *shm_nit_command, process_variable
  * Funcion de control de CLAMIR
  */
 
-void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, volatile int *shm_ai_men_com, volatile int *shm_reset, volatile int *shm_nit_command)
+void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, volatile int *shm_nit_mb_core, volatile int *shm_arm_core, volatile int *shm_nit_control_unit)
 {
-	int estadoAutomata = 0;
-	int valor1 = 0;
-	int valor2 = 0;
+	int state = 0;
+	int semaphore_value1 = 0;
+	int semaphore_value2 = 0;
 	int contadorFramesMidiendo = 0;
 	volatile int *shm_metadata = (volatile int *)metadata;
 
@@ -824,52 +828,48 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 	double potencia_t0 = 0;
 	double potencia_t1 = 0;
 	double dt = 0.001;
-	double potenciaMax, potenciaMin, limPotenciaMax, limPotenciaMin;
+	double power_max, power_min, power_max_limit, power_min_limit;
 	double ki, kp, kd;
 	double duty;
 	double pixel_mm_ratio;
 	double integral = 0;
-	double derivative, limiteIntegral, limit_integral_divided, limiteSlew;
+	double derivative, integral_limit, integral_limit_scaled, integral_limit_slew;
 	int mode = 0;
 	int laser_status = 0; // 0 OFF, 1 ON
-	int contadorFramesStop = 0;
+	int stop_frame_counter = 0;
 	int endP = 1000;
-	double delta_potencia = 0;
+	double power_diff = 0;
 	int track_cnt = 0;
 	int track = 0;
 	uint64_t track_length = 2000;
 
-	sem_t *semaforo;
-	semaforo = sem_open(SEM_NAME, O_CREAT, 0644, 0);
+	sem_t *semaphore;
+	semaphore = sem_open(SEM_NAME, O_CREAT, 0644, 0);
 	// File descriptor de UIO
 	int pending = 0;
 	int enable = 1; // Habilita interrupciones
-	int fd_int = open("/dev/uio0", O_RDWR);
-	if (fd_int < 0)
+	int timer_fd = open("/dev/uio0", O_RDWR);
+	if (timer_fd < 0)
 	{
 		printf("No se puede abrir el descriptor de uio0 para copntrol\n");
 	}
 
-	int fdMetadatos;
-	fdMetadatos = open("/dev/mem", O_RDWR | O_SYNC);
-	volatile int *metaPtr = NULL;
-	metaPtr = (volatile int *)mmap(NULL, 64, PROT_READ | PROT_WRITE, MAP_SHARED, fdMetadatos, NIT_IMAGE_METADATA_BRAM_BASE_ADDRESS);
+	int frame_metadata_fd;
+	frame_metadata_fd = open("/dev/mem", O_RDWR | O_SYNC);
+	volatile int *frame_metadata_shm = NULL;
+	frame_metadata_shm = (volatile int *)mmap(NULL, 64, PROT_READ | PROT_WRITE, MAP_SHARED, frame_metadata_fd, NIT_IMAGE_METADATA_BRAM_BASE_ADDRESS);
 
-	// int fdTraza0;
-	// fdTraza0 = open("/dev/mem", O_RDWR | O_SYNC);
-	// volatile int *traza0Ptr = NULL;
-	// traza0Ptr = (volatile int *)mmap(NULL, 64, PROT_READ | PROT_WRITE, MAP_SHARED, fdTraza0, 0x60000000);
 	int metadatos[12];
-	double W = 0;
+	double width = 0;
 	double width_aux = 0;
-	double W_circ_buff_aux = 0;
-	double w_circ_buffer[512];
+	double width_circ_buff_aux = 0;
+	double width_circ_buffer[512];
 	for (int i = 0; i < 512; i++)
 	{
-		w_circ_buffer[i] = 0;
+		width_circ_buffer[i] = 0;
 	}
-	int control_NAP = 0;
-	int measurement_NAP = 0;
+	int control_sleep = 0;
+	int measurement_sleep = 0;
 	int cont_calibration = 0;
 	uint16_t alarm_enable; // 1 alarm ON, 0 alarm OFF
 	double alarm_min;
@@ -880,11 +880,11 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 	uint16_t automeasure_flag, autoshutter_config;
 	uint32_t autoshutter_time_target;
 	float autoshutter_temp_target;
-	int resultado = 0;
-	int cont = 0;
+	int result = 0;
+	int counter = 0;
 	int z = 0;
 	int circ_buffer_size = 1;
-	write(fd_int, (void *)&enable, sizeof(int));
+	write(timer_fd, (void *)&enable, sizeof(int));
 	derivative = 0;
 
 	char auto_auto_shutter_enable;
@@ -898,23 +898,37 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 	int last_laser_status = 0;
 	int delay_laser_on = 0;
 	int cont_preheating = 0;
+
+	// while(true)
+	// {
+	// 	timer->wait();
+	// 	controller->update();
+	// }
+
 	while (1)
 	{
+		// Controller Constants
 		ki = shm_proc_var->ki;
 		kp = shm_proc_var->kp;
 		kd = shm_proc_var->kd;
-		potenciaMax = (double)shm_proc_var->max_power;
-		potenciaMin = (double)shm_proc_var->min_power;
-		if (potenciaMin > 32767)
+
+		// Control Variable Limits
+		power_max = (double)shm_proc_var->max_power;
+		power_min = (double)shm_proc_var->min_power;
+		if (power_min > 32767)
 		{
-			potenciaMin = potenciaMin - 65536;
+			power_min = power_min - 65536;
 		}
-		limPotenciaMax = shm_proc_var->power_limit_max;
-		limPotenciaMin = shm_proc_var->power_limit_min;
+
+		// Control Variable Limits
+		power_max_limit = shm_proc_var->power_limit_max;
+		power_min_limit = shm_proc_var->power_limit_min;
+
+		//
 		pixel_mm_ratio = ((double)shm_proc_var->pixel_mm_ratio / 1000); // se reciben en micras
 		shm_proc_var->pid_error = (int)100 * error_t1;
-		limiteIntegral = (double)shm_proc_var->limit_integral;
-		limiteSlew = ((double)shm_proc_var->limit_slew / 100);
+		integral_limit = (double)shm_proc_var->limit_integral;
+		integral_limit_slew = ((double)shm_proc_var->limit_slew / 100);
 		circ_buffer_size = shm_proc_var->buff_size;
 
 		alarm_enable = shm_proc_var->enable_alarm;
@@ -942,53 +956,54 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 		{
 			circ_buffer_size = LMAX_CIRCULAR_BUFFER_SIZE;
 		}
-		if (mode != shm_ai_men_com[MODE])
+		if (mode != shm_nit_mb_core[MODE])
 		{
-			mode = shm_ai_men_com[MODE];
+			mode = shm_nit_mb_core[MODE];
 			if (mode == 2)
 			{
-				estadoAutomata = MANUAL;
+				state = MANUAL;
 				printf("\nCambio a estado MANUAL\n");
 				if (logging == 1)
 				{
 					stop_logging = 1;
-					cont = 0;
+					counter = 0;
 					pthread_mutex_unlock(&mutex);
 				}
 			}
 			else
 			{
-				estadoAutomata = IDLE;
+				state = IDLE;
 				printf("\nCambio a estado IDLE\n");
-				shm_ai_men_com[CHANGE_OP_MODE] = 1;
+				shm_nit_mb_core[CHANGE_OP_MODE] = 1;
 			}
 		}
 
-		read(fd_int, (int *)&pending, sizeof(int)); // Se bloquea hasta que sucede una interrupcion de uio0
+		// Time
+		read(timer_fd, (int *)&pending, sizeof(int)); // Se bloquea hasta que sucede una interrupcion de uio0
 		// traza0Ptr[0] = 1;
-		memcpy(metadatos, (void *)metaPtr, 48);
+		memcpy(metadatos, (void *)frame_metadata_shm, 48);
 
 		// Laser status
 		if (laser_external)
 		{
-			laser_status = shm_ai_men_com[DIGITAL_IN_0];
-			// laser_status = shm_ai_men_com[DIGITAL_IN_1];
+			laser_status = shm_nit_mb_core[DIGITAL_IN_0];
+			// laser_status = shm_nit_mb_core[DIGITAL_IN_1];
 		}
 		else
 		{
 			if (laser_status)
 			{
-				if (metadatos[1] < shm_ai_men_com[END_OF_TRACK])
+				if (metadatos[1] < shm_nit_mb_core[END_OF_TRACK])
 					laser_status = 0;
 			}
 			else
 			{
-				if (metadatos[1] >= shm_ai_men_com[START_TRACK_MOM_T])
+				if (metadatos[1] >= shm_nit_mb_core[START_TRACK_MOM_T])
 					laser_status = 1;
 			}
 		}
 
-		write(fd_int, (void *)&enable, sizeof(int)); // Habilita la interrupcion de uio0
+		write(timer_fd, (void *)&enable, sizeof(int)); // Habilita la interrupcion de uio0
 
 		/*
 		 * Cambio a lectura buffer circular
@@ -997,24 +1012,24 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 		{
 
 			shm_proc_var->auto_shutter = 0;
-			if (!measurement_NAP)
+			if (!measurement_sleep)
 			{
-				measurement_NAP = NAP_DURATION;
-				control_NAP = NAP_DURATION;
+				measurement_sleep = NAP_DURATION;
+				control_sleep = NAP_DURATION;
 				// shm_proc_var->auto_shutter = 0;
 				cont_calibration = WAIT_START_CALIBRATION + 1 + WAIT_STOP_CALIBRATION + WAIT_SECOND_APERTURE;
-				// if(shm_nit_command[NIT_SHUTTER] == 0)
+				// if(shm_nit_control_unit[NIT_SHUTTER] == 0)
 				//{
-				shm_nit_command[NIT_SHUTTER] = 1; // cerrar shutter
-												  //}
+				shm_nit_control_unit[NIT_SHUTTER] = 1; // cerrar shutter
+													   //}
 				cnt_last_autoshutter = 0;
 				temperature_last_autoshutter = current_temperature;
 			}
-			// shm_nit_command[NIT_SHUTTER_RESET]=1;
+			// shm_nit_control_unit[NIT_SHUTTER_RESET]=1;
 		}
-		if (!measurement_NAP)
+		if (!measurement_sleep)
 		{
-			shm_ai_men_com[DIGITAL_OUT_3] = 0;
+			shm_nit_mb_core[DIGITAL_OUT_3] = 0;
 			if (delay_laser_on > 0)
 			{
 				delay_laser_on--;
@@ -1024,38 +1039,38 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 			{
 				z = 0;
 			}
-			w_circ_buffer[z] = pixel_mm_ratio * metadata_get_width((metadata_t *)metadatos);
-			W_circ_buff_aux = 0;
+			width_circ_buffer[z] = pixel_mm_ratio * metadata_get_width((metadata_t *)metadatos);
+			width_circ_buff_aux = 0;
 			for (int y = 0; y < circ_buffer_size; y++)
 			{
-				W_circ_buff_aux += w_circ_buffer[y];
+				width_circ_buff_aux += width_circ_buffer[y];
 			}
-			W = W_circ_buff_aux / (circ_buffer_size);
+			width = width_circ_buff_aux / (circ_buffer_size);
 		}
 		else
 		{ // siesta
-			shm_ai_men_com[DIGITAL_OUT_3] = 1;
-			W = W;
-			if ((cont_calibration <= 0) && (shm_nit_command[NIT_SHUTTER] != 0))
+			shm_nit_mb_core[DIGITAL_OUT_3] = 1;
+			width = width;
+			if ((cont_calibration <= 0) && (shm_nit_control_unit[NIT_SHUTTER] != 0))
 			{
-				shm_nit_command[NIT_SHUTTER] = 0; // open shutter
+				shm_nit_control_unit[NIT_SHUTTER] = 0; // open shutter
 			}
 			else
 			{
 				if (cont_calibration == (WAIT_SECOND_APERTURE))
 				{
-					//	shm_nit_command[NIT_SHUTTER] = 0;
+					//	shm_nit_control_unit[NIT_SHUTTER] = 0;
 				}
 				if (cont_calibration == (1 + WAIT_STOP_CALIBRATION + WAIT_SECOND_APERTURE))
 				{
-					shm_nit_command[NIT_OFFSET_UPDATE] = 1;
-					// shm_nit_command[NIT_SHUTTER_RESET]=1;
+					shm_nit_control_unit[NIT_OFFSET_UPDATE] = 1;
+					// shm_nit_control_unit[NIT_SHUTTER_RESET]=1;
 				}
 				// cont_calibration--;
 			}
 			cont_calibration--;
-			measurement_NAP--;
-			control_NAP--;
+			measurement_sleep--;
+			control_sleep--;
 		}
 
 		if (shm_proc_var->set_ref_width > 0)
@@ -1064,15 +1079,15 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 			shm_proc_var->set_ref_width = 0;
 		}
 
-		switch (estadoAutomata)
+		switch (state)
 		{
 		case MANUAL:
 			potencia_t0 = shm_proc_var->power_man;
 			if (mode != 2)
 			{
-				estadoAutomata = IDLE;
+				state = IDLE;
 				printf("\nCambio a estado IDLE\n");
-				shm_ai_men_com[CHANGE_OP_MODE] = 1;
+				shm_nit_mb_core[CHANGE_OP_MODE] = 1;
 			}
 			track_cnt = 0;
 			track = 0;
@@ -1080,13 +1095,13 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 			break;
 
 		case IDLE:
-			shm_ai_men_com[CHANGE_OP_MODE] = 1;
+			shm_nit_mb_core[CHANGE_OP_MODE] = 1;
 			width_aux = 0;
-			contadorFramesStop = 0;
+			stop_frame_counter = 0;
 			if (logging == 1)
 			{
 				stop_logging = 1;
-				cont = 0;
+				counter = 0;
 				pthread_mutex_unlock(&mutex);
 			}
 			else
@@ -1096,18 +1111,18 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 					if (shm_proc_var->preheating_ena)
 					{
 						cont_preheating = 0;
-						estadoAutomata = PREHEATING;
+						state = PREHEATING;
 						printf("\nCambio a estado PREHEATING\n");
 					}
 					else
 					{
-						estadoAutomata = MIDIENDO;
+						state = MIDIENDO;
 						printf("\nCambio a estado MIDIENDO\n");
 						contadorFramesMidiendo = 0;
 						pthread_mutex_unlock(&mutex);
 					}
-					track_length = ((unsigned int)shm_ai_men_com[TIME_TRACK_HIGH]);
-					track_length = (((track_length << 32) | ((unsigned int)shm_ai_men_com[TIME_TRACK_LOW])) * 1000) / CLK_100MHZ;
+					track_length = ((unsigned int)shm_nit_mb_core[TIME_TRACK_HIGH]);
+					track_length = (((track_length << 32) | ((unsigned int)shm_nit_mb_core[TIME_TRACK_LOW])) * 1000) / CLK_100MHZ;
 				}
 				else
 				{
@@ -1124,7 +1139,7 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 			potencia_t0 = shm_proc_var->preheating_power;
 			if (cont_preheating++ >= shm_proc_var->preheating_time)
 			{
-				estadoAutomata = MIDIENDO;
+				state = MIDIENDO;
 				contadorFramesMidiendo = 0;
 				pthread_mutex_unlock(&mutex);
 				printf("\nCambio a estado MIDIENDO\n");
@@ -1132,7 +1147,7 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 			break;
 
 		case MIDIENDO:
-			cont++;
+			counter++;
 			if (mode == 0)
 			{
 				if (track_cnt >= track_length)
@@ -1156,7 +1171,7 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 					}
 					else
 					{
-						if (!measurement_NAP)
+						if (!measurement_sleep)
 						{
 							track++;
 							delay_laser_on = shm_proc_var->delay_laser_on;
@@ -1167,15 +1182,15 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 			// if ((laser_status) & (metadatos[7] >= shm_proc_var->track_ref_start)) //sustituido por cuenta de tracks en el ARM
 			if ((laser_status) & (track >= shm_proc_var->track_ref_start))
 			{
-				width_aux = width_aux + W;
+				width_aux = width_aux + width;
 				contadorFramesMidiendo++;
 			}
 			potencia_t0 = shm_proc_var->power_man;
 			potencia_t1 = potencia_t0;
-			// if (metadatos[7] >= shm_ai_men_com[REFERENCE_TRACK]){
-			if (track >= shm_ai_men_com[REFERENCE_TRACK])
+			// if (metadatos[7] >= shm_nit_mb_core[REFERENCE_TRACK]){
+			if (track >= shm_nit_mb_core[REFERENCE_TRACK])
 			{
-				estadoAutomata = CONTROL;
+				state = CONTROL;
 				printf("\nCambio a estado CONTROL\n");
 				if (contadorFramesMidiendo == 0)
 				{
@@ -1200,7 +1215,7 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 
 		case CONTROL:
 			endP = shm_proc_var->end_of_process;
-			cont++;
+			counter++;
 
 			if (mode == 0)
 			{
@@ -1225,7 +1240,7 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 					}
 					else
 					{
-						if (!measurement_NAP)
+						if (!measurement_sleep)
 						{
 							track++;
 							delay_laser_on = shm_proc_var->delay_laser_on;
@@ -1239,42 +1254,43 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 			}
 			else
 			{
-				if ((!laser_status) || (control_NAP))
+				if ((!laser_status) || (control_sleep))
 				{
-					if (contadorFramesStop++ > endP)
+					if (stop_frame_counter++ > endP)
 					{
-						estadoAutomata = IDLE;
+						state = IDLE;
 						printf("\nCambio a estado IDLE\n");
-						contadorFramesStop = 0;
-						cont = 0;
+						stop_frame_counter = 0;
+						counter = 0;
 						stop_logging = 1;
 						pthread_mutex_unlock(&mutex);
 					}
 				}
 				else
 				{
-					contadorFramesStop = 0;
-					// Comienza el c�clculo de la potencia
-					error_t0 = width_ref - W;
+					stop_frame_counter = 0;
+					// Comienza el cáclculo de la potencia
+					error_t0 = width_ref - width;
 					integral = integral + (error_t0 * dt);
 
 					if (ki > 0)
 					{
-						limit_integral_divided = limiteIntegral / ki;
+						integral_limit_scaled = integral_limit / ki;
 					}
 					else
 					{
-						limit_integral_divided = 1000;
+						integral_limit_scaled = 1000;
 					}
-					if (fabs(integral) >= (limit_integral_divided))
+
+					if (fabs(integral) >= (integral_limit_scaled))
 					{
 						if (integral < 0)
 						{
-							integral = 0 - limit_integral_divided;
+							integral = 0 - integral_limit_scaled;
 						}
 						else
 						{
-							integral = limit_integral_divided;
+							integral = integral_limit_scaled;
 						}
 					}
 
@@ -1283,17 +1299,17 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 					potencia_t0 = shm_proc_var->power_man + (kp * error_t0) + (ki * integral) + (kd * derivative);
 					error_t1 = error_t0;
 
-					delta_potencia = potencia_t1 - potencia_t0;
-					if (abs(delta_potencia) > limiteSlew)
+					power_diff = potencia_t1 - potencia_t0;
+					if (abs(power_diff) > integral_limit_slew)
 					{
 						// printf("potencia_t0 : %f", potencia_t0);
 						if (potencia_t0 < potencia_t1)
 						{
-							potencia_t0 = potencia_t1 - limiteSlew;
+							potencia_t0 = potencia_t1 - integral_limit_slew;
 						}
 						else
 						{
-							potencia_t0 = potencia_t1 + limiteSlew;
+							potencia_t0 = potencia_t1 + integral_limit_slew;
 						}
 						// printf(" potencia_t0 despues de limit : %f\n", potencia_t0);
 					}
@@ -1305,38 +1321,38 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 			break;
 		}
 
-		resultado = (((int)(100 * width_ref) << 16)) | ((int)(W * 100));
+		result = (((int)(100 * width_ref) << 16)) | ((int)(width * 100));
 
-		if (potencia_t0 > limPotenciaMax)
+		if (potencia_t0 > power_max_limit)
 		{
-			potencia_t0 = limPotenciaMax;
+			potencia_t0 = power_max_limit;
 		}
 		else
 		{
-			if (potencia_t0 < limPotenciaMin)
+			if (potencia_t0 < power_min_limit)
 			{
-				potencia_t0 = limPotenciaMin;
+				potencia_t0 = power_min_limit;
 			}
 		}
 		potencia_t1 = potencia_t0;
 		metadatos[0] = potencia_t0;
 		metadatos[7] = track;
-		metadatos[11] = (estadoAutomata << 24) | (laser_status << 16) | metadatos[11];
-		// Comienza el c�lculo del duty cycle
-		// duty = (potencia_t0 - potenciaMin) * (1000/(potenciaMax - potenciaMin));
-		duty = (potencia_t0 - potenciaMin) * (16383 / (potenciaMax - potenciaMin));
-		shm_ai_men_com[PWM] = (unsigned int)duty;
+		metadatos[11] = (state << 24) | (laser_status << 16) | metadatos[11];
+		// Comienza el cálculo del duty cycle
+		// duty = (potencia_t0 - power_min) * (1000/(power_max - power_min));
+		duty = (potencia_t0 - power_min) * (16383 / (power_max - power_min));
+		shm_nit_mb_core[PWM] = (unsigned int)duty;
 		last_laser_status = laser_status;
 
 		memcpy((void *)&shm_metadata[0], &metadatos, 28);	 // Power, MOM00, MOM01, MOM10, MOM11, MOM02, MOM20
-		shm_metadata[7] = resultado;						 // Width
+		shm_metadata[7] = result;							 // Width
 		memcpy((void *)&shm_metadata[8], &metadatos[7], 20); // Track Nmbr, Frame Max, Frame Number, Timestamp, IO Status
 
 		// gestion de la alarma
 
 		if ((alarm_enable == 1) && (laser_status))
 		{
-			if ((W > alarm_max) || (W < alarm_min))
+			if ((width > alarm_max) || (width < alarm_min))
 			{
 				if (cnt_aux_alarm > 0)
 				{
@@ -1361,9 +1377,9 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 		}
 
 		// Gestion de logging
-		if (cont >= 100)
+		if (counter >= 100)
 		{
-			cont = 0;
+			counter = 0;
 			pthread_mutex_unlock(&mutex);
 		}
 
@@ -1388,7 +1404,7 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 			}
 		}
 
-		switch (estadoAutomata)
+		switch (state)
 		{
 		case MANUAL:
 			if (auto_auto_shutter_enable && pending_autoshutter)
@@ -1428,39 +1444,39 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 		if (alarm == 1)
 		{
 			// ROJO
-			shm_reset[LED_R] = 0;
-			shm_reset[LED_G] = 1;
-			shm_reset[LED_B] = 1;
+			shm_arm_core[LED_R] = 0;
+			shm_arm_core[LED_G] = 1;
+			shm_arm_core[LED_B] = 1;
 		}
 		else
 		{
 
-			switch (estadoAutomata)
+			switch (state)
 			{
 			case MANUAL: // AMARILLO
-				shm_reset[LED_R] = 0;
-				shm_reset[LED_G] = 0;
-				shm_reset[LED_B] = 1;
+				shm_arm_core[LED_R] = 0;
+				shm_arm_core[LED_G] = 0;
+				shm_arm_core[LED_B] = 1;
 
 				break;
 			case IDLE: // VERDE
-				shm_reset[LED_R] = 1;
-				shm_reset[LED_G] = 0;
-				shm_reset[LED_B] = 1;
+				shm_arm_core[LED_R] = 1;
+				shm_arm_core[LED_G] = 0;
+				shm_arm_core[LED_B] = 1;
 
 				break;
 
 			case MIDIENDO: // MORADO
-				shm_reset[LED_R] = 0;
-				shm_reset[LED_G] = 1;
-				shm_reset[LED_B] = 0;
+				shm_arm_core[LED_R] = 0;
+				shm_arm_core[LED_G] = 1;
+				shm_arm_core[LED_B] = 0;
 
 				break;
 
 			case CONTROL: // AZUL
-				shm_reset[LED_R] = 1;
-				shm_reset[LED_G] = 1;
-				shm_reset[LED_B] = 0;
+				shm_arm_core[LED_R] = 1;
+				shm_arm_core[LED_G] = 1;
+				shm_arm_core[LED_B] = 0;
 
 				break;
 			default:
@@ -1468,39 +1484,39 @@ void controller_loop(metadata_t *metadata, process_variables_t *shm_proc_var, vo
 			}
 		}
 
-		shm_ai_men_com[DIGITAL_OUT_1] = 1; // naranja
+		shm_nit_mb_core[DIGITAL_OUT_1] = 1; // naranja
 		if (alarm_enable == 1)
-		{ // Solo si la alarma est� habilitada
+		{ // Solo si la alarma está habilitada
 
 			if (alarm == 1)
 			{
-				shm_ai_men_com[DIGITAL_OUT_0] = 0; // asignacion de la digital out 1 a la alarma
-				shm_ai_men_com[DIGITAL_OUT_2] = 1; // verde
+				shm_nit_mb_core[DIGITAL_OUT_0] = 0; // asignacion de la digital out 1 a la alarma
+				shm_nit_mb_core[DIGITAL_OUT_2] = 1; // verde
 			}
 			else
 			{
-				shm_ai_men_com[DIGITAL_OUT_0] = 1; // asignacion de la digital out 1 a la alarma
-				shm_ai_men_com[DIGITAL_OUT_2] = 0; // verde
+				shm_nit_mb_core[DIGITAL_OUT_0] = 1; // asignacion de la digital out 1 a la alarma
+				shm_nit_mb_core[DIGITAL_OUT_2] = 0; // verde
 			}
 		}
 		else
 		{
-			shm_ai_men_com[DIGITAL_OUT_0] = 1; // asignacion de la digital out 1 a la alarma
-			shm_ai_men_com[DIGITAL_OUT_2] = 0; // verde
+			shm_nit_mb_core[DIGITAL_OUT_0] = 1; // asignacion de la digital out 1 a la alarma
+			shm_nit_mb_core[DIGITAL_OUT_2] = 0; // verde
 		}
 
-		sem_getvalue(semaforo, &valor1);
-		if (valor1 < 1)
+		sem_getvalue(semaphore, &semaphore_value1);
+		if (semaphore_value1 < 1)
 		{ // permite al productor enviar hasta 2 imagenes por TCP al empezar la conexion
-			sem_post(semaforo);
+			sem_post(semaphore);
 		}
-		sem_getvalue(semaforo, &valor2);
+		sem_getvalue(semaphore, &semaphore_value2);
 	}
-	close(fd_int);
-	close(fdMetadatos);
-	munmap(((int *)metaPtr), 64);
-	metaPtr = NULL;
-	sem_close(semaforo);
+	close(timer_fd);
+	close(frame_metadata_fd);
+	munmap(((int *)frame_metadata_shm), 64);
+	frame_metadata_shm = NULL;
+	sem_close(semaphore);
 	sem_unlink(SEM_NAME);
 	exit(1);
 }

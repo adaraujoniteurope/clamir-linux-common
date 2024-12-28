@@ -143,8 +143,8 @@ extern "C"
 #define LED_G (0x4000 + 2)
 
 /*
-* Offsets para memoria virtual empleada para comandos que no se escriben en la FPGA
-*/
+ * Offsets para memoria virtual empleada para comandos que no se escriben en la FPGA
+ */
 #define KI 0
 #define KP 1
 #define KD 2
@@ -199,15 +199,15 @@ extern "C"
 #define WAIT_SECOND_APERTURE 400
 #define NAP_DURATION 750 // 300
 
-typedef struct
-{
-	unsigned int lectura;
-	int baseaddress;
-	int offset;
-	unsigned int fpga_write;
-} gestion_comandos;
+	typedef struct
+	{
+		unsigned int lectura;
+		int baseaddress;
+		int offset;
+		unsigned int fpga_write;
+	} gestion_comandos;
 
-gestion_comandos command_manager(uint16_t command);
+	gestion_comandos command_manager(uint16_t command);
 
 #ifdef __cplusplus
 }

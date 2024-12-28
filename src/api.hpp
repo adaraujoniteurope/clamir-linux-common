@@ -5,6 +5,7 @@
 #include <thread>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 class AbstractController
 {
@@ -125,6 +126,192 @@ class ProcessorCore : public MemoryMappedDevice<MappingInterface>
 {
 	public:
 	private:
+};
+
+
+class AbstractController
+{
+	public:
+	virtual void loop() = 0;
+};
+
+template<typename T>
+class AbstractParameter
+{
+	virtual T& get() { m_value; }
+	virtual void set(T& value) { if (m_value != value) { m_value = value }; }
+
+	AbstractParameter<T>& operator=(AbstractParameter<T>& self, T& other) {
+		set(other);
+		return self;
+	}
+
+	operator T&() {return get(); }
+	operator T() {return get(); }
+	T operator() { return get(); }
+	
+	private:
+	T m_value;
+};
+
+template<typename T>
+class ClassicController : AbstractController
+{
+	public:
+
+	AbstractParameter<T> input;
+	AbstractParameter<T> output;
+
+	AbstractParameter<T> ki;
+	AbstractParameter<T> kp;
+	AbstractParameter<T> kd;
+
+	AbstractParameter<T> ki_max;
+	AbstractParameter<T> ki_min;
+
+	AbstractParameter<T> kp_max;
+	AbstractParameter<T> kp_min;
+
+	AbstractParameter<T> kd_max;
+	AbstractParameter<T> kd_min;
+
+	AbstractParameter<T> input_max;
+	AbstractParameter<T> input_min;
+
+	AbstractParameter<T> error_max;
+	AbstractParameter<T> error_min;
+
+	AbstractParameter<T> error_diff_max;
+	AbstractParameter<T> error_diff_min;
+
+	AbstractParameter<T> error_sum_max;
+	AbstractParameter<T> error_sum_min;
+
+	AbstractParameter<T> output_max;
+	AbstractParameter<T> output_min;
+
+	void loop() {
+		current_time = hw::get_current_time_seconds();
+		error_last = error;
+		error_diff = time_window * (error() - error_last);
+		error_accumulated += error / time_window;
+		output = error_accumulated * ki() + error * kp() + error_diff * kd();
+	}
+
+	protected:
+	private:
+};
+
+namespace StateMachine
+{
+	class Engine;
+	
+	template<typename ReturnType(Args...)>
+	class AbstractCallable
+	{
+		public:
+		virtual ReturnType call(Args...args) = 0;
+	};
+
+	class StateGuard : public AbstractCallable<bool(Engine&, State&, State&)> {
+
+		public:
+
+		static const bool Valid = true;
+		static const bool Invalid = false;
+
+		virtual void set(std::function<bool(Engine&, State&, State&)>& guard_function) {
+			m_function = guard_function;
+		}
+
+		virtual bool call(Engine& engine, State& current, State& next) {
+
+			if (m_function != nullptr) {
+				return m_function(engine, current, next);
+			}
+
+			return false;
+		}
+
+		private:
+
+		std::function<bool(Engine&, State&, State&)> m_function;
+	};
+
+	class State {
+		public:
+		State() {}
+
+		add_transition(State& state, StateGuard& guard) {
+			transitions[state.id] = std::make_pair(state, guard);
+		}
+
+		remove_transition(State& state, StateGuard& guard) {
+
+		}
+
+		std::map<std::string, std::pair<State, StateGuard>> transitions;
+	};
+
+	class Engine {
+		public:
+
+		void poll()
+		{
+
+			for (auto& [next_state, guard] : current_state.transitions) {
+				if (guard() == StateGuard::Valid) {
+					current_state = next_state;
+					break;
+				}
+			}
+
+			current_state();
+
+		}
+
+		State& current_state;
+		std::vector<State> states;
+	};
+
+	// The usage would be:
+
+	void test_engine_usage() {
+
+		State idle;
+		State first;
+		State second;
+
+		StateGuard idle_to_first_guard([&](Engine&, State&, State&) -> bool {
+			if (controller.output() > 0)
+			{
+				return true;
+			}
+
+			return false;
+		});
+
+		idle.add_transition(first, idle_to_first_guard);
+
+		first.add_transition(idle, [&](Engine&, State&, State&) -> bool {
+			if (controller.output() < 0)
+			{
+				return true;
+			}
+
+			return false;
+		});
+
+		Engine stateMachine;
+
+		idle.add_transition(first, first);
+
+		staeMachine.setInitialState(idle);
+
+		for(;;) {
+			stateMachine.poll();
+		}
+	}
 };
 
 class AbstractApplication
