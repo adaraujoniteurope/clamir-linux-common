@@ -71,7 +71,23 @@
         "iomanip": "cpp",
         "iostream": "cpp",
         "mutex": "cpp",
-        "source_location": "cpp"
+        "source_location": "cpp",
+        "mb_core.h": "c",
+        "hash_map": "cpp",
+        "bitset": "cpp",
+        "cfenv": "cpp",
+        "complex": "cpp",
+        "stdfloat": "cpp",
+        "typeindex": "cpp",
+        "valarray": "cpp",
+        "control_unit_core.h": "c",
+        "inttypes.h": "c",
+        "fcntl.h": "c",
+        "bpcc_core.h": "c",
+        "mman.h": "c",
+        "framebuffer_core.h": "c",
+        "framebuffer_metadata_core.h": "c",
+        "unistd.h": "c"
     },
     "cmake.configureSettings": {
         "NIT_CLAMIR_ENABLE_TESTING": "No"
