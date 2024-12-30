@@ -696,7 +696,7 @@ void image_writer(int sock, metadata_t *metadata, control_unit_core_state_t *con
 		read(timer_fd, (int *)&timer_status, sizeof(int));
 		write(timer_fd, (void *)&timer_ctrl, sizeof(int));
 
-		std::cout << std::chrono::high_resolution_clock::now().time_since_epoch().count() << std::endl;
+		//std::cout << std::chrono::high_resolution_clock::now().time_since_epoch().count() << std::endl;
 
 		/**
 		 * Enable shutter
