@@ -305,20 +305,20 @@ int main(int argc, char *argv[])
 	/*
 	 * Inicializacion de los valores de CLAMIR
 	 */
-	// config_data_t config_data;
-	// config_data = config_file_read(config_data);
+	config_data_t config_data;
+	config_data = config_file_read(config_data);
 
-	// memory_initialize(config_data, &mb_core_state, &control_unit_state);
+	memory_initialize(config_data, &mb_core_state, &control_unit_state);
 
-	// bpcc_table_core_state_t bpcc_table_state;
-	// bpcc_table_core_open(&bpcc_table_state);
+	bpcc_table_core_state_t bpcc_table_state;
+	bpcc_table_core_open(&bpcc_table_state);
 
-	// if (bpcc_table_core_load_coefficients_from_file(&bpcc_table_state, BPCC_TABLE_COEFFICIENTS_TABLE_FILE_PATH))
-	// {
-	// 	control_unit_bpc_en_set(&control_unit_state, 1);
-	// }
+	if (bpcc_table_core_load_coefficients_from_file(&bpcc_table_state, BPCC_TABLE_COEFFICIENTS_TABLE_FILE_PATH))
+	{
+		control_unit_bpc_en_set(&control_unit_state, 1);
+	}
 
-	// bpcc_table_core_close(&bpcc_table_state);
+	bpcc_table_core_close(&bpcc_table_state);
 
 	framebuffer_metadata_core_state_t framebuffer_metadata_state;
 	framebuffer_metadata_core_open(&framebuffer_metadata_state);
