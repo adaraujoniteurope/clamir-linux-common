@@ -167,74 +167,6 @@
 #define PREHEATING_TIME 31
 #define PREHEATING_POWER 32
 
-// Definicion para el semaforo
-#define SEM_NAME "semaforo"
-
-// Definiciones de estados
-#define MANUAL 0
-#define IDLE 8
-#define MIDIENDO 9
-#define CONTROL 10
-#define PREHEATING 11
-
-#define WAIT_START_CALIBRATION 150
-#define WAIT_STOP_CALIBRATION 100 // 30
-#define WAIT_SECOND_APERTURE 400
-#define NAP_DURATION 750 // 300
-
-typedef struct __attribute__((packed)) process_variables_struct
-{
-	double ki;
-	double kp;
-	double kd;
-	double derivative;
-	double integral;
-	double width_aux;
-	double error_t0;
-	double error_t1;
-	double max_power;
-	double min_power;
-	double power_man;
-	double power_limit_max;
-	double power_limit_min;
-	double set_ref_width;
-	double width_ref;
-	double pixel_mm_ratio;
-	double pid_error;
-	double end_of_process;
-	double limit_integral;
-	double limit_slew;
-	unsigned int buff_size;
-	double auto_shutter;
-	double enable_alarm;
-	double alarm_max;
-	double alarm_min;
-	double alarm_time;
-	double serial_number_low;
-	double serial_number_high;
-	double automeasure;
-	uint16_t autoshutter_config;
-	double autoshutter_temp;
-	double autoshutter_timer;
-	double track_ref_start;
-	bool laser_exteral_control;
-	double delay_laser_on;
-	double preheating_ena;
-	double preheating_time;
-	double preheating_power;
-	double potencia_t0;
-	double potencia_t1;
-	double dt;
-	double power_max;
-	double power_min;
-	double power_max_limit;
-	double power_min_limit;
-	double duty;
-	double integral_limit;
-	double integral_limit_scaled;
-	double integral_limit_slew;
-} process_variables_t;
-
 typedef struct
 {
 	unsigned int rw;
@@ -304,20 +236,18 @@ int logging;
 int stop_logging;
 
 double metadata_get_width(metadata_t *metadata);
-void memory_initialize(config_data_t config_data, process_variables_t *process_variables, mb_core_state_t *mb_core_state, control_unit_core_state_t *control_unit_state);
-int read_serial_number(const char *path, process_variables_t *process_variables);
-void tcp_command_host(int newsockfd, control_unit_core_state_t *control_unit_state, process_variables_t *process_variables, mb_core_state_t *mb_core_state, arm_core_state_t *arm_core_state);
+void memory_initialize(config_data_t config_data, mb_core_state_t *mb_core_state, control_unit_core_state_t *control_unit_state);
+int read_serial_number(const char *path);
+void tcp_command_host(int newsockfd, control_unit_core_state_t *control_unit_state, mb_core_state_t *mb_core_state, arm_core_state_t *arm_core_state);
 void image_writer(int newsockimgfd, metadata_t *metadata, control_unit_core_state_t *control_unit_state);
 
 config_data_t config_file_read(config_data_t initialization_data);
 config_data_t config_initialize(config_data_t s_dat);
-int config_save(const char *path, process_variables_t *process_variables, mb_core_state_t *mb_core_state, control_unit_core_state_t *control_unit_state);
+int config_save(const char *path, mb_core_state_t *mb_core_state, control_unit_core_state_t *control_unit_state);
 double metadata_get_width(metadata_t *metadata);
 
 int main(int argc, char *argv[])
 {
-
-	process_variables_t process_variables;
 
 	/**
 	 * Open MB Core
@@ -367,28 +297,28 @@ int main(int argc, char *argv[])
 	/*
 	 * Load Serial Number
 	 */
-	if (!read_serial_number("/etc/clamir/serial_number.conf", &process_variables))
-	{
-		printf("Couldn't read serial number from file %s", "/etc/clamir/serial_number.conf");
-	}
+	// if (!read_serial_number("/etc/clamir/serial_number.conf", &process_variables))
+	// {
+	// 	printf("Couldn't read serial number from file %s", "/etc/clamir/serial_number.conf");
+	// }
 
 	/*
 	 * Inicializacion de los valores de CLAMIR
 	 */
-	config_data_t config_data;
-	config_data = config_file_read(config_data);
+	// config_data_t config_data;
+	// config_data = config_file_read(config_data);
 
-	memory_initialize(config_data, &process_variables, &mb_core_state, &control_unit_state);
+	// memory_initialize(config_data, &mb_core_state, &control_unit_state);
 
-	bpcc_table_core_state_t bpcc_table_state;
-	bpcc_table_core_open(&bpcc_table_state);
+	// bpcc_table_core_state_t bpcc_table_state;
+	// bpcc_table_core_open(&bpcc_table_state);
 
-	if (bpcc_table_core_load_coefficients_from_file(&bpcc_table_state, BPCC_TABLE_COEFFICIENTS_TABLE_FILE_PATH))
-	{
-		control_unit_bpc_en_set(&control_unit_state, 1);
-	}
+	// if (bpcc_table_core_load_coefficients_from_file(&bpcc_table_state, BPCC_TABLE_COEFFICIENTS_TABLE_FILE_PATH))
+	// {
+	// 	control_unit_bpc_en_set(&control_unit_state, 1);
+	// }
 
-	bpcc_table_core_close(&bpcc_table_state);
+	// bpcc_table_core_close(&bpcc_table_state);
 
 	framebuffer_metadata_core_state_t framebuffer_metadata_state;
 	framebuffer_metadata_core_open(&framebuffer_metadata_state);
@@ -451,7 +381,7 @@ int main(int argc, char *argv[])
 				continue;
 			}
 
-			tcp_command_host(sock, &control_unit_state, &process_variables, &mb_core_state, &arm_core_state);
+			tcp_command_host(sock, &control_unit_state, &mb_core_state, &arm_core_state);
 			close(sock);
 		}
 	};
@@ -524,68 +454,60 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
+// used configuration parameters for configuring cores
+// alarm_max
+// alarm_min
+// bias_voltage
+// black_level
+// digitalio
+// drift_intensity
+// ena_drift
+// integration_time
+// max_power
+// max_power_limit
+// min_power
+// min_power_limit
+// mode
+// roi_enable
+// roi_round
+// start_track_mom
+// stop_track_mom
+// threshold
+// track_length
+// track_reference
+// x1_pixel
+// x2_pixel
+// y1_pixel
+// y2_pixel
+
 /*
  * Funcion que inicializa las memorias con la estructura de datos obtenida de un fichero.
  * En caso de conflicto prioriza los Maximos a los Minimos.
  */
-void memory_initialize(config_data_t config_data, process_variables_t *process_variables, mb_core_state_t *mb_core_state, control_unit_core_state_t *control_unit_state)
+void memory_initialize(config_data_t config_data, mb_core_state_t *mb_core_state, control_unit_core_state_t *control_unit_state)
 {
 
 	uint64_t time_track_aux = 0;
 
 	// inicializacion de la memoria mapeada digitalmente process_variables
 
-	process_variables->ki = config_data.ki;
-	process_variables->kp = config_data.kp;
-	process_variables->kd = config_data.kd;
-
 	if (config_data.max_power < config_data.min_power)
 	{
 		config_data.min_power = config_data.max_power - 1;
 	}
 
-	process_variables->max_power = config_data.max_power;
-	process_variables->min_power = config_data.min_power;
-	process_variables->power_man = config_data.power;
-
 	if (config_data.max_power_limit < config_data.min_power_limit)
 	{
 		config_data.min_power_limit = config_data.max_power_limit - 1;
 	}
-	process_variables->power_limit_max = config_data.max_power_limit;
 
-	nit_mb_core_pwm_limit_max_set(mb_core_state, (unsigned int)((double)config_data.max_power_limit - (double)process_variables->min_power) * (16383 / ((double)process_variables->max_power - (double)process_variables->min_power)));
-
-	process_variables->power_limit_min = config_data.min_power_limit;
-
-	nit_mb_core_pwm_limit_min_set(mb_core_state, (unsigned int)((double)config_data.min_power_limit - (double)process_variables->min_power) * (16383 / ((double)process_variables->max_power - (double)process_variables->min_power)));
-
-	process_variables->width_ref = config_data.width_manual;
-	process_variables->set_ref_width = 1; // Cuando comience el hilo de procesamiento de control se tomara el ancho de referencia
-	process_variables->pixel_mm_ratio = config_data.pixel_mm_ratio;
-	process_variables->end_of_process = config_data.end_of_process;
-	process_variables->limit_integral = config_data.limit_integral;
-	process_variables->limit_slew = config_data.limit_slew;
-	process_variables->buff_size = config_data.circular_buffer_size;
-	process_variables->enable_alarm = config_data.alarm_enable;
+	nit_mb_core_pwm_limit_max_set(mb_core_state, (unsigned int)((double)config_data.max_power_limit - (double)config_data.min_power) * (16383 / ((double)config_data.max_power - (double)config_data.min_power)));
+	nit_mb_core_pwm_limit_min_set(mb_core_state, (unsigned int)((double)config_data.min_power_limit - (double)config_data.min_power) * (16383 / ((double)config_data.max_power - (double)config_data.min_power)));
 
 	if (config_data.alarm_max < config_data.alarm_min)
 	{
 		config_data.alarm_min = config_data.alarm_max - 1;
 	}
-	process_variables->alarm_max = config_data.alarm_max;
-	process_variables->alarm_min = config_data.alarm_min;
-	process_variables->alarm_time = config_data.alarm_time;
-	process_variables->automeasure = config_data.automeasure;
-	process_variables->autoshutter_config = config_data.autoshutter;
-	process_variables->autoshutter_temp = config_data.drift_temp_autoshutter;
-	process_variables->autoshutter_timer = config_data.timer_autoshutter;
-	process_variables->track_ref_start = config_data.track_ref_start;
-	process_variables->laser_exteral_control = config_data.laser_external_control;
-	process_variables->delay_laser_on = config_data.delay_laser_on;
-	process_variables->preheating_ena = config_data.preheating_ena;
-	process_variables->preheating_time = config_data.preheating_time;
-	process_variables->preheating_power = config_data.preheating_power;
 
 	// inicializacion de la memoria Baseaddress aimen command
 
@@ -606,66 +528,56 @@ void memory_initialize(config_data_t config_data, process_variables_t *process_v
 		config_data.y2_pixel = config_data.y1_pixel;
 	}
 
-	process_variables->auto_shutter = 1; // realizará un autoshutter con la nueva configuracion en cuanto se inicie el proceso de control
+	// process_variables->auto_shutter = 1; // realizará un autoshutter con la nueva configuracion en cuanto se inicie el proceso de control
 
 	nit_mb_core_start_track_mom_t_set(mb_core_state, config_data.start_track_mom);
 	nit_mb_core_end_of_track_set(mb_core_state, config_data.stop_track_mom);
 	nit_mb_core_mode_set(mb_core_state, config_data.mode);
 	nit_mb_core_reference_track_set(mb_core_state, config_data.track_reference);
-
 	nit_mb_core_time_track_low_set(mb_core_state, (unsigned int)(0x00000000FFFFFFFF & time_track_aux));
 	nit_mb_core_time_track_high_set(mb_core_state, (unsigned int)((0xFFFFFFFF00000000 & time_track_aux) >> 32));
-
 	nit_mb_core_threshold_set(mb_core_state, config_data.threshold);
 	nit_mb_core_roi_round_set(mb_core_state, config_data.roi_round);
 	nit_mb_core_enable_roi_set(mb_core_state, config_data.roi_enable);
-
 	nit_mb_core_roi_x1_set(mb_core_state, config_data.x1_pixel);
 	nit_mb_core_roi_x2_set(mb_core_state, config_data.x2_pixel);
-
 	nit_mb_core_roi_y1_set(mb_core_state, config_data.y1_pixel);
 	nit_mb_core_roi_y2_set(mb_core_state, config_data.y2_pixel);
 	nit_mb_core_digital_out_conf_set(mb_core_state, config_data.digitalio);
-
-	// Inicializacion de la memoria Baseaddress NIT command
 	control_unit_black_level_set(control_unit_state, config_data.black_level);
 	control_unit_bias_v_set(control_unit_state, config_data.bias_voltage);
 	control_unit_int_time_set(control_unit_state, config_data.integration_time);
-
-	// printf("Drift enable:		%d\n", config_data.ena_drift);
-	// printf("Drift intensity:	%d\n", config_data.drift_intensity);
 	control_unit_drift_enable_set(control_unit_state, config_data.ena_drift);
-
 	control_unit_drift_position_set(control_unit_state, config_data.drift_intensity);
+	nit_mb_core_change_op_mode_set(mb_core_state, 1);
 
-	nit_mb_core_change_op_mode_set(mb_core_state, 1); // Indica a la memoria el cambio al nuevo modo al finalizar la inicializacion).
 }
 
-int read_serial_number(const char *path, process_variables_t *process_variables)
-{
-	char serial_number[8];
-	FILE *fd = nullptr;
-	int retval = 0;
+// int read_serial_number(const char *path, process_variables_t *process_variables)
+// {
+// 	char serial_number[8];
+// 	FILE *fd = nullptr;
+// 	int retval = 0;
 
-	fd = fopen(path, "r");
+// 	fd = fopen(path, "r");
 
-	if (fd == nullptr)
-	{
-		return retval;
-	}
+// 	if (fd == nullptr)
+// 	{
+// 		return retval;
+// 	}
 
-	if (fscanf(fd, "%s", serial_number) != 0)
-	{
-		printf("*** Serial Number %s ***\n", serial_number);
-		process_variables->serial_number_low = 0x00000000;
-		process_variables->serial_number_high = 0x00000000;
-		retval = 1;
-	}
+// 	if (fscanf(fd, "%s", serial_number) != 0)
+// 	{
+// 		printf("*** Serial Number %s ***\n", serial_number);
+// 		process_variables->serial_number_low = 0x00000000;
+// 		process_variables->serial_number_high = 0x00000000;
+// 		retval = 1;
+// 	}
 
-	fclose(fd);
+// 	fclose(fd);
 
-	return retval;
-}
+// 	return retval;
+// }
 
 /*
  * Funcián de escritura de imagenes desde el CLAMIR
@@ -734,7 +646,7 @@ void image_writer(int sock, metadata_t *metadata, control_unit_core_state_t *con
 	}
 
 	framebuffer_core_close(&framebuffer_core_state);
-	
+
 }
 
 int system_command_host_process_action(const tcp_command_host_action_t *action)
@@ -757,7 +669,7 @@ int tcp_command_host_decode_buffer(tcp_command_host_action_t *dest, const unsign
 	return 0;
 }
 
-void tcp_command_host(int newsockfd, control_unit_core_state_t *control_unit_state, process_variables_t *process_variables, mb_core_state_t *mb_core_state, arm_core_state_t *arm_core_state)
+void tcp_command_host(int newsockfd, control_unit_core_state_t *control_unit_state, mb_core_state_t *mb_core_state, arm_core_state_t *arm_core_state)
 {
 
 	uint64_t time_track_aux;
@@ -1611,7 +1523,7 @@ config_data_t get_value_of_key(FILE *config_file_stream, config_data_t config_da
 	return config_data;
 }
 
-int config_save(const char *path, process_variables_t *process_variables, mb_core_state_t *mb_core_state, control_unit_core_state_t *control_unit_state)
+int config_save(const char *path, mb_core_state_t *mb_core_state, control_unit_core_state_t *control_unit_state)
 {
 	int result = 0;
 	uint64_t time_track_aux = 0;
@@ -1624,35 +1536,6 @@ int config_save(const char *path, process_variables_t *process_variables, mb_cor
 	}
 	else
 	{
-
-		fprintf(fd, "KI %d\n", process_variables->ki);
-		fprintf(fd, "KP %d\n", process_variables->kp);
-		fprintf(fd, "KD %d\n", process_variables->kd);
-		fprintf(fd, "MAX_POWER %d\n", process_variables->max_power);
-		fprintf(fd, "MIN_POWER %d\n", process_variables->min_power);
-		fprintf(fd, "POWER %d\n", process_variables->power_man);
-		fprintf(fd, "MAX_POWER_LIMIT %d\n", process_variables->power_limit_max);
-		fprintf(fd, "MIN_POWER_LIMIT %d\n", process_variables->power_limit_min);
-		fprintf(fd, "WIDTH_MANUAL %.2f\n", ((float)process_variables->width_ref / 100));
-		fprintf(fd, "PIXEL_MM_RATIO %.3f\n", ((float)process_variables->pixel_mm_ratio / 1000));
-		fprintf(fd, "END_OF_PROCESS %d\n", process_variables->end_of_process);
-		fprintf(fd, "LIMIT_INTEGRAL %d\n", process_variables->limit_integral);
-		fprintf(fd, "LIMIT_SLEW %.2f\n", ((float)process_variables->limit_slew));
-		fprintf(fd, "CIRCULAR_BUFFER_SIZE %d\n", process_variables->buff_size);
-		fprintf(fd, "ALARM_ENABLE %d\n", process_variables->enable_alarm);
-		fprintf(fd, "ALARM_MAX %.2f\n", ((float)process_variables->alarm_max / 100));
-		fprintf(fd, "ALARM_MIN %.2f\n", ((float)process_variables->alarm_min / 100));
-		fprintf(fd, "ALARM_TIME %d\n", process_variables->alarm_time);
-		fprintf(fd, "AUTOMEASURE %d\n", process_variables->automeasure);
-		fprintf(fd, "CONF_AUTOSHUTTER %d\n", process_variables->autoshutter_config);
-		fprintf(fd, "DRIFT_TEMP_AUTOSHUTTER %.1f\n", ((float)process_variables->autoshutter_temp / 10));
-		fprintf(fd, "TIMER_AUTOSHUTTER %d\n", (process_variables->autoshutter_timer * 10));
-		fprintf(fd, "TRACK_REF_START %d\n", process_variables->track_ref_start);
-		fprintf(fd, "LASER_EXTERNAL_CONTROL %d\n", process_variables->laser_exteral_control);
-		fprintf(fd, "DELAY_LASER_ON %d\n", process_variables->delay_laser_on);
-		fprintf(fd, "PREHEATING_ENA %d\n", process_variables->preheating_ena);
-		fprintf(fd, "PREHEATING_TIME %d\n", process_variables->preheating_time);
-		fprintf(fd, "PREHEATING_POWER %d\n", process_variables->preheating_power);
 
 		fprintf(fd, "START_TRACK_MOM %d\n", nit_mb_core_start_track_mom_t_get(mb_core_state));
 		fprintf(fd, "STOP_TRACK_MOM %d\n", nit_mb_core_end_of_track_get(mb_core_state));
@@ -1731,6 +1614,7 @@ config_data_t config_initialize(config_data_t config_data)
 	config_data.preheating_power = 0;
 	config_data.ena_drift = 1;
 	config_data.drift_intensity = 14;
+
 	return config_data;
 }
 
