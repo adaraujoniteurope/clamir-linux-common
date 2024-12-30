@@ -673,9 +673,6 @@ int read_serial_number(const char *path, process_variables_t *process_variables)
 void image_writer(int sock, metadata_t *metadata, control_unit_core_state_t *control_unit_state)
 {
 	int retval = 0;
-	float lVoltage, lResistance, auxTemp;
-
-	metadata_t _metadata;
 	unsigned char frame_sync[] = {0x5f, 0x00, 0x48, 0xf6, 0x70, 0x44, 0x94, 0xee};
 
 	int timer_fd = open("/dev/uio0", O_RDWR);
@@ -688,68 +685,34 @@ void image_writer(int sock, metadata_t *metadata, control_unit_core_state_t *con
 	framebuffer_core_open(&framebuffer_core_state);
 	volatile uint16_t *buffer = framebuffer_get_memory_map(&framebuffer_core_state);
 
-	_metadata = *metadata;
+	const int shutter_enable_counter_max = 1000;
+	int shutter_enable_counter = 0;
 
-	/**
-	 * Set temperature 1
-	 */
-	auto temp1 = control_unit_temp1_get(control_unit_state);
-	_metadata.t1 = control_unit_temp_to_degc(temp1);
-
-	/**
-	 * Set temperature 2
-	 */
-	auto temp2 = control_unit_temp2_get(control_unit_state);
-	_metadata.t1 = control_unit_temp_to_degc(temp2);
-
-	auto milliseconds = 0;
-
-	uint8_t shutter_state;
-	const uint8_t SHUTTER_STATE_IDLE = 0;
-	const uint8_t SHUTTER_STATE_CALIBRATE = 1;
-	const uint8_t SHUTTER_STATE_RELEASE = 2;
+	control_unit_offset_update_set(control_unit_state, 1);
 
 	while (retval >= 0)
 	{
+
 		read(timer_fd, (int *)&timer_status, sizeof(int));
 		write(timer_fd, (void *)&timer_ctrl, sizeof(int));
 
 		std::cout << std::chrono::high_resolution_clock::now().time_since_epoch().count() << std::endl;
+
 		/**
 		 * Enable shutter
 		 */
-		control_unit_shutter_set(control_unit_state, 0);
 
-		/**
-		 * Copy metadata current value
-		 */
-		_metadata = *metadata;
-
-		/**
-		 * Set temperature 1
-		 */
-		auto temp1 = control_unit_temp1_get(control_unit_state);
-		_metadata.t1 = control_unit_temp_to_degc(temp1);
-
-		/**
-		 * Set temperature 2
-		 */
-		auto temp2 = control_unit_temp2_get(control_unit_state);
-		_metadata.t1 = control_unit_temp_to_degc(temp2);
-
-		/**
-		 * Check IO Status
-		 */
-		if ((_metadata.io_status & 0x00000004) > 0)
-		{
-			_metadata.io_status = (_metadata.io_status & 0xFFFFFFFB);
-		}
-		else
-		{
-			_metadata.io_status = (_metadata.io_status | 0x00000004);
+		if (shutter_enable_counter-->0) {
+			control_unit_shutter_set(control_unit_state, 0);
+		} else {
+			control_unit_shutter_set(control_unit_state, 1);
+			shutter_enable_counter = shutter_enable_counter_max;
 		}
 
 		retval = write(sock, frame_sync, sizeof(frame_sync));
+
+		metadata->frame_number++;
+
 		if (retval < 0)
 		{
 			printf("ERROR writing image to socket (frame sync)\n");
