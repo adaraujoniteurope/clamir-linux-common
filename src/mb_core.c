@@ -39,7 +39,7 @@ int mb_core_close(mb_core_state_t* state)
     }
 
     if (state->priv != NULL) {
-        munmap(state->priv, NIT_MB_CORE_SIZE);
+        munmap((void*)state->priv, NIT_MB_CORE_SIZE);
     }
 
     if (state->fd >= 0)
