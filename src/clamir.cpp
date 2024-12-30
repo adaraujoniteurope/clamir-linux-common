@@ -305,7 +305,6 @@ int stop_logging;
 
 double metadata_get_width(metadata_t *metadata);
 void memory_initialize(config_data_t config_data, process_variables_t *process_variables, mb_core_state_t *mb_core_state, control_unit_core_state_t *control_unit_state);
-void manual_shutter_control_loop(metadata_t *metadata, process_variables_t *process_variables, mb_core_state_t *mb_core_state, arm_core_state_t *arm_core_state, control_unit_core_state_t *control_unit_state);
 int read_serial_number(const char *path, process_variables_t *process_variables);
 void tcp_command_host(int newsockfd, control_unit_core_state_t *control_unit_state, process_variables_t *process_variables, mb_core_state_t *mb_core_state, arm_core_state_t *arm_core_state);
 void image_writer(int newsockimgfd, metadata_t *metadata, control_unit_core_state_t *control_unit_state);
@@ -396,23 +395,6 @@ int main(int argc, char *argv[])
 	metadata_t *metadata = (metadata_t *)framebuffer_metadata_core_memory_map_get(&framebuffer_metadata_state);
 
 	signal(SIGPIPE, SIGPIPE_handler);
-
-	auto log_thread_function = [&]()
-	{
-		for (;;)
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		}
-	};
-
-	auto control_thread_function = [&]()
-	{
-		for (;;)
-		{
-			manual_shutter_control_loop(metadata, &process_variables, &mb_core_state, &arm_core_state, &control_unit_state);
-			std::cout << "Closed Loop Control: Closed" << std::endl;
-		}
-	};
 
 	auto server_command_host_thread_function = [&]()
 	{
@@ -532,14 +514,10 @@ int main(int argc, char *argv[])
 			image_writer(sock, metadata, &control_unit_state);
 		}
 	};
-
-	auto log_thread = std::thread(log_thread_function);
-	auto control_thread = std::thread(control_thread_function);
+	
 	auto server_command_host_thread = std::thread(server_command_host_thread_function);
 	auto server_video_stream_host_thread = std::thread(server_video_stream_host_thread_function);
 
-	log_thread.join();
-	control_thread.join();
 	server_command_host_thread.join();
 	server_video_stream_host_thread.join();
 
@@ -692,19 +670,19 @@ int read_serial_number(const char *path, process_variables_t *process_variables)
 /*
  * Funcián de escritura de imagenes desde el CLAMIR
  */
-void image_writer(int newsockimgfd, metadata_t *metadata, control_unit_core_state_t *control_unit_state)
+void image_writer(int sock, metadata_t *metadata, control_unit_core_state_t *control_unit_state)
 {
-	int frame_counter = 0;
-	int counter = 0;
-	int status1 = 0;
-	int status2 = 0;
-	int nw = 0;
+	int retval = 0;
 	float lVoltage, lResistance, auxTemp;
 
 	metadata_t _metadata;
 	unsigned char frame_sync[] = {0x5f, 0x00, 0x48, 0xf6, 0x70, 0x44, 0x94, 0xee};
 
-	sem_t *semaforo;
+	int timer_fd = open("/dev/uio0", O_RDWR);
+
+	int timer_ctrl = 1;
+	int timer_status = 0;
+	write(timer_fd, (void *)&timer_ctrl, sizeof(int));
 
 	framebuffer_core_state_t framebuffer_core_state;
 	framebuffer_core_open(&framebuffer_core_state);
@@ -724,10 +702,22 @@ void image_writer(int newsockimgfd, metadata_t *metadata, control_unit_core_stat
 	auto temp2 = control_unit_temp2_get(control_unit_state);
 	_metadata.t1 = control_unit_temp_to_degc(temp2);
 
-	while (nw >= 0)
-	{
+	auto milliseconds = 0;
 
-		control_unit_shutter_set(control_unit_state, 1);
+	uint8_t shutter_state;
+	const uint8_t SHUTTER_STATE_IDLE = 0;
+	const uint8_t SHUTTER_STATE_CALIBRATE = 1;
+	const uint8_t SHUTTER_STATE_RELEASE = 2;
+
+	while (retval >= 0)
+	{
+		read(timer_fd, (int *)&timer_status, sizeof(int));
+		write(timer_fd, (void *)&timer_ctrl, sizeof(int));
+
+		std::cout << std::chrono::high_resolution_clock::now().time_since_epoch().count() << std::endl;
+		/**
+		 * Enable shutter
+		 */
 		control_unit_shutter_set(control_unit_state, 0);
 
 		/**
@@ -759,23 +749,23 @@ void image_writer(int newsockimgfd, metadata_t *metadata, control_unit_core_stat
 			_metadata.io_status = (_metadata.io_status | 0x00000004);
 		}
 
-		nw = write(newsockimgfd, frame_sync, sizeof(frame_sync));
-		if (nw < 0)
+		retval = write(sock, frame_sync, sizeof(frame_sync));
+		if (retval < 0)
 		{
 			printf("ERROR writing image to socket (frame sync)\n");
 			break;
 		}
 
-		nw = write(newsockimgfd, (unsigned char *)metadata, sizeof(metadata_t));
+		retval = write(sock, (unsigned char *)metadata, sizeof(metadata_t));
 
-		if (nw < 0)
+		if (retval < 0)
 		{
 			printf("ERROR writing image to socket (header)\n");
 			break;
 		}
 
-		nw = write(newsockimgfd, (unsigned char *)buffer, NIT_FRAMEBUFFER_CORE_SIZE);
-		if (nw < 0)
+		retval = write(sock, (unsigned char *)buffer, NIT_FRAMEBUFFER_CORE_SIZE);
+		if (retval < 0)
 		{
 			printf("ERROR writing image to socket (image)\n");
 			break;
@@ -841,32 +831,6 @@ void tcp_command_host(int newsockfd, control_unit_core_state_t *control_unit_sta
 
 		system_command_host_process_action(&action);
 	}
-}
-
-typedef enum shutter_manual_controller_state_struct
-{
-	SHUTTER_MANUAL_CONTROLLER_STATE_IDLE,
-	SHUTTER_MANUAL_CONTROLLER_STATE_INTEGRATING,
-} shutter_manual_controller_state_t;
-
-void manual_shutter_control_loop(metadata_t *metadata, process_variables_t *process_variables, mb_core_state_t *mb_core_state, arm_core_state_t *arm_core_state, control_unit_core_state_t *control_unit_state)
-{
-
-	shutter_manual_controller_state_t state;
-
-	for(;;) {
-		switch(state) {
-			case SHUTTER_MANUAL_CONTROLLER_STATE_IDLE:
-			{
-				break;
-			}
-			case SHUTTER_MANUAL_CONTROLLER_STATE_INTEGRATING:
-			{
-				break;
-			}
-			default: break;
-		}
-	};
 }
 
 config_data_t get_value_of_key(FILE *fdCONFSYS, config_data_t s_dat, char *auxString);

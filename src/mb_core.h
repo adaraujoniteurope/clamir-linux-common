@@ -132,105 +132,105 @@ extern "C"
         volatile void *priv;
     } mb_core_state_t;
 
-    uint16_t mb_core_open(mb_core_state_t *state);
+    int mb_core_open(mb_core_state_t *state);
 
-    uint16_t mb_core_close(mb_core_state_t *state);
+    int mb_core_close(mb_core_state_t *state);
 
-    void nit_mb_core_change_op_mode_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_change_op_mode_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_change_op_mode_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_change_op_mode_get(mb_core_state_t *state);
 
-    void nit_mb_core_digital_in_0_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_digital_in_0_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_digital_in_0_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_digital_in_0_get(mb_core_state_t *state);
 
-    void nit_mb_core_digital_in_1_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_digital_in_1_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_digital_in_1_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_digital_in_1_get(mb_core_state_t *state);
 
-    void nit_mb_core_digital_out_0_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_digital_out_0_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_digital_out_0_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_digital_out_0_get(mb_core_state_t *state);
 
-    void nit_mb_core_digital_out_1_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_digital_out_1_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_digital_out_1_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_digital_out_1_get(mb_core_state_t *state);
 
-    void nit_mb_core_digital_out_2_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_digital_out_2_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_digital_out_2_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_digital_out_2_get(mb_core_state_t *state);
 
-    void nit_mb_core_digital_out_3_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_digital_out_3_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_digital_out_3_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_digital_out_3_get(mb_core_state_t *state);
 
-    void nit_mb_core_digital_out_conf_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_digital_out_conf_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_digital_out_conf_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_digital_out_conf_get(mb_core_state_t *state);
 
-    void nit_mb_core_enable_roi_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_enable_roi_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_enable_roi_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_enable_roi_get(mb_core_state_t *state);
 
-    void nit_mb_core_end_of_track_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_end_of_track_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_end_of_track_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_end_of_track_get(mb_core_state_t *state);
 
-    void nit_mb_core_mode_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_mode_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_mode_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_mode_get(mb_core_state_t *state);
 
-    void nit_mb_core_pwm_limit_max_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_pwm_limit_max_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_pwm_limit_max_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_pwm_limit_max_get(mb_core_state_t *state);
 
-    void nit_mb_core_pwm_limit_min_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_pwm_limit_min_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_pwm_limit_min_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_pwm_limit_min_get(mb_core_state_t *state);
 
-    void nit_mb_core_pwm_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_pwm_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_pwm_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_pwm_get(mb_core_state_t *state);
 
-    void nit_mb_core_reference_track_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_reference_track_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_reference_track_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_reference_track_get(mb_core_state_t *state);
 
-    void nit_mb_core_roi_round_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_roi_round_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_roi_round_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_roi_round_get(mb_core_state_t *state);
 
-    void nit_mb_core_roi_x1_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_roi_x1_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_roi_x1_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_roi_x1_get(mb_core_state_t *state);
 
-    void nit_mb_core_roi_x2_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_roi_x2_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_roi_x2_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_roi_x2_get(mb_core_state_t *state);
 
-    void nit_mb_core_roi_y1_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_roi_y1_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_roi_y1_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_roi_y1_get(mb_core_state_t *state);
 
-    void nit_mb_core_roi_y2_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_roi_y2_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_roi_y2_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_roi_y2_get(mb_core_state_t *state);
 
-    void nit_mb_core_start_track_mom_t_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_start_track_mom_t_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_start_track_mom_t_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_start_track_mom_t_get(mb_core_state_t *state);
 
-    void nit_mb_core_threshold_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_threshold_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_threshold_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_threshold_get(mb_core_state_t *state);
 
-    void nit_mb_core_time_track_high_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_time_track_high_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_time_track_high_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_time_track_high_get(mb_core_state_t *state);
 
-    void nit_mb_core_time_track_low_set(mb_core_state_t *state, uint16_t value);
+    void nit_mb_core_time_track_low_set(mb_core_state_t *state, uint32_t value);
 
-    uint16_t nit_mb_core_time_track_low_get(mb_core_state_t *state);
+    uint32_t nit_mb_core_time_track_low_get(mb_core_state_t *state);
 
 #ifdef __cplusplus
 }

@@ -72,53 +72,53 @@ extern "C"
 
     int control_unit_close(control_unit_core_state_t* state);
 
-    void control_unit_bias_v_set(control_unit_core_state_t *state, uint16_t value);
+    void control_unit_bias_v_set(control_unit_core_state_t *state, uint32_t value);
 
-    uint16_t control_unit_bias_v_get(control_unit_core_state_t *state);
+    uint32_t control_unit_bias_v_get(control_unit_core_state_t *state);
 
-    void control_unit_black_level_set(control_unit_core_state_t *state, uint16_t value);
+    void control_unit_black_level_set(control_unit_core_state_t *state, uint32_t value);
 
-    uint16_t control_unit_black_level_get(control_unit_core_state_t *state);
+    uint32_t control_unit_black_level_get(control_unit_core_state_t *state);
 
-    void control_unit_bpc_en_set(control_unit_core_state_t *state, uint16_t value);
+    void control_unit_bpc_en_set(control_unit_core_state_t *state, uint32_t value);
 
-    uint16_t control_unit_bpcc_en_get(control_unit_core_state_t *state);
+    uint32_t control_unit_bpcc_en_get(control_unit_core_state_t *state);
 
-    void control_unit_drift_enable_set(control_unit_core_state_t *state, uint16_t value);
+    void control_unit_drift_enable_set(control_unit_core_state_t *state, uint32_t value);
 
-    uint16_t control_unit_drift_enable_get(control_unit_core_state_t *state);
+    uint32_t control_unit_drift_enable_get(control_unit_core_state_t *state);
 
-    void control_unit_drift_position_set(control_unit_core_state_t *state, uint16_t value);
+    void control_unit_drift_position_set(control_unit_core_state_t *state, uint32_t value);
 
-    uint16_t control_unit_drift_position_get(control_unit_core_state_t *state);
+    uint32_t control_unit_drift_position_get(control_unit_core_state_t *state);
 
-    void control_unit_int_time_set(control_unit_core_state_t *state, uint16_t value);
+    void control_unit_int_time_set(control_unit_core_state_t *state, uint32_t value);
 
-    uint16_t control_unit_int_time_get(control_unit_core_state_t *state);
+    uint32_t control_unit_int_time_get(control_unit_core_state_t *state);
 
-    void control_unit_offset_update_set(control_unit_core_state_t *state, uint16_t value);
+    void control_unit_offset_update_set(control_unit_core_state_t *state, uint32_t value);
 
-    uint16_t control_unit_offset_update_get(control_unit_core_state_t *state);
+    uint32_t control_unit_offset_update_get(control_unit_core_state_t *state);
 
-    uint16_t control_unit_shutter_reset_get(control_unit_core_state_t *state);
+    uint32_t control_unit_shutter_reset_get(control_unit_core_state_t *state);
 
-    void control_unit_shutter_reset_set(control_unit_core_state_t *state, uint16_t value);
+    void control_unit_shutter_reset_set(control_unit_core_state_t *state, uint32_t value);
 
-    void control_unit_shutter_set(control_unit_core_state_t *state, uint16_t value);
+    void control_unit_shutter_set(control_unit_core_state_t *state, uint32_t value);
 
-    uint16_t control_unit_shutter_get(control_unit_core_state_t *state);
+    uint32_t control_unit_shutter_get(control_unit_core_state_t *state);
 
-    uint16_t control_unit_temp1_get(control_unit_core_state_t *state);
+    uint32_t control_unit_temp1_get(control_unit_core_state_t *state);
 
-    void control_unit_temp1_set(control_unit_core_state_t *state, uint16_t value);
+    void control_unit_temp1_set(control_unit_core_state_t *state, uint32_t value);
 
-    uint16_t control_unit_temp2_get(control_unit_core_state_t *state);
+    uint32_t control_unit_temp2_get(control_unit_core_state_t *state);
 
-    double control_unit_temp_get_voltage(uint16_t value);
-    double control_unit_temp_get_resistance(uint16_t value);
-    double control_unit_temp_to_degc(uint16_t value);
+    double control_unit_temp_get_voltage(uint32_t value);
+    double control_unit_temp_get_resistance(uint32_t value);
+    double control_unit_temp_to_degc(uint32_t value);
 
-    void control_unit_temp2_set(control_unit_core_state_t *state, uint16_t value);
+    void control_unit_temp2_set(control_unit_core_state_t *state, uint32_t value);
 
 #ifdef __cplusplus
 }

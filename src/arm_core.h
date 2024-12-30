@@ -28,17 +28,17 @@ typedef struct arm_core_state_struct
     volatile void * priv;
 } arm_core_state_t;
 
-uint16_t arm_core_open(arm_core_state_t* state);
-uint16_t arm_core_close(arm_core_state_t* state);
+uint32_t arm_core_open(arm_core_state_t* state);
+uint32_t arm_core_close(arm_core_state_t* state);
 
-void arm_core_led_r_set(arm_core_state_t* state, uint16_t value);
-uint16_t arm_core_led_r_get(arm_core_state_t* state, uint16_t value);
+void arm_core_led_r_set(arm_core_state_t* state, uint32_t value);
+uint32_t arm_core_led_r_get(arm_core_state_t* state, uint32_t value);
 
-void arm_core_led_g_set(arm_core_state_t* state, uint16_t value);
-uint16_t arm_core_led_g_get(arm_core_state_t* state, uint16_t value);
+void arm_core_led_g_set(arm_core_state_t* state, uint32_t value);
+uint32_t arm_core_led_g_get(arm_core_state_t* state, uint32_t value);
 
-void arm_core_led_b_set(arm_core_state_t* state, uint16_t value);
-uint16_t arm_core_led_b_get(arm_core_state_t* state, uint16_t value);
+void arm_core_led_b_set(arm_core_state_t* state, uint32_t value);
+uint32_t arm_core_led_b_get(arm_core_state_t* state, uint32_t value);
 
 #ifdef __cplusplus
 }
