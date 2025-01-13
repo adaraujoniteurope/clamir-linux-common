@@ -22,15 +22,15 @@ GSDML_MODULE(APP_GSDML_MOD_ID_8_8_DIGITAL_IN_OUT, module_digital_in_out, "DIO 8x
 static uint8_t submod_digital_inout_value = 0;
 static uint16_t submod_digital_inout_value_size = sizeof(submod_digital_inout_value);
 
-int submod_digital_inout_get(void* arg, void *data, uint16_t *size)
+int submod_digital_inout_get(void* submodule, void *data, uint16_t *size)
 {
-    app_gsdml_submodule_t* context = (app_gsdml_submodule_t*) arg;
+    app_gsdml_submodule_t* context = (app_gsdml_submodule_t*) submodule;
     data = &submod_digital_inout_value;
     *size = submod_digital_inout_value_size;
     return 0;
 }
 
-int submod_digital_inout_set(void* arg, void *data, uint16_t size)
+int submod_digital_inout_set(void* submodule, void *data, uint16_t size)
 {
 
     if (size != submod_digital_inout_value_size)
@@ -47,22 +47,22 @@ int submod_digital_inout_set(void* arg, void *data, uint16_t size)
     return 0;
 }
 
-int app_gsdml_digital_in_out_submodule_parameter_1_get(void* arg, void **data, uint16_t *size)
+int app_gsdml_digital_in_out_submodule_parameter_1_get(void* submodule, void **data, uint16_t *size)
 {
-    return app_gsdml_default_param_get(arg, data, size);
+    return app_gsdml_default_param_get(submodule, data, size);
 }
 
-int app_gsdml_digital_in_out_submodule_parameter_1_set(void* arg, void *data, uint16_t size)
+int app_gsdml_digital_in_out_submodule_parameter_1_set(void* submodule, void *data, uint16_t size)
 {
-    return app_gsdml_default_param_set(arg, data, size);
+    return app_gsdml_default_param_set(submodule, data, size);
 }
 
-int app_gsdml_digital_in_out_submodule_parameter_2_get(void* arg, void **data, uint16_t *size)
+int app_gsdml_digital_in_out_submodule_parameter_2_get(void* submodule, void **data, uint16_t *size)
 {
-    return app_gsdml_default_param_get(arg, data, size);
+    return app_gsdml_default_param_get(submodule, data, size);
 }
 
-int app_gsdml_digital_in_out_submodule_parameter_2_set(void* arg, void *data, uint16_t size)
+int app_gsdml_digital_in_out_submodule_parameter_2_set(void* submodule, void *data, uint16_t size)
 {
-    return app_gsdml_default_param_set(arg, data, size);
+    return app_gsdml_default_param_set(submodule, data, size);
 }

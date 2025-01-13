@@ -57,14 +57,12 @@ static void app_handle_data_led_state(bool led_state)
    previous_led_state = led_state;
 }
 
-int app_data_get_input_data
-(
-   const app_data_t* app,
-   const app_subslot_t* subslot,
-   uint8_t* inputdata,
-   uint16_t *size,
-   uint8_t *iops
-)
+int app_data_get_input_data(
+    const app_data_t *app,
+    const app_subslot_t *subslot,
+    uint8_t *inputdata,
+    uint16_t *size,
+    uint8_t *iops)
 {
    /**
     *
@@ -120,11 +118,11 @@ int app_data_get_input_data
 }
 
 int app_data_set_output_data(
-   const app_data_t* app,
-   const app_subslot_t* subslot,
-   //  uint16_t slot_nbr,
-   //  uint16_t subslot_nbr,
-   //  uint32_t submodule_id,
+    const app_data_t *app,
+    const app_subslot_t *subslot,
+    //  uint16_t slot_nbr,
+    //  uint16_t subslot_nbr,
+    //  uint32_t submodule_id,
     uint8_t *data,
     uint16_t size)
 {
@@ -1251,8 +1249,8 @@ static void app_cyclic_data_callback(app_subslot_t *subslot, void *tag)
          /* Application specific handling of the output data to a submodule.
             For the sample application, the data sets a LED. */
          (void)app_data_set_output_data(
-            app,
-            subslot,
+             app,
+             subslot,
              outdata_buf,
              outdata_length);
       }
@@ -1269,9 +1267,9 @@ static void app_cyclic_data_callback(app_subslot_t *subslot, void *tag)
        * For the sample application, the data includes a button
        * state and a counter value. */
       int ret = app_data_get_input_data(
-         app,
-         subslot,
-         indata,
+          app,
+          subslot,
+          indata,
           &indata_size,
           &indata_iops);
 
@@ -1341,13 +1339,17 @@ static int app_set_initial_data_and_ioxs(app_data_t *app)
                    p_subslot->slot_nbr != PNET_SLOT_DAP_IDENT &&
                    p_subslot->data_cfg.insize > 0)
                {
+                  /**
+                   * TODO: retval in this case should be indata_iops instead
+                   * of a typical retval.
+                   */
                   ret = app_data_get_input_data(
-                     app,
-                     p_subslot,
-                     //  p_subslot->slot_nbr,
-                     //  p_subslot->subslot_nbr,
-                     //  p_subslot->submodule_id,
-                     indata,
+                      app,
+                      p_subslot,
+                      //  p_subslot->slot_nbr,
+                      //  p_subslot->subslot_nbr,
+                      //  p_subslot->submodule_id,
+                      indata,
                       &indata_size,
                       &indata_iops);
                }

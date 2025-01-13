@@ -5,6 +5,7 @@
 #include "osal.h"
 #include "pnal.h"
 #include <pnet_api.h>
+#include <endian.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,20 +20,28 @@ APP_GSDML_ECHO_SUBMODULES_TABLE(GSDML_SUBMODULE_DEFINE)
 
 GSDML_MODULE(APP_GSDML_MOD_ID_ECHO, module_echo, "Echo module", APP_GSDML_ECHO_SUBMODULES_TABLE)
 
-static unsigned char value[8] = {0};
-static uint16_t value_size = sizeof(value);
+uint64_t output_data;
+uint64_t input_data;
 
 int submod_echo_get(void* arg, void* data, uint16_t* size)
 {
-    data = &value;
-    *size = value_size;
+    if (data == NULL) {
+        return -1;
+    }
+
+    if (size == NULL) {
+        return -1;
+    }
+
+    *(uint64_t*)data = be64toh(input_data);
+    *size = sizeof(input_data);
     return 0;
 }
 
 int submod_echo_set(void* arg, void* data, uint16_t size)
 {
 
-    if (size != value_size)
+    if (size != sizeof(output_data))
     {
         return -1;
     }
@@ -42,7 +51,7 @@ int submod_echo_set(void* arg, void* data, uint16_t size)
         return -1;
     }
 
-    memcpy(value, data, sizeof(value));
+    output_data = htobe64(*(uint64_t*) data);
     return 0;
 }
 
