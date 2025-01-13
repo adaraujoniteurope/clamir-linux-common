@@ -113,11 +113,7 @@ extern "C"
         pnet_alarm_argument_t alarm_arg;
         app_demo_state_t alarm_demo_state;
         uint8_t alarm_payload[APP_GSDML_ALARM_PAYLOAD_SIZE];
-
-        bool button1_pressed;
-        bool button2_pressed;
-        bool button2_pressed_previous;
-
+        
         /* Counters used to control when buttons are checked
          * and process data is updated */
         uint32_t buttons_tick_counter;
