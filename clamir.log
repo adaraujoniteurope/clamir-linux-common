@@ -1,0 +1,97 @@
+Process /root/clamir created; pid = 434
+Listening on port 2000
+Remote debugging from host 192.168.0.1, port 52030
+nit_control_unit_core_black_level_set: nit_control_unit_core_black_level_offset (36): 1000
+nit_control_unit_core_bias_v_set: nit_control_unit_core_bias_v_offset (1): 13652
+nit_control_unit_core_int_time_set: nit_control_unit_core_int_time_offset (0): 600
+nit_control_unit_core_drift_enable_set: nit_control_unit_core_drift_enable_offset (16): 1
+nit_control_unit_core_drift_position_set: nit_control_unit_core_drift_position_offset (17): 14
+nit_control_unit_core_bpc_en_set: nit_control_unit_core_bpc_en_offset (5): 1
+nit_control_unit_core_offset_update_set: nit_control_unit_core_offset_update_offset (3): 1
+
+** Starting P-Net sample application 0.2.0+v0.2.0-43-g0e48fbf-dirty **
+Number of slots: u (incl slot for DAP module)
+P-net log level:      0 (DEBUG=0, FATAL=4)
+App log level:        0 (DEBUG=0, FATAL=4)
+Max number of ports:  1
+Network interfaces:   end0
+Button1 file:         
+Button2 file:         
+Default station name: rt-labs-dev
+Management port:      end0 00:0A:35:00:1E:53
+Physical port [1]:    end0 00:0A:35:00:1E:53
+Hostname:             alarm
+IP address:           192.168.0.12
+Netmask:              255.255.255.0
+Gateway:              192.168.0.1
+Storage directory: /var/cache/clamir/p-net
+
+Init P-Net stack and sample application
+[17:08:48 DEBUG] API(93): Application calls pnet_init()
+[17:08:48 DEBUG] FILE(170): Did read file /var/cache/clamir/p-net/pnet_data_im.bin Access time 0 ms.
+[17:08:48 DEBUG] FSPM(293): Did read I&M settings from nvm.
+[17:08:48 DEBUG] FILE(170): Did read file /var/cache/clamir/p-net/pnet_data_im.bin Access time 0 ms.
+[17:08:48 DEBUG] FSPM(349): No storing of nvm I&M settings (no changes).
+[17:08:48 DEBUG] FSPM(1408): No user callback for signal LED implemented.
+[17:08:48 DEBUG] CPM(67): Init driver
+[17:08:48 INFO ] CPM_DRIVER_SW(532): Default CPM driver installed
+[17:08:48 DEBUG] PPM(37): Init driver
+[17:08:48 INFO ] PPM_DRIVER_SW(278): Default PPM driver installed
+[17:08:48 DEBUG] ETH(68): Initialising interface "end0" 00:0A:35:00:1E:53 Ethertype 0xFFFF
+[17:08:48 DEBUG] CMINA(163): Setting default configuration. Reset mode: 0
+[17:08:48 DEBUG] FILE(170): Did read file /var/cache/clamir/p-net/pnet_data_ip.bin Access time 0 ms.
+[17:08:48 DEBUG] CMINA(198): Did read IP parameters from nvm
+[17:08:48 DEBUG] CMINA(258): Using IP: 0.0.0.0 Netmask: 0.0.0.0 Gateway: 0.0.0.0 Station name: "rt-labs-dev"
+[17:08:48 DEBUG] CMINA(504): No IP address available. Will not send any HELLO messages.
+[17:08:48 DEBUG] DCP(2005): Activate. Register frame handlers.
+[17:08:48 DEBUG] ETH(271): Framehandler is adding FrameId 0xfefc at index 0.
+[17:08:48 DEBUG] ETH(271): Framehandler is adding FrameId 0xfefd at index 1.
+[17:08:48 DEBUG] ETH(271): Framehandler is adding FrameId 0xfefe at index 2.
+[17:08:48 DEBUG] FILE(170): Did read file /var/cache/clamir/p-net/pnet_data_ip.bin Access time 0 ms.
+[17:08:48 DEBUG] CMINA(129): No storing of nvm IP settings (no changes). IP: 0.0.0.0 Netmask: 0.0.0.0 Gateway: 0.0.0.0 Station name: "rt-labs-dev"
+[17:08:48 DEBUG] FILE(170): Did read file /var/cache/clamir/p-net/pnet_data_pdport_1.bin Access time 0 ms.
+[17:08:48 DEBUG] PDPORT(89): Did read PDPort settings from nvm. Monitoring peer on port 1. Station name: "controller" Port: "port-001"
+[17:08:48 DEBUG] LLDP(1161): Enabling LLDP transmission for port 1
+[17:08:48 DEBUG] LLDP(997): Send port 1 MAC: 00:0A:35:00:1E:53 IP: 0.0.0.0 Chassis ID: "P-Net Sample Application  12345 Abcdefghijk    007                  3 V  0  2  0" Port ID: "port-001.rt-labs-dev"
+Start sample application main loop
+
+Plug DAP module and its submodules
+Module plug indication
+app_gsdml_get_module_cfg
+  Pull old module.    API: 0 Slot:  0
+[17:08:48 DEBUG] CMDEV(871): No module in slot 0
+  Plug module.        API: 0 Slot:  0 Module ID: 0x1 "DAP 1"
+Submodule plug indication.
+app_gsdml_get_submodule_cfg
+  Pull old submodule. API: 0 Slot:  0 Subslot: 1
+[17:08:48 DEBUG] CMDEV(647): No submodule in api_id 0 slot 0 subslot 1
+  Plug submodule.     API: 0 Slot:  0 Module ID: 0x1   
+                      Subslot: 1 Submodule ID: 0x1 "DAP Identity 1"
+                      Data Dir: NO_IO  In: 0 bytes  Out: 0 bytes
+[17:08:48 DEBUG] CMDEV(830): Plugged submodule ident 0x00000001 number in api 0 slot 0 subslot 1
+Submodule plug indication.
+app_gsdml_get_submodule_cfg
+  Pull old submodule. API: 0 Slot:  0 Subslot: 32768
+[17:08:48 DEBUG] CMDEV(647): No submodule in api_id 0 slot 0 subslot 32768
+  Plug submodule.     API: 0 Slot:  0 Module ID: 0x1   
+                      Subslot: 32768 Submodule ID: 0x8000 "DAP Interface 1"
+                      Data Dir: NO_IO  In: 0 bytes  Out: 0 bytes
+[17:08:48 DEBUG] CMDEV(830): Plugged submodule ident 0x00008000 number in api 0 slot 0 subslot 32768
+Submodule plug indication.
+app_gsdml_get_submodule_cfg
+  Pull old submodule. API: 0 Slot:  0 Subslot: 32769
+[17:08:48 DEBUG] CMDEV(647): No submodule in api_id 0 slot 0 subslot 32769
+  Plug submodule.     API: 0 Slot:  0 Module ID: 0x1   
+                      Subslot: 32769 Submodule ID: 0x8001 "DAP Port 1"
+                      Data Dir: NO_IO  In: 0 bytes  Out: 0 bytes
+[17:08:48 DEBUG] CMDEV(830): Plugged submodule ident 0x00008001 number in api 0 slot 0 subslot 32769
+Done plugging DAP
+
+Waiting for PLC connect request
+
+[17:08:48 DEBUG] API(131): Too long since pnet_handle_periodic() was called: 6521 microseconds
+[17:08:48 INFO ] LLDP(487): Port 1, receive timeout expired
+[17:08:48 INFO ] PDPORT(780): Setting no-peer-detected diagnosis for port 1
+[17:08:48 DEBUG] DIAG(472): Adding standard format diagnosis, ix 0. USI 0x8002 Slot 0 Subslot 0x8001 Channel 0x8000
+[17:08:48 DEBUG] DIAG(551): No active connection, so no alarm is sent.
+[17:08:48 INFO ] PDPORT(1014): Link went up on port 1.

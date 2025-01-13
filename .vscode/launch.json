@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Attach to GDB Server at 192.168.0.12:2000",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/clamir",
+            "MIMode": "gdb",
+            "cwd": ".",
+            "miDebuggerServerAddress": "192.168.0.12:2000",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                },
+                {
+                    "text": "b main",
+                    "ignoreFailures": true
+                },
+            ]
+        }
+
+    ]
+}

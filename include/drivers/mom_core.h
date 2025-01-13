@@ -1,0 +1,42 @@
+#ifndef _NIT_EMBEDDED_CLAMIR_DRIVER_MOM_CORE_H_
+#define _NIT_EMBEDDED_CLAMIR_DRIVER_MOM_CORE_H_
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+#include "common.h"
+#include "inttypes.h"
+#include "mb_core.h"
+#include "mom_core_field_table.h"
+
+#define NIT_MOM_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(mb_core_state_t, name, parameter, type, size, offset)
+#define NIT_MOM_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(mb_core_state_t, name, parameter, type, size, offset)
+
+#define NIT_MOM_CORE_BASE_ADDRESS (0x50000000)
+#define NIT_MOM_CORE_SIZE 0x00010000
+
+    DRIVER_DECLARE_OFFSET_TABLE_BEGIN(mom_core)
+    NIT_MOM_CORE_FIELD_TABLE(DRIVER_FIELD_AS_OFFSET_TABLE_ITEM)
+    DRIVER_DECLARE_OFFSET_TABLE_END(mom_core)
+
+    DRIVER_DECLARE_CONFIG_BEGIN(mom_core)
+    NIT_MOM_CORE_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_TABLE_ITEM)
+    DRIVER_DECLARE_CONFIG_END(mom_core)
+
+    DRIVER_DECLARE_STATE(mom_core)
+
+    int mom_core_open(mb_core_state_t *state);
+    int mom_core_close(mb_core_state_t *state);
+
+    int mom_core_config_save_to_file(mb_core_state_t *state, const char *path);
+    int mom_core_config_load_from_file(mb_core_state_t *state, const char *path);
+
+    NIT_MOM_CORE_FIELD_TABLE(NIT_MOM_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION)
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

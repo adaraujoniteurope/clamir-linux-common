@@ -6,7 +6,7 @@ int main(int argc, char* argv[])
 
 	application.init();
 
-	for(;;) {
+	for(!application.stopped()) {
 		application.poll();
 	}
 
