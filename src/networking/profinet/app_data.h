@@ -147,9 +147,11 @@ extern "C"
      * @return Reference to PNIO data, NULL on error
      */
     uint8_t *app_data_get_input_data(
-        uint16_t slot_nbr,
-        uint16_t subslot_nbr,
-        uint32_t submodule_id,
+        const app_data_t* app,
+        const app_subslot_t* subslot,
+        // uint16_t slot_nbr,
+        // uint16_t subslot_nbr,
+        // uint32_t submodule_id,
         uint16_t *size,
         uint8_t *iops);
 
@@ -166,9 +168,11 @@ extern "C"
      * @return 0 on success, -1 on error
      */
     int app_data_set_output_data(
-        uint16_t slot_nbr,
-        uint16_t subslot_nbr,
-        uint32_t submodule_id,
+        const app_data_t* app,
+        const app_subslot_t* subslot,
+        // uint16_t slot_nbr,
+        // uint16_t subslot_nbr,
+        // uint32_t submodule_id,
         uint8_t *data,
         uint16_t size);
 

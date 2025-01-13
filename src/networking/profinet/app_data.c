@@ -58,9 +58,11 @@ static void app_handle_data_led_state(bool led_state)
 }
 
 uint8_t *app_data_get_input_data(
-    uint16_t slot_nbr,
-    uint16_t subslot_nbr,
-    uint32_t submodule_id,
+   const app_data_t* app,
+   const app_subslot_t* subslot,
+   //  uint16_t slot_nbr,
+   //  uint16_t subslot_nbr,
+   //  uint32_t submodule_id,
     uint16_t *size,
     uint8_t *iops)
 {
@@ -88,7 +90,7 @@ uint8_t *app_data_get_input_data(
       return NULL;
    }
 
-   const app_gsdml_submodule_t *submodule = app_gsdml_get_submodule_cfg(submodule_id);
+   const app_gsdml_submodule_t *submodule = app_gsdml_get_submodule_cfg(subslot->submodule_id);
 
    if (submodule == NULL)
    {
@@ -119,9 +121,11 @@ uint8_t *app_data_get_input_data(
 }
 
 int app_data_set_output_data(
-    uint16_t slot_nbr,
-    uint16_t subslot_nbr,
-    uint32_t submodule_id,
+   const app_data_t* app,
+   const app_subslot_t* subslot,
+   //  uint16_t slot_nbr,
+   //  uint16_t subslot_nbr,
+   //  uint32_t submodule_id,
     uint8_t *data,
     uint16_t size)
 {
@@ -133,7 +137,7 @@ int app_data_set_output_data(
       return -1;
    }
 
-   const app_gsdml_submodule_t *submodule = app_gsdml_get_submodule_cfg(submodule_id);
+   const app_gsdml_submodule_t *submodule = app_gsdml_get_submodule_cfg(subslot->submodule_id);
 
    if (submodule == NULL)
    {
@@ -1248,9 +1252,8 @@ static void app_cyclic_data_callback(app_subslot_t *subslot, void *tag)
          /* Application specific handling of the output data to a submodule.
             For the sample application, the data sets a LED. */
          (void)app_data_set_output_data(
-             subslot->slot_nbr,
-             subslot->subslot_nbr,
-             subslot->submodule_id,
+            app,
+            subslot,
              outdata_buf,
              outdata_length);
       }
@@ -1267,9 +1270,11 @@ static void app_cyclic_data_callback(app_subslot_t *subslot, void *tag)
        * For the sample application, the data includes a button
        * state and a counter value. */
       indata = app_data_get_input_data(
-          subslot->slot_nbr,
-          subslot->subslot_nbr,
-          subslot->submodule_id,
+         app,
+         subslot,
+         //  subslot->slot_nbr,
+         //  subslot->subslot_nbr,
+         //  subslot->submodule_id,
           &indata_size,
           &indata_iops);
 
@@ -1341,9 +1346,11 @@ static int app_set_initial_data_and_ioxs(app_data_t *app)
                    p_subslot->data_cfg.insize > 0)
                {
                   indata = app_data_get_input_data(
-                      p_subslot->slot_nbr,
-                      p_subslot->subslot_nbr,
-                      p_subslot->submodule_id,
+                     app,
+                     p_subslot,
+                     //  p_subslot->slot_nbr,
+                     //  p_subslot->subslot_nbr,
+                     //  p_subslot->submodule_id,
                       &indata_size,
                       &indata_iops);
                }
