@@ -60,8 +60,6 @@ extern "C"
     /** Command line arguments for sample application */
     typedef struct app_args
     {
-        char path_button1[PNET_MAX_FILE_FULLPATH_SIZE];           /** Terminated string */
-        char path_button2[PNET_MAX_FILE_FULLPATH_SIZE];           /** Terminated string */
         char path_storage_directory[PNET_MAX_DIRECTORYPATH_SIZE]; /** Terminated */
         char station_name[PNET_STATION_NAME_MAX_SIZE];            /** Terminated string */
         char eth_interfaces
@@ -80,21 +78,6 @@ extern "C"
         RUN_IN_MAIN_THREAD
     } app_run_in_separate_task_t;
 
-    typedef enum app_demo_state
-    {
-        APP_DEMO_STATE_ALARM_SEND = 0,
-        APP_DEMO_STATE_LOGBOOK_ENTRY,
-        APP_DEMO_STATE_ABORT_AR,
-        APP_DEMO_STATE_CYCLIC_REDUNDANT,
-        APP_DEMO_STATE_CYCLIC_NORMAL,
-        APP_DEMO_STATE_DIAG_STD_ADD,
-        APP_DEMO_STATE_DIAG_STD_UPDATE,
-        APP_DEMO_STATE_DIAG_STD_REMOVE,
-        APP_DEMO_STATE_DIAG_USI_ADD,
-        APP_DEMO_STATE_DIAG_USI_UPDATE,
-        APP_DEMO_STATE_DIAG_USI_REMOVE,
-    } app_demo_state_t;
-
     typedef struct app_data_t
     {
         pnet_t *net;
@@ -109,9 +92,10 @@ extern "C"
         os_timer_t *main_timer;
         os_event_t *main_events;
 
+        void* pdata;
+
         bool alarm_allowed;
         pnet_alarm_argument_t alarm_arg;
-        app_demo_state_t alarm_demo_state;
         uint8_t alarm_payload[APP_GSDML_ALARM_PAYLOAD_SIZE];
 
         /* Counters used to control when buttons are checked

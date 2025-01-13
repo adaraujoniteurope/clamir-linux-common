@@ -576,14 +576,13 @@ void application::command_processor(int socket_fd)
 
 void application::run()
 {
+    
     std::vector<std::thread> threads;
     static std::atomic_bool shutdown = false;
 
     // Set up signal handling using standard C++ facilities
-    std::signal(SIGINT, [](int)
-                { shutdown.store(true); });
-    std::signal(SIGTERM, [](int)
-                { shutdown.store(true); });
+    std::signal(SIGINT, [](int) { shutdown.store(true); } );
+    std::signal(SIGTERM, [](int) { shutdown.store(true); } );
     std::signal(SIGPIPE, SIG_IGN); // Ignore SIGPIPE
 
     /**
@@ -603,7 +602,7 @@ void application::run()
     // auto shutter_controller_worker = std::thread(std::bind(&timer::run, &timer::get_instance(), 1000, shutdown));
     auto timer_worker = std::thread(std::bind(&timer::run, &m_timer));
 
-    auto profinet_service_worker = std::thread(device::create("end0", shutdown));
+    auto profinet_service_worker = std::thread(device::create("end0", this, shutdown));
 
     m_server_threads.push_back(std::move(timer_worker));
     m_server_threads.push_back(std::move(command_server_worker));

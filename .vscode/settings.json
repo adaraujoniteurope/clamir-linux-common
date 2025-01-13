@@ -133,7 +133,8 @@
         "app_gsdml_module_dap.h": "c",
         "app_gsdml.h": "c",
         "*.mustache": "cpp",
-        "endian.h": "c"
+        "endian.h": "c",
+        "app_gsdml_module_metadata.h": "c"
     },
     "cmake.configureSettings": {
         "NIT_CLAMIR_ENABLE_TESTING": "No",

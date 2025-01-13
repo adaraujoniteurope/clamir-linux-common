@@ -50,7 +50,7 @@ app_args_t app_args = {0};
  * 3. It's fucked up to do this bridge but it is not
  *    impossible. It will work like a charm!
  */
-device::handler_type device::create(const char *hwaddr, std::atomic_bool &shutdown)
+device::handler_type device::create(const char *hwaddr, void* pdata, std::atomic_bool &shutdown)
 {
     return [&]()
     {
@@ -66,11 +66,10 @@ device::handler_type device::create(const char *hwaddr, std::atomic_bool &shutdo
            the journal (which is default when running as a systemd job) */
         setvbuf(stdout, NULL, _IOLBF, 0);
 
-        strcpy(app_args.path_button1, "");
-        strcpy(app_args.path_button2, "");
         strcpy(app_args.path_storage_directory, "/var/cache/clamir/p-net");
         strcpy(app_args.station_name, APP_GSDML_DEFAULT_STATION_NAME);
         strcpy(app_args.eth_interfaces, APP_DEFAULT_ETHERNET_INTERFACE);
+
         app_args.verbosity = 7;
         app_args.show = 0;
         app_args.factory_reset = false;
@@ -79,9 +78,6 @@ device::handler_type device::create(const char *hwaddr, std::atomic_bool &shutdo
 
         app_args.factory_reset = false;
         app_args.remove_files = false;
-
-        strcpy(app_args.path_button1, "");
-        strcpy(app_args.path_button2, "");
 
         // app_log_level = (app_args.verbosity <= APP_LOG_LEVEL_FATAL) ? APP_LOG_LEVEL_FATAL - app_args.verbosity : APP_LOG_LEVEL_DEBUG;
         app_log_level = APP_LOG_LEVEL_DEBUG;
@@ -94,8 +90,6 @@ device::handler_type device::create(const char *hwaddr, std::atomic_bool &shutdo
         APP_LOG_INFO("App log level:        %u (DEBUG=0, FATAL=4)\n", app_log_level);
         APP_LOG_INFO("Max number of ports:  %u\n", PNET_MAX_PHYSICAL_PORTS);
         APP_LOG_INFO("Network interfaces:   %s\n", app_args.eth_interfaces);
-        APP_LOG_INFO("Button1 file:         %s\n", app_args.path_button1);
-        APP_LOG_INFO("Button2 file:         %s\n", app_args.path_button2);
         APP_LOG_INFO("Default station name: %s\n", app_args.station_name);
 
         /* Prepare configuration */
@@ -140,6 +134,8 @@ device::handler_type device::create(const char *hwaddr, std::atomic_bool &shutdo
 
         /* Initialise stack and application */
         sample_app = app_init(&pnet_cfg, &app_args);
+
+
         if (sample_app == NULL)
         {
             printf("Failed to initialize P-Net.\n");
@@ -182,70 +178,11 @@ device::handler_type device::create(const char *hwaddr, std::atomic_bool &shutdo
             return;
         }
 
-        for (;;)
+        while(!shutdown.load())
         {
             os_usleep(APP_MAIN_SLEEPTIME_US);
         }
     };
-}
-
-/* Note that this sample application uses os_timer_create() for the timer
-   that controls the ticks. It is implemented in OSAL, and the Linux
-   implementation uses a thread internally. To modify the timer thread priority,
-   modify OSAL or use some other timer */
-
-/************************* Utilities ******************************************/
-bool app_get_button(uint16_t id)
-{
-    if (id == 0)
-    {
-        if (app_args.path_button1[0] != '\0')
-        {
-            //  return read_bool_from_file (app_args.path_button1);
-            return 0;
-        }
-    }
-    else if (id == 1)
-    {
-        if (app_args.path_button2[0] != '\0')
-        {
-            //  return read_bool_from_file (app_args.path_button2);
-            return 0;
-        }
-    }
-    return false;
-}
-
-void app_set_led(uint16_t id, bool led_state)
-{
-    /* Important:
-     * The Linux sample application uses a script to set the LED state,
-     * for easy adaption to different development boards.
-     *
-     * The script typically writes to files in the /sys directory to set LED
-     * state via GPIO operations. If you do not have any physical LEDs you can
-     * use a script that writes to regular files instead.
-     *
-     * However, file operations shall be avoided within the main task
-     * in a real application. File operations may affect the timing of the
-     * Profinet communication depending on file system implementation.
-     */
-
-    char id_str[7] = {0}; /** Terminated string */
-    const char *argv[4];
-
-    sprintf(id_str, "%u", id);
-    id_str[sizeof(id_str) - 1] = '\0';
-
-    argv[0] = "set_profinet_leds";
-    argv[1] = (char *)&id_str;
-    argv[2] = (led_state == 1) ? "1" : "0";
-    argv[3] = NULL;
-
-    if (pnal_execute_script(argv) != 0)
-    {
-        printf("Failed to set LED state\n");
-    }
 }
 
 /** Update configuration with file storage path.
@@ -269,24 +206,6 @@ static int app_pnet_cfg_init_storage(pnet_cfg_t *p_cfg, const app_args_t *p_args
     {
         printf("Error: The given storage directory does not exist: %s\n", p_cfg->file_directory);
         return -1;
-    }
-
-    if (p_args->path_button1[0] != '\0')
-    {
-        if (!pnal_does_file_exist(p_args->path_button1))
-        {
-            printf("Error: The given input file for Button1 does not exist: %s\n", p_args->path_button1);
-            return -1;
-        }
-    }
-
-    if (p_args->path_button2[0] != '\0')
-    {
-        if (!pnal_does_file_exist(p_args->path_button2))
-        {
-            printf("Error: The given input file for Button2 does not exist: %s\n", p_args->path_button2);
-            return -1;
-        }
     }
     return 0;
 }

@@ -9,7 +9,7 @@ class device
 {
 public:
   using handler_type = std::function<void()>;
-  static handler_type create(const char* hwaddr, std::atomic_bool& shutdown);
+  static handler_type create(const char* hwaddr, void* pdata, std::atomic_bool& shutdown);
 
 private:
   device() = delete;

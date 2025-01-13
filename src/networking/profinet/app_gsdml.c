@@ -15,14 +15,14 @@
 #include "app_gsdml_module_digital_in.h"
 #include "app_gsdml_module_digital_out.h"
 #include "app_gsdml_module_digital_in_out.h"
-#include "app_gsdml_module_echo.h"
+#include "app_gsdml_module_roi.h"
 
 #define APP_GSDML_MODULES_TABLE(_) \
     _(dap_1)                       \
     _(module_digital_in)           \
     _(module_digital_out)          \
     _(module_digital_in_out)       \
-    _(module_echo)
+    _(module_roi)
 
 #define APP_GSDML_MODULES_TABABLE_AS_LIST_ITEM(object) &object,
 
@@ -39,7 +39,7 @@ app_gsdml_submodule_t *app_gsdml_submodules[] =
         GSDML_DIGITAL_IN_SUBMODULES_TABLE(APP_GSDML_SUBMODULES_TABLE_AS_LIST_ITEM)
         GSDML_DIGITAL_OUT_SUBMODULES_TABLE(APP_GSDML_SUBMODULES_TABLE_AS_LIST_ITEM)
         GSDML_DIGITAL_IN_OUT_SUBMODULES_TABLE(APP_GSDML_SUBMODULES_TABLE_AS_LIST_ITEM)
-        APP_GSDML_ECHO_SUBMODULES_TABLE(APP_GSDML_SUBMODULES_TABLE_AS_LIST_ITEM)
+        APP_GSDML_ROI_SUBMODULES_TABLE(APP_GSDML_SUBMODULES_TABLE_AS_LIST_ITEM)
 };
 
 #define GSDML_SUBMODULE_PARAMETERS_TABLE_AS_LIST_ITEM(OBJECT, INDEX, NAME, LENGTH) &OBJECT,
@@ -49,7 +49,7 @@ app_gsdml_param_t* app_gsdml_parameters[] =
     GSDML_DIGITAL_IN_OUT_SUBMODULE_PARAMETERS_TABLE(GSDML_SUBMODULE_PARAMETERS_TABLE_AS_LIST_ITEM)
     APP_GSDML_SUBMOD_ID_DIGITAL_IN_PARAMETERS_TABLE(GSDML_SUBMODULE_PARAMETERS_TABLE_AS_LIST_ITEM)
     APP_GSDML_SUBMOD_ID_DIGITAL_OUT_PARAMETERS_TABLE(GSDML_SUBMODULE_PARAMETERS_TABLE_AS_LIST_ITEM)
-    APP_GSDML_SUBMOD_ID_ECHO_PARAMETERS_TABLE(GSDML_SUBMODULE_PARAMETERS_TABLE_AS_LIST_ITEM)
+    APP_GSDML_SUBMOD_ID_ROI_PARAMETERS_TABLE(GSDML_SUBMODULE_PARAMETERS_TABLE_AS_LIST_ITEM)
 };
 
 const app_gsdml_module_t *app_gsdml_get_module_cfg(uint32_t id)
