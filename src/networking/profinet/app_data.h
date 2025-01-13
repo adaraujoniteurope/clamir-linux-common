@@ -113,10 +113,9 @@ extern "C"
         pnet_alarm_argument_t alarm_arg;
         app_demo_state_t alarm_demo_state;
         uint8_t alarm_payload[APP_GSDML_ALARM_PAYLOAD_SIZE];
-        
+
         /* Counters used to control when buttons are checked
          * and process data is updated */
-        uint32_t buttons_tick_counter;
         uint32_t process_data_tick_counter;
 
     } app_data_t;
@@ -142,14 +141,13 @@ extern "C"
      *                           Not modified on error.
      * @return Reference to PNIO data, NULL on error
      */
-    uint8_t *app_data_get_input_data(
+    int app_data_get_input_data(
         const app_data_t* app,
         const app_subslot_t* subslot,
-        // uint16_t slot_nbr,
-        // uint16_t subslot_nbr,
-        // uint32_t submodule_id,
+        uint8_t* input_data,
         uint16_t *size,
-        uint8_t *iops);
+        uint8_t *iops
+    );
 
     /**
      * Set application specific PNIO output data (received from PLC)

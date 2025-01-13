@@ -57,14 +57,14 @@ static void app_handle_data_led_state(bool led_state)
    previous_led_state = led_state;
 }
 
-uint8_t *app_data_get_input_data(
+int app_data_get_input_data
+(
    const app_data_t* app,
    const app_subslot_t* subslot,
-   //  uint16_t slot_nbr,
-   //  uint16_t subslot_nbr,
-   //  uint32_t submodule_id,
-    uint16_t *size,
-    uint8_t *iops)
+   uint8_t* inputdata,
+   uint16_t *size,
+   uint8_t *iops
+)
 {
    /**
     *
@@ -81,27 +81,26 @@ uint8_t *app_data_get_input_data(
     * it will return a failure.
     *
     */
-   uint8_t *inputdata;
 
    APP_LOG_DEBUG("%s\n", __func__);
 
    if (size == NULL || iops == NULL)
    {
-      return NULL;
+      return -1;
    }
 
    const app_gsdml_submodule_t *submodule = app_gsdml_get_submodule_cfg(subslot->submodule_id);
 
    if (submodule == NULL)
    {
-      return NULL;
+      return -1;
    }
 
    if (submodule->get == NULL)
    {
       *size = -1;
       *iops = PNET_IOXS_BAD;
-      return NULL;
+      return -1;
    }
 
    int result = submodule->get((void *)submodule, inputdata, size);
@@ -113,11 +112,11 @@ uint8_t *app_data_get_input_data(
        */
       *size = -1;
       *iops = PNET_IOXS_BAD;
-      return NULL;
+      return -1;
    }
 
    *iops = PNET_IOXS_GOOD;
-   return inputdata;
+   return 0;
 }
 
 int app_data_set_output_data(
@@ -1206,7 +1205,7 @@ static void app_cyclic_data_callback(app_subslot_t *subslot, void *tag)
    app_data_t *app = (app_data_t *)tag;
    uint8_t indata_iops = PNET_IOXS_BAD;
    uint8_t indata_iocs = PNET_IOXS_BAD;
-   uint8_t *indata;
+   uint8_t indata[2048];
    uint16_t indata_size = 0;
    bool outdata_updated;
    uint16_t outdata_length;
@@ -1269,12 +1268,10 @@ static void app_cyclic_data_callback(app_subslot_t *subslot, void *tag)
        *
        * For the sample application, the data includes a button
        * state and a counter value. */
-      indata = app_data_get_input_data(
+      int ret = app_data_get_input_data(
          app,
          subslot,
-         //  subslot->slot_nbr,
-         //  subslot->subslot_nbr,
-         //  subslot->submodule_id,
+         indata,
           &indata_size,
           &indata_iops);
 
@@ -1315,7 +1312,7 @@ static int app_set_initial_data_and_ioxs(app_data_t *app)
    uint16_t slot;
    uint16_t subslot_index;
    const app_subslot_t *p_subslot;
-   uint8_t *indata;
+   uint8_t indata[2048];
    uint16_t indata_size;
    uint8_t indata_iops;
 
@@ -1327,7 +1324,6 @@ static int app_set_initial_data_and_ioxs(app_data_t *app)
          p_subslot = &app->main_api.slots[slot].subslots[subslot_index];
          if (p_subslot->plugged)
          {
-            indata = NULL;
             indata_size = 0;
             indata_iops = PNET_IOXS_BAD;
 
@@ -1345,12 +1341,13 @@ static int app_set_initial_data_and_ioxs(app_data_t *app)
                    p_subslot->slot_nbr != PNET_SLOT_DAP_IDENT &&
                    p_subslot->data_cfg.insize > 0)
                {
-                  indata = app_data_get_input_data(
+                  ret = app_data_get_input_data(
                      app,
                      p_subslot,
                      //  p_subslot->slot_nbr,
                      //  p_subslot->subslot_nbr,
                      //  p_subslot->submodule_id,
+                     indata,
                       &indata_size,
                       &indata_iops);
                }
