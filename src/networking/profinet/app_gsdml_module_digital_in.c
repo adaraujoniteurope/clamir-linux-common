@@ -1,4 +1,4 @@
-#include "sampleapp_common.h"
+#include "app_data.h"
 #include "app_utils.h"
 
 #include "app_log.h"

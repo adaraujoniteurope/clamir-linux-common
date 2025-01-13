@@ -18,7 +18,7 @@
 #include "app_utils.h"
 #include "app_log.h"
 #include "app_gsdml.h"
-#include "sampleapp_common.h"
+#include "app_data.h"
 #include "osal.h"
 #include "osal_log.h" /* For LOG_LEVEL */
 #include "pnal.h"

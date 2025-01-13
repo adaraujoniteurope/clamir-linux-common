@@ -1,7 +1,7 @@
 #ifndef _APP_GSDML_MODULE_DIGITAL_OUT_H_
 #define _APP_GSDML_MODULE_DIGITAL_OUT_H_
 
-#include "sampleapp_common.h"
+#include "app_data.h"
 #include "app_utils.h"
 #include "app_gsdml.h"
 #include "app_log.h"

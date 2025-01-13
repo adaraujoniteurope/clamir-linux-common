@@ -6,7 +6,7 @@
 #include <string.h>
 #include <pnet_api.h>
 
-#include "sampleapp_common.h"
+#include "app_data.h"
 #include "app_utils.h"
 #include "app_gsdml.h"
 #include "app_log.h"

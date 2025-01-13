@@ -1,9 +1,9 @@
 #include "networking/profinet/device.hpp"
 
 #include <pnet_api.h>
-#include "sampleapp_common.h"
+#include "app_data.h"
 
-#include "sampleapp_common.h"
+#include "app_data.h"
 #include "app_gsdml.h"
 #include "app_log.h"
 #include "app_utils.h"
