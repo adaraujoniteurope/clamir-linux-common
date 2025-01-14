@@ -33,68 +33,42 @@ int submodule_roi_get(void* submodule, void *data, uint16_t *size)
     return 0;
 }
 
-int app_gsdml_roi_submodule_parameter_x1_set(void* _param, void *data, uint16_t size)
+int app_gsdml_roi_submodule_parameter_x1_set(void* parameter, void *data, uint16_t size)
 {
-    /**
-     * now the roi core state is handled by the application object
-     * I should pass the application object and convert all code
-     * to C++
-     * 
-     * All this problem is given by merging two distinct architectures
-     * but now it is posible once it receives at least arguments from
-     * parent context.
-     */
-
-    app_gsdml_param_t* param = (app_gsdml_param_t*) _param;
-
-    // if (value == NULL)
-    // {
-    //     return -1;
-    // }
-
-    // if (*size < param->length)
-    // {
-    //     return -1;
-    // }
-    // *size = param->length;
-    // // it get's the pointer to the storage locations instead of giving a buffer
-    // // memcpy(*value, param->container, param->length);
-    // *value = param->container;
-
-    return 0;
+    return app_gsdml_default_param_set(parameter, data, size);
 }
 
-int app_gsdml_roi_submodule_parameter_x1_get(void* submodule, void **data, uint16_t *size)
+int app_gsdml_roi_submodule_parameter_x1_get(void* parameter, void **data, uint16_t *size)
 {
-    return 0;
+    return app_gsdml_default_param_get(parameter, data, size);
 }
 
-int app_gsdml_roi_submodule_parameter_y1_set(void* submodule, void *data, uint16_t size)
+int app_gsdml_roi_submodule_parameter_y1_set(void* parameter, void *data, uint16_t size)
 {
-    return 0;
+    return app_gsdml_default_param_set(parameter, data, size);
 }
 
-int app_gsdml_roi_submodule_parameter_y1_get(void* submodule, void **data, uint16_t *size)
+int app_gsdml_roi_submodule_parameter_y1_get(void* parameter, void **data, uint16_t *size)
 {
-    return 0;
+    return app_gsdml_default_param_get(parameter, data, size);
 }
 
-int app_gsdml_roi_submodule_parameter_x2_set(void* submodule, void *data, uint16_t size)
+int app_gsdml_roi_submodule_parameter_x2_set(void* parameter, void *data, uint16_t size)
 {
-    return 0;
+    return app_gsdml_default_param_set(parameter, data, size);
 }
 
-int app_gsdml_roi_submodule_parameter_x2_get(void* submodule, void **data, uint16_t *size)
+int app_gsdml_roi_submodule_parameter_x2_get(void* parameter, void **data, uint16_t *size)
 {
-    return 0;
+    return app_gsdml_default_param_get(parameter, data, size);
 }
 
-int app_gsdml_roi_submodule_parameter_y2_set(void* submodule, void *data, uint16_t size)
+int app_gsdml_roi_submodule_parameter_y2_set(void* parameter, void *data, uint16_t size)
 {
-    return 0;
+    return app_gsdml_default_param_set(parameter, data, size);
 }
 
-int app_gsdml_roi_submodule_parameter_y2_get(void* submodule, void **data, uint16_t *size)
+int app_gsdml_roi_submodule_parameter_y2_get(void* parameter, void **data, uint16_t *size)
 {
-    return 0;
+    return app_gsdml_default_param_get(parameter, data, size);
 }
