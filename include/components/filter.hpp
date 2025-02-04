@@ -6,17 +6,18 @@
 #include <functional>
 #include <atomic>
 
-class filter_base
+#include <utils/runnable.hpp>
+#include <utils/runnable_worker.hpp>
+
+class filter_base : utils::runnable_worker
 {
 
 public:
     filter_base(long interval, std::atomic_bool &shutdown) : m_interval(interval), m_shutdown(shutdown) {}
 
-    void run()
+    void run() override
     {
-        long last = get_current_time_ns();
         callback(m_shutdown);
-        long current = get_current_time_ns();
 
         long nanoseconds = m_interval * 1000UL;
 

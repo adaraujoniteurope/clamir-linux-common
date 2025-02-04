@@ -12,11 +12,11 @@ extern "C" {
 #endif
 
 #include "options.h"
-#include "osal.h"
-#include "osal_log.h"
+#include "rtlabs/osal/osal.h"
+#include "rtlabs/osal/osal_log.h"
 #include "pnal.h"
 
-#include "pnet_api.h"
+#include <rtlabs/p-net/pnet_api.h>
 #include "pf_driver.h"
 #include "pf_types.h"
 

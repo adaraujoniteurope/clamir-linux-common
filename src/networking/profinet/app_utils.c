@@ -19,10 +19,10 @@
 #include "app_log.h"
 #include "app_gsdml.h"
 #include "app_data.h"
-#include "osal.h"
-#include "osal_log.h" /* For LOG_LEVEL */
+#include "rtlabs/osal/osal.h"
+#include "rtlabs/osal/osal_log.h" /* For LOG_LEVEL */
 #include "pnal.h"
-#include <pnet_api.h>
+#include <rtlabs/p-net/pnet_api.h>
 
 #include <stdio.h>
 #include <stdlib.h>

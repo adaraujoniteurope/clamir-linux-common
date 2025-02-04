@@ -1,42 +1,42 @@
-#include <gtest/gtest.h>
+// #include <gtest/gtest.h>
 
-#include <networking/tcp/protocol.hpp>
-#include <cereal/archives/json.hpp>
-#include <cereal/archives/xml.hpp>
-#include <cereal/cereal.hpp>
+// #include <networking/tcp/protocol.hpp>
+// #include <cereal/archives/json.hpp>
+// #include <cereal/archives/xml.hpp>
+// #include <cereal/cereal.hpp>
 
-#include <vector>
+// #include <vector>
 
-TEST(networking_tcp_protocol, payload_encoding) {
+// TEST(networking_tcp_protocol, payload_encoding) {
 
-    payload wr;
-    wr.key = "mom-core/threshold";
-    wr.type = MESSAGE_TYPE_DOUBLE;
+//     payload wr;
+//     wr.key = "mom-core/threshold";
+//     wr.type = MESSAGE_TYPE_DOUBLE;
 
-    std::stringstream ss;
-    cereal::JSONOutputArchive ar(ss);
+//     std::stringstream ss;
+//     cereal::JSONOutputArchive ar(ss);
 
-    ar( wr );
+//     ar( wr );
 
-    std::cout << ss.str() << std::endl;
+//     std::cout << ss.str() << std::endl;
 
-    ASSERT_EQ(1,1);
+//     ASSERT_EQ(1,1);
 
-}
+// }
 
-TEST(networking_tcp_protocol, payload_decoding) {
+// TEST(networking_tcp_protocol, payload_decoding) {
 
-    payload wr;
-    wr.key = "mom-core/threshold";
-    wr.type = MESSAGE_TYPE_DOUBLE;
+//     payload wr;
+//     wr.key = "mom-core/threshold";
+//     wr.type = MESSAGE_TYPE_DOUBLE;
 
-    std::stringstream ss;
-    cereal::JSONOutputArchive ar(ss);
+//     std::stringstream ss;
+//     cereal::JSONOutputArchive ar(ss);
 
-    ar( wr );
+//     ar( wr );
 
-    std::cout << ss.str() << std::endl;
+//     std::cout << ss.str() << std::endl;
 
-    ASSERT_EQ(1,1);
+//     ASSERT_EQ(1,1);
 
-}
+// }

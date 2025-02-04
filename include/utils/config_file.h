@@ -1,16 +1,48 @@
 #ifndef UTILS_CONF_FILE_H_
 #define UTILS_CONF_FILE_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-char* config_file_read_key_as_string(const char* path, const char* key);
-int config_file_read_key_as_int(const char* path, const char* key, int __default);
-double config_file_read_key_as_double(const char* path, const char* key, double __default);
+#include <fstream>
+#include <filesystem>
 
-#ifdef __cplusplus
+#include <cereal/types/unordered_map.hpp>
+#include <cereal/types/memory.hpp>
+#include <cereal/archives/json.hpp>
+
+template<class state_type>
+int config_file_save_to_file(state_type* state, const char *path)
+{   
+    try {
+        std::ofstream os(path, std::ios::binary);
+        cereal::JSONOutputArchive archive( os );
+        archive(state->config);
+    } catch (std::exception & ex)
+    {
+        std::cout << ex.what() << std::endl;
+        return -1;
+    }
+
+    return 0;
 }
-#endif
+
+template<class state_type>
+int config_file_load_from_file(state_type* state, const char *path)
+{
+    if (!std::filesystem::exists(path)) {
+        return -1;
+    }
+    
+    try {
+        std::ifstream is(path, std::ios::binary);
+        cereal::JSONInputArchive archive( is );
+        archive(state->config);
+    } catch (std::exception & ex)
+    {
+        std::cout << ex.what() << std::endl;
+        return -1;
+    }
+
+    return 0;
+}
 
 #endif

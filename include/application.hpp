@@ -9,6 +9,8 @@
 #include <list>
 #include <unordered_map>
 #include <map>
+#include <iostream>
+#include <memory>
 
 #include <signal.h>
 
@@ -27,58 +29,63 @@
 #include "signals/event_emitter.hpp"
 #include "components/timer.hpp"
 
+#include "math/control.hpp"
+#include "networking/tcp/protocol_legacy.hpp"
 
+#include "application_config.hpp"
 
-// #define DRIVER_CALLBACK_DESCRIPTOR_TABLE_ITEM(name, parameter, type, size, offset) \
-// { \
-// 	.state = (void*)&nit_##name##_driver, \
-// 	.set = (driver_interface_descriptor::setter_type) nit_##name##_##parameter##_set, \
-// 	.get = (driver_interface_descriptor::getter_type)nit_##name##_##parameter##_get \
-// }, \
+#define DRIVER_CALLBACK_INDEX_TABLE_ITEM(name, parameter, type, size, offset) nit_##name##_##parameter##_command_descriptor_offset,
 
-// #define DRIVER_CALLBACK_DESCRIPTOR_TABLE_ITEM(driver) \
-// { \
-// 	.state = (void*)&driver, \
-// 	.set = (driver_interface_descriptor::setter_type) nit_##name##_##parameter##_set, \
-// 	.get = (driver_interface_descriptor::getter_type)nit_##name##_##parameter##_get \
-// }, \
-
-struct driver_interface_descriptor
+typedef enum command_descriptor_index_enum
 {
-	typedef void (*setter_type)(void *state, uint32_t value);	
-	typedef uint32_t(*getter_type)(void *state);
+	NIT_ARM_CORE_FIELD_TABLE(DRIVER_CALLBACK_INDEX_TABLE_ITEM)
+	NIT_CONTROL_UNIT_CORE_FIELD_TABLE(DRIVER_CALLBACK_INDEX_TABLE_ITEM)
+	NIT_GEN_CORE_FIELD_TABLE(DRIVER_CALLBACK_INDEX_TABLE_ITEM)
+	NIT_PWM_CORE_FIELD_TABLE(DRIVER_CALLBACK_INDEX_TABLE_ITEM)
+	NIT_ROI_CORE_FIELD_TABLE(DRIVER_CALLBACK_INDEX_TABLE_ITEM)
+	NIT_MOM_CORE_FIELD_TABLE(DRIVER_CALLBACK_INDEX_TABLE_ITEM)
+	COMMAND_DESCRIPTOR_INDEX_ENUM_MAX
+} command_descriptor_index_t;
 
-    void* state;
-    setter_type set;
-    getter_type get;
+#undef DRIVER_CALLBACK_INDEX_TABLE_ITEM
+
+class application;
+
+struct command_processor_route
+{
+	using write_callback_type = std::function<void(std::shared_ptr<application>, command_processor_route &, packet &, int)>;
+	using read_callback_type = std::function<void(std::shared_ptr<application>, command_processor_route &, packet &, int)>;
+	void* pdata;
+	read_callback_type read;
+	write_callback_type write;
 };
 
-struct application_config
+
+class pwm_core_sink_pad : public math::control::abstract_sink<double>
 {
+public:
+	pwm_core_sink_pad(nit_mb_core_state_t *state, double initial = 0) : m_value(initial) {}
 
-	const char *config_path;
+	virtual double get() override
+	{
+		/** convert uint16_t into a double value to feed the controller who is in double precision */
+		uint16_t value = 0;
+		nit_pwm_core_pwm_get((nit_mb_core_state_t *)pdata, &value);
+		return (((double)value - (double)INT16_MAX)) / ((double)INT16_MAX);
+	}
 
-	uint8_t version_major;
-	uint8_t version_minor;
-	uint8_t version_patch;
-	uint8_t serial_number;
+	virtual void set(double value) override
+	{
+		/** convert double into a uint16_t value to feed the controller who is in short */
+		uint16_t integer_value = ((value * INT16_MAX) + INT16_MAX);
+		nit_pwm_core_pwm_set((nit_mb_core_state_t *)pdata, integer_value);
+	}
 
-	const char *roi_core_config_path;
-	const char *pwm_core_config_path;
-	const char *mom_core_config_path;
-	const char *gen_core_config_path;
-	const char *framebuffer_core_config_path;
-	const char *control_unit_core_config_path;
-	const char *bpc_table_core_config_path;
-	const char *arm_core_config_path;
+private:
+	double m_value;
 
-	const char *profinet_ethernet_device_name;
-
-	const char *tcp_command_host_server_host;
-	const char *tcp_command_host_server_port;
-
-	const char *tcp_image_stream_host_server_host;
-	const char *tcp_image_stream_host_server_port;
+	void *pdata;
+	size_t offset;
 };
 
 class application : std::enable_shared_from_this<application>
@@ -86,38 +93,67 @@ class application : std::enable_shared_from_this<application>
 	application();
 
 public:
+
+	virtual ~application()
+	{
+		std::cout << __func__ << std::endl;
+	}
+
 	int default_handler(const unsigned char *buffer, int);
-	static std::shared_ptr<application> create();
+	static std::shared_ptr<application> get_instance();
 	int initialize(int argc, char *argv[]);
 	void run();
 
+	void save_all()
+	{
+		nit_arm_core_config_save_to_file(&nit_arm_core_driver, "arm_core_config.json");
+		nit_control_unit_core_config_save_to_file(&nit_control_unit_core_driver, "control_unit_core_config.json");
+		nit_mb_core_config_save_to_file(&nit_mb_core_driver, "mb_core_config.json");
+	}
+
+	constexpr volatile int* get_process_variables_shm_ptr() { return process_variables_shm_ptr; }
+
+	// math::control::src_pad<double> controller0_input;
+	// pwm_core_sink_pad controller0_output;
+
+	math::control::pid_controller<double> m_controller;
+
 private:
 
-	// void timer(std::atomic_bool& shutdown);
-	void command_router(int socket_fd);
+	double calculate_width(int metadatos[12]);
+
+	void legacy_control_function(volatile int *virtual_metadata_shm, volatile int *real_metadata_shm, volatile int *proc_var_shm, volatile int *gen_core_shm, volatile int *arm_core_shm, volatile int *control_unit_shm);
+
 	void image_writer(int socket_fd);
+	void image_writer_legacy(int socket_fd);
+
+	void command_processor_legacy(int socket_fd);
 	void command_processor(int socket_fd);
+
+	utils::signal<std::shared_ptr<application>, uint8_t *, size_t, uint8_t *, size_t> image_read;
 
 	virtual void print_usage();
 
+	static std::shared_ptr<application> instance;
+
 	application_config config;
-	control_unit_core_state_t& control_unit_core_state;
-	arm_core_state_t& arm_core_state;
-	mb_core_state_t& mb_core_state;
-	framebuffer_core_state_t& framebuffer_core_state;
-	framebuffer_metadata_core_state_t& framebuffer_metadata_core_state;
-	bpc_table_core_state_t& bpc_core_state;
 
 	struct sigaction m_sigint_handler;
 	struct sigaction m_pipe_handler;
 
-	std::atomic_bool m_shutdown;
-	timer m_timer;
+	std::atomic_bool m_shutdown = false;
+	std::shared_ptr<abstract_timer> m_timer = std::make_shared<uio_timer>(m_shutdown);
 
-	static std::map<size_t, driver_interface_descriptor> m_command_descriptor_table;
+	static std::map<uint16_t, command_processor_route> command_processor_routes_legacy;
 
 	std::list<std::thread> m_server_threads;
 	std::unordered_map<int, std::function<int(const unsigned char *, int)>> m_command_server_router;
+
+	volatile int *process_variables_shm_ptr = NULL;
+	volatile int *virtual_metadata_shm_ptr = NULL;
+
+	uint8_t m_image_buffer[8192];
+	uint8_t m_metadata_buffer[60];
 };
 
 class application_connection_handler

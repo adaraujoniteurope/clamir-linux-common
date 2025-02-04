@@ -29,7 +29,7 @@ std::shared_ptr<application> app;
 int main(int argc, char *argv[])
 {
 
-	app = application::create();
+	app = application::get_instance();
 
 	try
 	{

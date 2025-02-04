@@ -1,22 +1,28 @@
 #ifndef NETWORKING_TCP_PROTOCOL_HPP_
 #define NETWORKING_TCP_PROTOCOL_HPP_
 
-typedef struct payload_struct {
-    uint8_t reserved0:7;
-    uint8_t rw:1;
-    uint8_t route_id:4;
-    uint8_t reserved1:4;
-} payload;
+#include <utils/bitfield.h>
 
-class protocol
+#include <iomanip>
+#include <iostream>
+
+struct packet
 {
-    public:
-    static constexpr payload* cast(const unsigned char* buffer, int size) { return (payload*)(buffer); }
+    uint32_t data;
 
-    private:
-    protocol() = delete;
-    protocol(protocol&) = delete;
-    protocol(protocol&&) = delete;
+    bitfield<decltype(data), 6, 0> endpoint;
+    bitfield<decltype(data), 7, 7> rw;
+    bitfield<decltype(data), 11, 8> group;
+    bitfield<decltype(data), 31, 16> value;
+
+    uint16_t route_id_get() { uint16_t v = endpoint.get(); v |= group.get() << 8; return v; }
+    void route_id_set(uint16_t v) { group.set(v >> 8); endpoint.set(v); }
+
+    packet(uint32_t packet) : data(packet), endpoint(data), rw(data), group(data), value(data) {}
+
 };
+
+std::ostream& operator<<(std::ostream& os, packet& req);
+std::istream& operator>>(std::istream& is, packet& req);
 
 #endif

@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#include "osal.h"
+#include "rtlabs/osal/osal.h"
 
 #include <netinet/in.h>
 

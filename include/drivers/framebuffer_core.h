@@ -1,39 +1,41 @@
 #ifndef _FRAMEBUFFER_CORE_H_
 #define _FRAMEBUFFER_CORE_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
+#include <stdbool.h>
 
+#if !DEBUGGING_HOST
 #define NIT_FRAMEBUFFER_CORE_BASE_ADDRESS               0x42000000
 #define NIT_FRAMEBUFFER_CORE_SIZE                       0x00010000
+#else
+#define NIT_FRAMEBUFFER_CORE_BASE_ADDRESS               0x00000000
+#define NIT_FRAMEBUFFER_CORE_SIZE                       0x00010000
+#endif
 
-typedef struct framebuffer_core_config_struct
+typedef struct nit_framebuffer_core_config_struct
 {
-} framebuffer_core_config_t;
+} nit_framebuffer_core_config_t;
 
-extern const framebuffer_core_config_t framebuffer_core_config_default;
+extern const nit_framebuffer_core_config_t framebuffer_core_config_default;
 
-typedef struct framebuffer_core_state_struct
+typedef struct nit_framebuffer_core_state_struct
 {
     int fd;
     volatile void* priv;
-}framebuffer_core_state_t;
+    bool is_open;
+}nit_framebuffer_core_state_t;
 
-extern framebuffer_core_state_t nit_framebuffer_core_driver;
+extern nit_framebuffer_core_state_t nit_framebuffer_core_driver;
 
-int framebuffer_core_open(framebuffer_core_state_t* state);
-int framebuffer_core_close(framebuffer_core_state_t* state);
+int nit_framebuffer_core_open(nit_framebuffer_core_state_t* state);
+int nit_framebuffer_core_close(nit_framebuffer_core_state_t* state);
 
-int framebuffer_core_config_save_to_file(framebuffer_core_state_t* state, const char *path);
-int framebuffer_core_config_load_from_file(framebuffer_core_state_t* state, const char *path);
+int nit_framebuffer_core_config_save_to_file(nit_framebuffer_core_state_t* state, const char *path);
+int nit_framebuffer_core_config_load_from_file(nit_framebuffer_core_state_t* state, const char *path);
 
-volatile uint16_t * framebuffer_core_get_memory_map(framebuffer_core_state_t* state);
+int nit_framebuffer_core_state_assert(nit_framebuffer_core_state_t* state);
+uint8_t* nit_framebuffer_core_metadata(nit_framebuffer_core_state_t* state);
 
-#ifdef __cplusplus
-}
-#endif
+volatile uint16_t * nit_framebuffer_core_get_memory_map(nit_framebuffer_core_state_t* state);
 
 #endif

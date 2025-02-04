@@ -1,50 +1,90 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
-#define DRIVER_DECLARE_STATE(name)     \
-    typedef struct name##_state_struct \
-    {                                  \
-        name##_config_t config;        \
-        int fd;                        \
-        volatile void *priv;           \
-    } name##_state_t;
+#include <stdbool.h>
+#include <cereal/archives/json.hpp>
+
+#define DRIVER_DECLARE_STATE(name)    \
+    struct nit_##name##_state_t       \
+    {                                 \
+        nit_##name##_config_t config; \
+        int fd;                       \
+        volatile void *priv;          \
+        bool is_open;                 \
+    };
 
 #define DRIVER_DECLARE_CONFIG_BEGIN(name) \
-    typedef struct name##_config_struct   \
+    struct nit_##name##_config_t          \
     {
 
 #define DRIVER_DECLARE_CONFIG_END(name) \
+    int reserved;                       \
     }                                   \
-    name##_config_t;
+    ;
 
-#define DRIVER_DECLARE_OFFSET_TABLE_BEGIN(name) \
-    typedef enum name##_register_offset_enum    \
+#define DRIVER_DECLARE_CONFIG_SERIALIZER_BEGIN(name) \
+    template <class archiver>                        \
+    void save(archiver &ar) const                    \
+    {                                                \
+        ar(
+
+#define DRIVER_DECLARE_CONFIG_SERIALIZER_END(name) \
+            reserved \
+        );                                         \
+    }
+
+#define DRIVER_DECLARE_CONFIG_DESERIALIZER_BEGIN(name) \
+    template <class archiver>                          \
+    void load(archiver &ar)                            \
+    {                                                  \
+        ar(
+
+#define DRIVER_DECLARE_CONFIG_DESERIALIZER_END(name) \
+            reserved \
+        );                                           \
+    }
+
+#define DRIVER_DECLARE_OFFSET_TABLE_BEGIN(name)    \
+    typedef enum nit_##name##_register_offset_enum \
     {
 
 #define DRIVER_DECLARE_OFFSET_TABLE_END(name) \
     }                                         \
-    name##_register_offset_t;
+    nit_##name##_register_offset_t;
 
 #define DRIVER_DECLARE_NAMES_TABLE(name) \
-    extern const char *name##_names[];
+    extern const char *nit_##name##_names[];
 
 #define DRIVER_DEFINE_NAMES_TABLE_BEGIN(name) \
-    const char *name##_names[] = {
+    const char *nit_##name##_names[] = {
 
 #define DRIVER_DEFINE_NAMES_TABLE_END(name) \
     }                                       \
     ;
 
+#define DRIVER_FIELD_AS_CONFIG_SERIALIZER_TABLE_ITEM(name, parameter, type, size, offset) CEREAL_NVP(parameter),
 #define DRIVER_FIELD_AS_OFFSET_TABLE_ITEM(name, parameter, type, size, offset) nit_##name##_##parameter##_offset = offset,
 #define DRIVER_FIELD_AS_CONFIG_TABLE_ITEM(name, parameter, type, size, offset) type parameter;
 #define DRIVER_FIELD_AS_NAMES_TABLE_ITEM(name, parameter, type, size, offset) #name,
 #define DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(container_type, name, parameter, type, size, offset) \
-    void nit_##name##_##parameter##_set(container_type *, type);                                 \
-    type nit_##name##_##parameter##_get(container_type *);
+    int nit_##name##_##parameter##_set(container_type *, type);                                        \
+    int nit_##name##_##parameter##_get(container_type *, type *);
 
 #define DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(container_type, name, parameter, type, size, offset) \
-    __attribute__((weak)) void nit_##name##_##parameter##_set(container_type *, type) {}              \
-    __attribute__((weak)) type nit_##name##_##parameter##_get(container_type *) { return 0; }
+    __attribute__((weak)) int nit_##name##_##parameter##_set(container_type *, type) { return -1; }   \
+    __attribute__((weak)) int nit_##name##_##parameter##_get(container_type *, type *) { return -1; }
+
+template <typename state_type, typename type>
+constexpr type unsafe_get(state_type *state, size_t offset)
+{
+    return (type) *(((volatile uint32_t *)state->priv) + offset);
+}
+
+template <typename state_type, typename type>
+constexpr type unsafe_set(state_type *state, size_t offset, type value)
+{
+    return *(((uint32_t *)state->priv) + offset) = value;
+}
 
 #ifdef NIT_CLAMIR_DEBUGGING
 #define print_debug(...) printf(__VA_ARGS__)

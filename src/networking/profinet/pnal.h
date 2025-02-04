@@ -20,7 +20,7 @@ extern "C" {
 #include <stdbool.h>
 
 #include "options.h"
-#include "pnet_api.h"
+#include <rtlabs/p-net/pnet_api.h>
 #include "pnal_sys.h"
 
 #define PNAL_MAKEU32(a, b, c, d)                                               \

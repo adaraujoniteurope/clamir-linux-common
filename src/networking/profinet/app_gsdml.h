@@ -2,7 +2,7 @@
 #ifndef APP_GSDML_H
 #define APP_GSDML_H
 
-#include <pnet_api.h>
+#include <rtlabs/p-net/pnet_api.h>
 
 #define APP_GSDML_API 0
 

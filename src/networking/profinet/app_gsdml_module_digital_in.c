@@ -2,9 +2,9 @@
 #include "app_utils.h"
 
 #include "app_log.h"
-#include "osal.h"
+#include "rtlabs/osal/osal.h"
 #include "pnal.h"
-#include <pnet_api.h>
+#include <rtlabs/p-net/pnet_api.h>
 
 #include <stdio.h>
 #include <stdlib.h>

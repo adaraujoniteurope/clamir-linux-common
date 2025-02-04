@@ -18,9 +18,9 @@
 extern "C" {
 #endif
 
-#include "osal.h"
+#include "rtlabs/osal/osal.h"
 #include "pnal.h"
-#include <pnet_api.h>
+#include <rtlabs/p-net/pnet_api.h>
 
 typedef struct app_utils_netif_name
 {

@@ -4,8 +4,8 @@
 #include "pnal.h"
 
 #include "options.h"
-#include "osal.h"
-#include "osal_log.h"
+#include "rtlabs/osal/osal.h"
+#include "rtlabs/osal/osal_log.h"
 #include "pnal_filetools.h"
 
 #include <arpa/inet.h>

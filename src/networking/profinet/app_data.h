@@ -22,16 +22,16 @@ extern "C"
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <pnet_api.h>
+#include <rtlabs/p-net/pnet_api.h>
 
-#include "osal.h"
+#include "rtlabs/osal/osal.h"
 #include "pnal.h"
 
 #include "app_utils.h"
 #include "app_gsdml.h"
 #include "app_data.h"
 #include "app_log.h"
-#include "osal.h"
+#include "rtlabs/osal/osal.h"
 #include "pnal.h"
 
 #define APP_TICK_INTERVAL_US 1000 /* 1 ms */

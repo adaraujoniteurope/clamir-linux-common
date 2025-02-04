@@ -18,9 +18,9 @@
 
 #include "pnal_filetools.h"
 
-#include "pnet_options.h"
+#include <rtlabs/p-net/pnet_options.h>
 #include "options.h"
-#include "osal_log.h"
+#include "rtlabs/osal/osal_log.h"
 
 #include <sys/stat.h>
 #include <sys/wait.h>

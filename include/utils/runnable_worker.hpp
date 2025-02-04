@@ -1,0 +1,27 @@
+#ifndef _UTILS_RUNNABLE_WORKER_HPP_
+#define _UTILS_RUNNABLE_WORKER_HPP_
+
+#include <utils/waitable.hpp>
+#include <utils/runnable.hpp>
+
+#include <functional>
+#include <atomic>
+
+namespace utils
+{
+    class runnable_worker : public runnable
+    {
+    public:
+        virtual ~runnable_worker() { std::cout << __func__ << std::endl; }
+        template <class... types>
+        std::function<void()> get_worker(types... args)
+        {
+            return [this, args...]() -> void
+            {
+                run(std::forward<decltype(args)>(args)...);
+            };
+        }
+    };
+}
+
+#endif

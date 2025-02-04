@@ -6,9 +6,9 @@
 
 #include "pnal.h"
 
-#include "pnet_options.h"
+#include <rtlabs/p-net/pnet_options.h>
 #include "options.h"
-#include "osal_log.h"
+#include "rtlabs/osal/osal_log.h"
 
 #include <net/ethernet.h>
 #include <net/if.h>

@@ -1,6 +1,6 @@
 #include "networking/profinet/device.hpp"
 
-#include <pnet_api.h>
+#include <rtlabs/p-net/pnet_api.h>
 #include "app_data.h"
 
 #include "app_data.h"
@@ -8,11 +8,11 @@
 #include "app_log.h"
 #include "app_utils.h"
 
-#include "osal.h"
-#include "osal_log.h" /* For LOG_LEVEL */
+#include "rtlabs/osal/osal.h"
+#include "rtlabs/osal/osal_log.h" /* For LOG_LEVEL */
 #include "pnal.h"
 #include "pnal_filetools.h"
-#include <pnet_api.h>
+#include <rtlabs/p-net/pnet_api.h>
 
 #include <net/if.h>
 #include <sys/ioctl.h>
