@@ -21,6 +21,64 @@ using namespace utils::numeric;
 
 namespace math::control
 {
+    template<typename value_type>
+    class derivative_limiter
+    {
+        public:
+        utils::signal<value_type> output_changed;
+
+        static std::shared_ptr<derivative_limiter<value_type>> create(const value_type& value) {
+            return std::make_shared<derivative_limiter<value_type>>(value);
+        }
+
+        constexpr void output_derivative_max_set(const value_type& value) {
+            if (m_output_derivative_max != value) {
+                m_output_derivative_max = value;
+            }
+        }
+
+        virtual constexpr value_type& output_get() { return m_output; }
+
+        virtual constexpr void input_set(value_type& value) {
+            std::unique_lock<std::mutex> lk(m_output_mutex);
+
+            if (m_output != value) {
+                
+                m_start = m_now;
+                m_now = std::chrono::high_resolution_clock::now();
+                m_interval = (value_type)((value_type)(m_now - m_start).count() / (value_type)std::chrono::nanoseconds::period::den);
+
+                auto output_derivative = (value - m_output) / m_interval;
+
+                if (abs(output_derivative) > m_output_derivative_max) {
+                    if (output_derivative < 0) {
+                        output_derivative = -1.0*m_output_derivative_max;
+                    } else {
+                        output_derivative = m_output_derivative_max;
+                    }
+                }
+
+                m_output = output_derivative * m_interval + m_output;
+
+                output_changed.emit(m_output);
+            }
+        }
+
+        derivative_limiter(const value_type& limit) : m_output_derivative_max(abs(limit)) {}
+
+        derivative_limiter(const derivative_limiter&) = delete;
+        derivative_limiter(const derivative_limiter&&) = delete;
+
+        private:
+
+        value_type m_interval;
+        std::chrono::high_resolution_clock::time_point m_start = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point m_now = std::chrono::high_resolution_clock::now();
+
+        std::mutex m_output_mutex;
+        value_type m_output;
+        value_type m_output_derivative_max;
+    };
 
     template<typename value_type>
     class pid_controller : public utils::pollable_worker
@@ -121,21 +179,22 @@ namespace math::control
                 m_error_diff = m_error_diff_min;
 
             auto m_control_output_next = m_set_point + (m_error * m_kp) + m_error_sum + m_error_diff;
+            m_control_output = m_control_output_next;
 
-            auto control_output_diff = (m_control_output_next - m_control_output)/m_interval;
+            // auto control_output_diff = (m_control_output_next - m_control_output)/m_interval;
 
-            if (abs(control_output_diff) > m_control_output_diff_max)
-            {
+            // if (abs(control_output_diff) > m_control_output_diff_max)
+            // {
                 
-                if (control_output_diff < 0) {
-                    control_output_diff = -1*m_control_output_diff_max;
-                } else {
-                    control_output_diff = m_control_output_diff_max;
-                }
+            //     if (control_output_diff < 0) {
+            //         control_output_diff = -1*m_control_output_diff_max;
+            //     } else {
+            //         control_output_diff = m_control_output_diff_max;
+            //     }
 
-            }
+            // }
 
-            m_control_output = control_output_diff * m_interval + m_control_output;
+            // m_control_output = control_output_diff * m_interval + m_control_output;
 
             if (m_control_output > m_control_output_max)
                 m_control_output = m_control_output_max;

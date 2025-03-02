@@ -140,112 +140,53 @@ class pid_controller_test : public testing::Test {
 
 };
 
-// TEST_F(pid_controller_test, open_loop_system) {
-//     std::ofstream ofs;
-//     ofs.open("basic_pid_controller_open_loop_system.csv");
+TEST_F(pid_controller_test, open_loop_system) {
+    std::ofstream ofs;
+    ofs.open("basic_pid_controller_open_loop_system.csv");
 
-//     system_stub.input_set(1.0);
+    system_stub.input_set(1.0);
 
-//     ofs
-//     << "time (s)"
-//     << "," << "input"
-//     << "," << "output"
-//     << std::endl;
+    ofs
+    << "time (s)"
+    << "," << "input"
+    << "," << "output"
+    << std::endl;
 
-//     for(auto t = std::chrono::high_resolution_clock::now() - start; t < experiment_duration; t = std::chrono::high_resolution_clock::now() - start)
-//     {
+    for(auto t = std::chrono::high_resolution_clock::now() - start; t < experiment_duration; t = std::chrono::high_resolution_clock::now() - start)
+    {
         
-//         if (t > std::chrono::milliseconds(1000) && t < std::chrono::milliseconds(2000)) {
-//             system_stub.input_set(0.0);
-//         }
+        if (t > std::chrono::milliseconds(1000) && t < std::chrono::milliseconds(2000)) {
+            system_stub.input_set(0.0);
+        }
 
-//         if (t > std::chrono::milliseconds(2000) && t < std::chrono::milliseconds(3000)) {
-//             system_stub.input_set(1.0);
-//         }
+        if (t > std::chrono::milliseconds(2000) && t < std::chrono::milliseconds(3000)) {
+            system_stub.input_set(1.0);
+        }
 
-//         if (t > std::chrono::milliseconds(3000) && t < std::chrono::milliseconds(4000)) {
-//             system_stub.input_set(0.0);
-//         }
+        if (t > std::chrono::milliseconds(3000) && t < std::chrono::milliseconds(4000)) {
+            system_stub.input_set(0.0);
+        }
 
-//         if (t > std::chrono::milliseconds(4000) && t < std::chrono::milliseconds(5000)) {
-//             system_stub.input_set(1.0);
-//         }
+        if (t > std::chrono::milliseconds(4000) && t < std::chrono::milliseconds(5000)) {
+            system_stub.input_set(1.0);
+        }
 
-//         ofs
-//             << to_seconds_double(t)
-//             << "," << system_stub.input_get()
-//             << "," << system_stub.output_get()
-//             << std::endl;
+        ofs
+            << to_seconds_double(t)
+            << "," << system_stub.input_get()
+            << "," << system_stub.output_get()
+            << std::endl;
 
-//         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-//     }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 
-//     ofs.close();
-
-
-//     ASSERT_TRUE(true);
-// }
-
-// TEST_F(pid_controller_test, closed_loop_system) {
-
-//     std::ofstream ofs;
-
-//     controller.output_changed += [&](auto value) {
-//         system_stub.input_set(value);
-//     };
-
-//     system_stub.output_changed += [&](auto value) {
-//         controller.feedback_set(value);
-//     };
-
-//     controller.kp_set(5.0);
-//     controller.ki_set(5.0);
-//     controller.kd_set(0.0);
-
-//     ofs.open("basic_pid_controller_closed_loop_system.csv");
-
-//     ofs
-//         << "time (s)"
-//         << "," << "controller input"
-//         << "," << "system output"
-//         << std::endl;
-
-//     for(auto t = std::chrono::high_resolution_clock::now() - start; t < experiment_duration; t = std::chrono::high_resolution_clock::now() - start)
-//     {
-        
-//         if (t > std::chrono::milliseconds(1000) && t < std::chrono::milliseconds(2000)) {
-//             controller.set_point_set(0.0);
-//         }
-
-//         if (t > std::chrono::milliseconds(2000) && t < std::chrono::milliseconds(3000)) {
-//             controller.set_point_set(1.0);
-//         }
-
-//         if (t > std::chrono::milliseconds(3000) && t < std::chrono::milliseconds(4000)) {
-//             controller.set_point_set(0.0);
-//         }
-
-//         if (t > std::chrono::milliseconds(4000) && t < std::chrono::milliseconds(5000)) {
-//             controller.set_point_set(1.0);
-//         }
-
-//         ofs
-//             << to_seconds_double(t)
-//             << "," << controller.set_point_get()
-//             << "," << system_stub.output_get()
-//             << std::endl;
-
-//         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        
-//     }
-
-//     ofs.close();
+    ofs.close();
 
 
-//     ASSERT_TRUE(true);
-// }
+    ASSERT_TRUE(true);
+}
 
-TEST_F(pid_controller_test, closed_loop_diff_max_system) {
+TEST_F(pid_controller_test, closed_loop_system) {
 
     std::ofstream ofs;
 
@@ -260,7 +201,73 @@ TEST_F(pid_controller_test, closed_loop_diff_max_system) {
     controller.kp_set(5.0);
     controller.ki_set(5.0);
     controller.kd_set(0.0);
-    controller.control_output_diff_max_set(1.0);
+
+    ofs.open("basic_pid_controller_closed_loop_system.csv");
+
+    ofs
+        << "time (s)"
+        << "," << "controller input"
+        << "," << "system output"
+        << std::endl;
+
+    for(auto t = std::chrono::high_resolution_clock::now() - start; t < experiment_duration; t = std::chrono::high_resolution_clock::now() - start)
+    {
+        
+        if (t > std::chrono::milliseconds(1000) && t < std::chrono::milliseconds(2000)) {
+            controller.set_point_set(0.0);
+        }
+
+        if (t > std::chrono::milliseconds(2000) && t < std::chrono::milliseconds(3000)) {
+            controller.set_point_set(1.0);
+        }
+
+        if (t > std::chrono::milliseconds(3000) && t < std::chrono::milliseconds(4000)) {
+            controller.set_point_set(0.0);
+        }
+
+        if (t > std::chrono::milliseconds(4000) && t < std::chrono::milliseconds(5000)) {
+            controller.set_point_set(1.0);
+        }
+
+        ofs
+            << to_seconds_double(t)
+            << "," << controller.set_point_get()
+            << "," << system_stub.output_get()
+            << std::endl;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        
+    }
+
+    ofs.close();
+
+
+    ASSERT_TRUE(true);
+}
+
+TEST_F(pid_controller_test, closed_loop_diff_max_system) {
+
+    std::ofstream ofs;
+
+    auto limiter = derivative_limiter<double>::create(1.0);
+
+    controller.output_changed += [limiter](auto value) {
+        if (limiter != nullptr) {
+            limiter->input_set(value);
+        }
+    };
+
+    limiter->output_changed += [&system_stub = system_stub](auto value) {
+        system_stub.input_set(value);
+    };
+
+    system_stub.output_changed += [&controller = controller](auto value) {
+        controller.feedback_set(value);
+    };
+
+    controller.kp_set(5.0);
+    controller.ki_set(5.0);
+    controller.kd_set(0.0);
 
     ofs.open("basic_pid_controller_closed_loop_diff_max_system.csv");
 
