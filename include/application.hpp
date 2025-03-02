@@ -60,34 +60,6 @@ struct command_processor_route
 	write_callback_type write;
 };
 
-
-class pwm_core_sink_pad : public math::control::abstract_sink<double>
-{
-public:
-	pwm_core_sink_pad(nit_mb_core_state_t *state, double initial = 0) : m_value(initial) {}
-
-	virtual double get() override
-	{
-		/** convert uint16_t into a double value to feed the controller who is in double precision */
-		uint16_t value = 0;
-		nit_pwm_core_pwm_get((nit_mb_core_state_t *)pdata, &value);
-		return (((double)value - (double)INT16_MAX)) / ((double)INT16_MAX);
-	}
-
-	virtual void set(double value) override
-	{
-		/** convert double into a uint16_t value to feed the controller who is in short */
-		uint16_t integer_value = ((value * INT16_MAX) + INT16_MAX);
-		nit_pwm_core_pwm_set((nit_mb_core_state_t *)pdata, integer_value);
-	}
-
-private:
-	double m_value;
-
-	void *pdata;
-	size_t offset;
-};
-
 class application : std::enable_shared_from_this<application>
 {
 	application();

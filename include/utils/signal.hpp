@@ -27,7 +27,8 @@ namespace utils
         void emit(args_types...args) {
             for (auto slot : container)
             {
-                auto _ = std::async(std::launch::async, slot, std::forward<args_types>(args)...);
+                // auto _ = std::async(std::launch::async, slot, std::forward<args_types>(args)...);
+                slot(std::forward<args_types>(args)...);
             }
         }
 

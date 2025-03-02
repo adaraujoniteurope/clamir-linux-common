@@ -23,70 +23,7 @@ namespace math::control
 {
 
     template<typename value_type>
-    class abstract_src
-    {
-    public:
-        virtual value_type get() = 0;
-        virtual void set(value_type value) = 0;
-    };
-
-    template<typename value_type>
-    class abstract_sink
-    {
-    public:
-        virtual value_type get() = 0;
-        virtual void set(value_type value) = 0;
-    };
-
-    template<typename value_type>
-    class src_pad : public abstract_src<value_type>
-    {
-    public:
-        virtual value_type get() override { return m_value; }
-        virtual void set(value_type value) override { m_value = value; }
-
-    private:
-        value_type m_value;
-    };
-
-    template<typename value_type>
-    class sink_pad : public abstract_sink<value_type>
-    {
-    public:
-        sink_pad(value_type initial = 0) : m_value(initial) {}
-        virtual value_type get() override { return m_value; }
-        virtual void set(value_type value) override { m_value = value; }
-
-    private:
-        value_type m_value;
-    };
-
-    template<typename value_type>
-    class abstract_system : public utils::pollable_worker
-    {
-    public:
-        sink_pad<value_type> sink;
-        src_pad<value_type> src;
-
-    protected:
-    };
-
-    
-    class abstract_controller : public utils::pollable_worker
-    {
-    public:
-        virtual ~abstract_controller() {
-            std::cout << __func__ << std::endl;
-        }
-
-        virtual void reset() = 0;
-        virtual void hold() = 0;
-        virtual void setup() = 0;
-        virtual void stop() = 0;
-    };
-
-    template<typename value_type>
-    class pid_controller : public abstract_controller
+    class pid_controller : public utils::pollable_worker
     {
     public:
 
@@ -104,7 +41,7 @@ namespace math::control
         {
         }
 
-        virtual void reset() override
+        virtual void reset()
         {
             m_kp = zero;
             m_kd = zero;
@@ -113,12 +50,12 @@ namespace math::control
             m_control_output = zero;
         }
 
-        virtual void hold() override
+        virtual void hold()
         {
             /** not implemented */
         }
 
-        virtual void setup() override
+        virtual void setup()
         {
             m_set_point = zero;
             m_error = zero;
@@ -144,7 +81,7 @@ namespace math::control
             m_control_output_min = std::numeric_limits<value_type>::min();
         }
 
-        virtual void stop() override
+        virtual void stop()
         {
         }
 
@@ -296,8 +233,8 @@ namespace math::control
             }
             
         }
-        value_type input_get() { return m_feedback; }
-        void input_set(const value_type& value) { m_feedback = value; }
+        value_type feedback_get() { return m_feedback; }
+        void feedback_set(const value_type value) { m_feedback = value; }
         value_type output_get() { return m_output; }
 
 

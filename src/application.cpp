@@ -330,7 +330,7 @@ void application::run()
         double m02 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 0, 2);
         double m20 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 2, 0);
         double width = math::algorithm::moments::width_2d<double>(m00, m01, m10, m11, m02, m20);
-        m_controller.input_set(width);
+        m_controller.feedback_set(width);
     };
 
     std::thread system_timer_thread = std::thread(m_timer->get_worker());
