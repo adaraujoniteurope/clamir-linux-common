@@ -79,6 +79,8 @@ namespace math::control
 
             m_control_output_max = std::numeric_limits<value_type>::max();
             m_control_output_min = std::numeric_limits<value_type>::min();
+
+            m_control_output_diff_max = std::numeric_limits<value_type>::max();
         }
 
         virtual void stop()
@@ -118,7 +120,22 @@ namespace math::control
             if (m_error_diff < m_error_diff_min)
                 m_error_diff = m_error_diff_min;
 
-            m_control_output = m_set_point + (m_error * m_kp) + m_error_sum + m_error_diff;
+            auto m_control_output_next = m_set_point + (m_error * m_kp) + m_error_sum + m_error_diff;
+
+            auto control_output_diff = (m_control_output_next - m_control_output)/m_interval;
+
+            if (abs(control_output_diff) > m_control_output_diff_max)
+            {
+                
+                if (control_output_diff < 0) {
+                    control_output_diff = -1*m_control_output_diff_max;
+                } else {
+                    control_output_diff = m_control_output_diff_max;
+                }
+
+            }
+
+            m_control_output = control_output_diff * m_interval + m_control_output;
 
             if (m_control_output > m_control_output_max)
                 m_control_output = m_control_output_max;
@@ -250,6 +267,9 @@ namespace math::control
         constexpr value_type control_output_get() { return m_control_output; }
         constexpr void control_output_set(value_type value) { m_control_output = value; }
 
+        constexpr value_type control_output_diff_max_get() { return m_control_output_diff_max; }
+        constexpr void control_output_diff_max_set(value_type value) { m_control_output_diff_max = abs(value); }
+
         constexpr value_type control_output_max_get() { return m_control_output_max; }
         constexpr void control_output_max_set(value_type value) { m_control_output_max = value; }
 
@@ -365,6 +385,7 @@ namespace math::control
         value_type m_kd;
 
         value_type m_control_output;
+        value_type m_control_output_diff_max;
         value_type m_control_output_max;
         value_type m_control_output_min;
 
