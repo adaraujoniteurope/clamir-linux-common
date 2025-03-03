@@ -224,9 +224,9 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, power_man)
 
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, auto_shutter)
-DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, auto_shutter)
+// DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, auto_shutter)
 
-int command_target_nit_gen_core_auto_shutter_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_process_core_auto_shutter_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
 
     // uint8_t *image = (uint8_t *)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
@@ -448,9 +448,11 @@ void application::command_processor_legacy(int socket_fd)
     int length = 0;
     int client_retries = 0;
 
+    std::mutex mutex;
+
     while (!m_shutdown & (client_retries++ < 2))
     {
-
+        std::unique_lock<std::mutex> lk(mutex);
         length = read(socket_fd, ptr, sizeof(data));
 
         if (length <= 0)
@@ -502,7 +504,8 @@ void application::command_processor_legacy(int socket_fd)
                 _route.write(application::get_instance(), _route, req, socket_fd);
 
                 /** TODO: this parameter save should be dissociated from network protocol */
-                auto _ = std::async(std::launch::async, &application::save_all, application::get_instance());
+                // auto _ = std::async(std::launch::async, &application::save_all, application::get_instance());
+                save_all();
                 continue;
             }
 
@@ -536,7 +539,7 @@ void application::image_writer_legacy(int socket_fd)
 
     std::mutex socket_mutex;
 
-    volatile int* virtual_metadata_shm_ptr = nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
+    volatile int *virtual_metadata_shm_ptr = nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
 
     while (!m_shutdown)
     {
@@ -552,13 +555,13 @@ void application::image_writer_legacy(int socket_fd)
             /** because of speed we ignore driver access assertions */
             auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp1_offset);
 
-            ((uint32_t*)virtual_metadata_shm_ptr)[13] = nit_control_unit_core_temp_to_degc(voltage);
+            ((uint32_t *)virtual_metadata_shm_ptr)[13] = nit_control_unit_core_temp_to_degc(voltage);
         }
 
         {
             /** because of speed we ignore driver access assertions */
             auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp2_offset);
-            ((uint32_t*)virtual_metadata_shm_ptr)[14] = nit_control_unit_core_temp_to_degc(voltage);
+            ((uint32_t *)virtual_metadata_shm_ptr)[14] = nit_control_unit_core_temp_to_degc(voltage);
         }
 
         image_read.emit(application::get_instance(), m_image_buffer, sizeof(m_image_buffer), m_metadata_buffer, sizeof(m_metadata_buffer));

@@ -189,9 +189,9 @@ int application::initialize(int argc, char *argv[])
     nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
 
     {
-        if (nit_arm_core_config_load_from_file(&nit_arm_core_driver, "arm_core_config.json") < 0)
+        if (nit_arm_core_config_load_from_file(&nit_arm_core_driver, "nit_arm_core_config.json") < 0)
         {
-            if (nit_arm_core_config_save_to_file(&nit_arm_core_driver, "arm_core_config.json") < 0)
+            if (nit_arm_core_config_save_to_file(&nit_arm_core_driver, "nit_arm_core_config.json") < 0)
             {
                 return -1;
             }
@@ -199,9 +199,9 @@ int application::initialize(int argc, char *argv[])
     }
 
     {
-        if (nit_control_unit_core_config_load_from_file(&nit_control_unit_core_driver, "control_unit_core_config.json") < 0)
+        if (nit_control_unit_core_config_load_from_file(&nit_control_unit_core_driver, "nit_control_unit_core_config.json") < 0)
         {
-            if (nit_control_unit_core_config_save_to_file(&nit_control_unit_core_driver, "control_unit_core_config.json") < 0)
+            if (nit_control_unit_core_config_save_to_file(&nit_control_unit_core_driver, "nit_control_unit_core_config.json") < 0)
             {
                 return -1;
             }
@@ -209,9 +209,9 @@ int application::initialize(int argc, char *argv[])
     }
 
     {
-        if (nit_mb_core_config_load_from_file(&nit_mb_core_driver, "mb_core_config.json") < 0)
+        if (nit_mb_core_config_load_from_file(&nit_mb_core_driver, "nit_mb_core_config.json") < 0)
         {
-            if (nit_mb_core_config_save_to_file(&nit_mb_core_driver, "mb_core_config.json") < 0)
+            if (nit_mb_core_config_save_to_file(&nit_mb_core_driver, "nit_mb_core_config.json") < 0)
             {
                 return -1;
             }
@@ -227,9 +227,9 @@ int application::initialize(int argc, char *argv[])
     }
 
     {
-        if (nit_process_core_config_load_from_file(&nit_process_core_driver, "process_config.json") < 0)
+        if (nit_process_core_config_load_from_file(&nit_process_core_driver, "nit_process_core_config.json") < 0)
         {
-            if (nit_process_core_config_save_to_file(&nit_process_core_driver, "process_config.json") < 0)
+            if (nit_process_core_config_save_to_file(&nit_process_core_driver, "nit_process_core_config.json") < 0)
             {
                 return -1;
             }
