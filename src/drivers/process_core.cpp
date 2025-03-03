@@ -810,9 +810,6 @@ int nit_process_core_run(nit_process_core_state_t *state, std::shared_ptr<utils:
         priv->limPotenciaMax = priv->proc_var_shm[POWER_LIMIT_MAX];
         priv->limPotenciaMin = priv->proc_var_shm[POWER_LIMIT_MIN];
 
-        unsafe_set<nit_mb_core_state_t, uint32_t>(&nit_mb_core_driver, nit_pwm_core_pwm_limit_max_offset, priv->proc_var_shm[POWER_LIMIT_MAX]);
-        unsafe_set<nit_mb_core_state_t, uint32_t>(&nit_mb_core_driver, nit_pwm_core_pwm_limit_min_offset, priv->proc_var_shm[POWER_LIMIT_MIN]);
-
         priv->pixel_mm_ratio = ((double)priv->proc_var_shm[PIXEL_MM_RATIO] / 1000); // se reciben en micras
         priv->proc_var_shm[PID_ERROR] = (int)100 * priv->error_t1;
         priv->limiteIntegral = (double)priv->proc_var_shm[LIMIT_INTEGRAL];
@@ -1212,8 +1209,7 @@ int nit_process_core_run(nit_process_core_state_t *state, std::shared_ptr<utils:
         priv->metadatos[0] = priv->potencia_t0;
         priv->metadatos[7] = priv->track;
         priv->metadatos[11] = (priv->estadoAutomata << 24) | (priv->laser_status << 16) | priv->metadatos[11];
-        // Comienza el c�lculo del duty cycle
-        // duty = (potencia_t0 - potenciaMin) * (1000/(potenciaMax - potenciaMin));
+
         priv->duty = (priv->potencia_t0 - priv->potenciaMin) * (16383 / (priv->potenciaMax - priv->potenciaMin));
         priv->mb_core_shm[PWM] = (unsigned int)priv->duty;
         priv->last_laser_status = priv->laser_status;

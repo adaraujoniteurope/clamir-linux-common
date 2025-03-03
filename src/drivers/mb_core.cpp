@@ -169,7 +169,6 @@ int nit_mb_core_config_load_from_file(nit_mb_core_state_t* state, const char *pa
 
     nit_pwm_core_pwm_limit_max_set(state, state->config.pwm_limit_max);
     nit_pwm_core_pwm_limit_min_set(state, state->config.pwm_limit_min);
-    nit_pwm_core_pwm_set(state, state->config.pwm);
 
     nit_roi_core_round_set(state, state->config.round);
     nit_roi_core_x1_set(state, state->config.x1);
