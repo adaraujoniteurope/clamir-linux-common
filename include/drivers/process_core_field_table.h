@@ -30,7 +30,7 @@
     _(process_core, autoshutter_temp, uint32_t, sizeof(uint32_t), 25)      \
     _(process_core, autoshutter_timer, uint32_t, sizeof(uint32_t), 26)     \
     _(process_core, track_ref_start, uint32_t, sizeof(uint32_t), 27)       \
-    _(process_core, laser_exteral_control, uint32_t, sizeof(uint32_t), 28) \
+    _(process_core, laser_external_control, uint32_t, sizeof(uint32_t), 28) \
     _(process_core, delay_laser_on, uint32_t, sizeof(uint32_t), 29)        \
     _(process_core, preheating_ena, uint32_t, sizeof(uint32_t), 30)        \
     _(process_core, preheating_time, uint32_t, sizeof(uint32_t), 31)       \

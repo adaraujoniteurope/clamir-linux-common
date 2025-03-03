@@ -83,7 +83,7 @@ public:
 		nit_mb_core_config_save_to_file(&nit_mb_core_driver, "mb_core_config.json");
 	}
 
-	constexpr volatile int* get_process_variables_shm_ptr() { return process_variables_shm_ptr; }
+	// constexpr volatile int* get_process_variables_shm_ptr() { return process_variables_shm_ptr; }
 
 	// math::control::src_pad<double> controller0_input;
 	// pwm_core_sink_pad controller0_output;
@@ -121,8 +121,8 @@ private:
 	std::list<std::thread> m_server_threads;
 	std::unordered_map<int, std::function<int(const unsigned char *, int)>> m_command_server_router;
 
-	volatile int *process_variables_shm_ptr = NULL;
-	volatile int *virtual_metadata_shm_ptr = NULL;
+	// volatile int *process_variables_shm_ptr = NULL;
+	// volatile int *virtual_metadata_shm_ptr = NULL;
 
 	uint8_t m_image_buffer[8192];
 	uint8_t m_metadata_buffer[60];

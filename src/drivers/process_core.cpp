@@ -1,5 +1,6 @@
 #include "common/defs.h"
 #include "utils/config_file.h"
+#include <utils/waitable.hpp>
 
 #include <drivers/arm_core.h>
 #include <drivers/mb_core.h>
@@ -256,11 +257,10 @@ struct nit_process_core_private_state
     int control_NAP = 0;
     int measurement_NAP = 0;
     int cont_calibration = 0;
-    uint16_t alarm_enable; // 1 alarm ON, 0 alarm OFF
+    uint32_t alarm_enable; // 1 alarm ON, 0 alarm OFF
     double alarm_min;
     double alarm_max;
-    uint16_t alarm_time;
-    volatile int &cnt_aux_alarm = proc_var_shm[ALARM_TIME];
+    uint16_t cnt_aux_alarm;
     uint16_t alarm;
     uint16_t automeasure_flag, autoshutter_config;
     uint32_t autoshutter_time_target;
@@ -286,9 +286,8 @@ struct nit_process_core_private_state
     volatile int *virtual_metadata_shm;
     volatile int *arm_core_shm;
     volatile int *real_metadata_shm;
-    volatile int *gen_core_shm;
     volatile int *control_unit_shm;
-    volatile int *metaPtr;
+    volatile int *mb_core_shm;
 };
 
 nit_process_core_state_t nit_process_core_driver;
@@ -318,13 +317,14 @@ int nit_process_core_open(nit_process_core_state_t *state, nit_arm_core_state_t 
     }
 
     state->priv = (void*) malloc(sizeof(nit_process_core_private_state));
+    memset((void*)state->priv, 0, sizeof(nit_process_core_private_state));
 
     if (state->priv == NULL)
     {
         return -3;
     }
 
-    auto process = nit_process_core_process_data_ptr_get(state);
+    auto process = (nit_process_core_private_state*) state->priv;
 
     process->semaforo = sem_open(SEM_NAME, O_CREAT, 0644, 0);
 
@@ -334,12 +334,12 @@ int nit_process_core_open(nit_process_core_state_t *state, nit_arm_core_state_t 
     //     return -4;
     // }
 
-    state->priv = malloc(sizeof(nit_process_core_private_state));
+    // state->priv = malloc(sizeof(nit_process_core_private_state));
 
-    if (state->priv == nullptr)
-    {
-        return -1;
-    }
+    // if (state->priv == nullptr)
+    // {
+    //     return -1;
+    // }
 
     process->proc_var_shm = (volatile int *)mmap(NULL, 512, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
@@ -366,7 +366,7 @@ int nit_process_core_open(nit_process_core_state_t *state, nit_arm_core_state_t 
         return  -8;
     }
 
-    process->gen_core_shm = (volatile int *)nit_mb_core_state->priv;
+    process->mb_core_shm = (volatile int *)nit_mb_core_state->priv;
 
     if (nit_framebuffer_core_state_assert(nit_framebuffer_core_state) < 0) {
         return -9;
@@ -434,6 +434,11 @@ int nit_process_core_assert(nit_process_core_state_t *state)
     return 0;
 }
 
+volatile int* nit_process_core_get_virtual_metadata_shm_ptr(nit_process_core_state_t *state)
+{
+    return nit_process_core_process_data_ptr_get(state)->virtual_metadata_shm;
+}
+
 nit_process_core_private_state *nit_process_core_process_data_ptr_get(nit_process_core_state_t *state)
 {
     int retval = 0;
@@ -449,665 +454,868 @@ nit_process_core_private_state *nit_process_core_process_data_ptr_get(nit_proces
 
 int nit_process_core_config_save_to_file(nit_process_core_state_t *state, const char *path)
 {
+
+    if (nit_process_core_ki_get(state, &state->config.ki) < 0) {
+        return -1;
+    }
+    if (nit_process_core_kp_get(state, &state->config.kp) < 0) {
+        return -2;
+    }
+    if (nit_process_core_kd_get(state, &state->config.kd) < 0) {
+        return -3;
+    }
+    if (nit_process_core_max_power_get(state, &state->config.max_power) < 0) {
+        return -4;
+    }
+    if (nit_process_core_min_power_get(state, &state->config.min_power) < 0) {
+        return -5;
+    }
+    if (nit_process_core_power_man_get(state, &state->config.power_man) < 0) {
+        return -6;
+    }
+    if (nit_process_core_power_limit_max_get(state, &state->config.power_limit_max) < 0) {
+        return -7;
+    }
+    if (nit_process_core_power_limit_min_get(state, &state->config.power_limit_min) < 0) {
+        return -8;
+    }
+    if (nit_process_core_set_ref_width_get(state, &state->config.set_ref_width) < 0) {
+        return -9;
+    }
+    if (nit_process_core_width_ref_get(state, &state->config.width_ref) < 0) {
+        return -10;
+    }
+    if (nit_process_core_pixel_mm_ratio_get(state, &state->config.pixel_mm_ratio) < 0) {
+        return -11;
+    }
+    if (nit_process_core_pid_error_get(state, &state->config.pid_error) < 0) {
+        return -12;
+    }
+    if (nit_process_core_end_of_process_get(state, &state->config.end_of_process) < 0) {
+        return -13;
+    }
+    if (nit_process_core_limit_integral_get(state, &state->config.limit_integral) < 0) {
+        return -14;
+    }
+    if (nit_process_core_limit_slew_get(state, &state->config.limit_slew) < 0) {
+        return -15;
+    }
+    if (nit_process_core_buff_size_get(state, &state->config.buff_size) < 0) {
+        return -16;
+    }
+    if (nit_process_core_auto_shutter_get(state, &state->config.auto_shutter) < 0) {
+        return -17;
+    }
+    if (nit_process_core_enable_alarm_get(state, &state->config.enable_alarm) < 0) {
+        return -18;
+    }
+    if (nit_process_core_alarm_max_get(state, &state->config.alarm_max) < 0) {
+        return -19;
+    }
+    if (nit_process_core_alarm_min_get(state, &state->config.alarm_min) < 0) {
+        return -20;
+    }
+    if (nit_process_core_alarm_time_get(state, &state->config.alarm_time) < 0) {
+        return -21;
+    }
+    if (nit_process_core_serial_number_low_get(state, &state->config.serial_number_low) < 0) {
+        return -22;
+    }
+    if (nit_process_core_serial_number_high_get(state, &state->config.serial_number_high) < 0) {
+        return -23;
+    }
+    if (nit_process_core_automeasure_get(state, &state->config.automeasure) < 0) {
+        return -24;
+    }
+    if (nit_process_core_autoshutter_config_get(state, &state->config.autoshutter_config) < 0) {
+        return -25;
+    }
+    if (nit_process_core_autoshutter_temp_get(state, &state->config.autoshutter_temp) < 0) {
+        return -26;
+    }
+    if (nit_process_core_autoshutter_timer_get(state, &state->config.autoshutter_timer) < 0) {
+        return -27;
+    }
+    if (nit_process_core_track_ref_start_get(state, &state->config.track_ref_start) < 0) {
+        return -28;
+    }
+    if (nit_process_core_laser_external_control_get(state, &state->config.laser_external_control) < 0) {
+        return -29;
+    }
+    if (nit_process_core_delay_laser_on_get(state, &state->config.delay_laser_on) < 0) {
+        return -30;
+    }
+    if (nit_process_core_preheating_ena_get(state, &state->config.preheating_ena) < 0) {
+        return -31;
+    }
+    if (nit_process_core_preheating_time_get(state, &state->config.preheating_time) < 0) {
+        return -32;
+    }
+    if (nit_process_core_preheating_power_get(state, &state->config.preheating_power) < 0) {
+        return -33;
+    }
+
     return config_file_save_to_file(state, path);
 }
 
 int nit_process_core_config_load_from_file(nit_process_core_state_t *state, const char *path)
 {
-    return config_file_load_from_file(state, path);
+
+    if (config_file_load_from_file(state, path) < 0) {
+        return -1;
+    }
+
+    if (nit_process_core_ki_set(state, state->config.ki) < 0) {
+        return -1;
+    }
+    if (nit_process_core_kp_set(state, state->config.kp) < 0) {
+        return -2;
+    }
+    if (nit_process_core_kd_set(state, state->config.kd) < 0) {
+        return -3;
+    }
+    if (nit_process_core_max_power_set(state, state->config.max_power) < 0) {
+        return -4;
+    }
+    if (nit_process_core_min_power_set(state, state->config.min_power) < 0) {
+        return -5;
+    }
+    if (nit_process_core_power_man_set(state, state->config.power_man) < 0) {
+        return -6;
+    }
+    if (nit_process_core_power_limit_max_set(state, state->config.power_limit_max) < 0) {
+        return -7;
+    }
+    if (nit_process_core_power_limit_min_set(state, state->config.power_limit_min) < 0) {
+        return -8;
+    }
+    if (nit_process_core_set_ref_width_set(state, state->config.set_ref_width) < 0) {
+        return -9;
+    }
+    if (nit_process_core_width_ref_set(state, state->config.width_ref) < 0) {
+        return -10;
+    }
+    if (nit_process_core_pixel_mm_ratio_set(state, state->config.pixel_mm_ratio) < 0) {
+        return -11;
+    }
+    if (nit_process_core_pid_error_set(state, state->config.pid_error) < 0) {
+        return -12;
+    }
+    if (nit_process_core_end_of_process_set(state, state->config.end_of_process) < 0) {
+        return -13;
+    }
+    if (nit_process_core_limit_integral_set(state, state->config.limit_integral) < 0) {
+        return -14;
+    }
+    if (nit_process_core_limit_slew_set(state, state->config.limit_slew) < 0) {
+        return -15;
+    }
+    if (nit_process_core_buff_size_set(state, state->config.buff_size) < 0) {
+        return -16;
+    }
+    if (nit_process_core_auto_shutter_set(state, state->config.auto_shutter) < 0) {
+        return -17;
+    }
+    if (nit_process_core_enable_alarm_set(state, state->config.enable_alarm) < 0) {
+        return -18;
+    }
+    if (nit_process_core_alarm_max_set(state, state->config.alarm_max) < 0) {
+        return -19;
+    }
+    if (nit_process_core_alarm_min_set(state, state->config.alarm_min) < 0) {
+        return -20;
+    }
+    if (nit_process_core_alarm_time_set(state, state->config.alarm_time) < 0) {
+        return -21;
+    }
+    if (nit_process_core_serial_number_low_set(state, state->config.serial_number_low) < 0) {
+        return -22;
+    }
+    if (nit_process_core_serial_number_high_set(state, state->config.serial_number_high) < 0) {
+        return -23;
+    }
+    if (nit_process_core_automeasure_set(state, state->config.automeasure) < 0) {
+        return -24;
+    }
+    if (nit_process_core_autoshutter_config_set(state, state->config.autoshutter_config) < 0) {
+        return -25;
+    }
+    if (nit_process_core_autoshutter_temp_set(state, state->config.autoshutter_temp) < 0) {
+        return -26;
+    }
+    if (nit_process_core_autoshutter_timer_set(state, state->config.autoshutter_timer) < 0) {
+        return -27;
+    }
+    if (nit_process_core_track_ref_start_set(state, state->config.track_ref_start) < 0) {
+        return -28;
+    }
+    if (nit_process_core_laser_external_control_set(state, state->config.laser_external_control) < 0) {
+        return -29;
+    }
+    if (nit_process_core_delay_laser_on_set(state, state->config.delay_laser_on) < 0) {
+        return -30;
+    }
+    if (nit_process_core_preheating_ena_set(state, state->config.preheating_ena) < 0) {
+        return -31;
+    }
+    if (nit_process_core_preheating_time_set(state, state->config.preheating_time) < 0) {
+        return -32;
+    }
+    if (nit_process_core_preheating_power_set(state, state->config.preheating_power) < 0) {
+        return -33;
+    }
+
+    return 0;
 }
 
-#include <utils/waitable.hpp>
-
-int nit_process_core_run(nit_process_core_state_t *state, utils::waitable &timer)
+int nit_process_core_run(nit_process_core_state_t *state, std::shared_ptr<utils::waitable> timer, std::atomic_bool& shutdown)
 {
+    auto priv = nit_process_core_process_data_ptr_get(state);
 
-    auto process_data = nit_process_core_process_data_ptr_get(state);
+	priv->estadoAutomata = 0;
+	priv->valor1 = 0;
+	priv->valor2 = 0;
+	priv->contadorFramesMidiendo = 0;
 
-    process_data->estadoAutomata = 0;
-    process_data->valor1 = 0;
-    process_data->valor2 = 0;
-    process_data->contadorFramesMidiendo = 0;
-    process_data->width_ref = 1;
-    process_data->error_t0 = 0;
-    process_data->error_t1 = 0;
-    process_data->potencia_t0 = 0;
-    process_data->potencia_t1 = 0;
-    process_data->dt = 0.001;
-    process_data->mode = 0;
-    process_data->laser_status = 0; // 0 OFF, 1 ON
-    process_data->contadorFramesStop = 0;
-    process_data->endP = 1000;
-    process_data->delta_potencia = 0;
-    process_data->track_cnt = 0;
-    process_data->track = 0;
-    process_data->track_length = 2000;
-    process_data->semaforo = sem_open(SEM_NAME, O_CREAT, 0644, 0);
-    process_data->pending = 0;
-    process_data->enable = 1;
-    process_data->metaPtr = process_data->real_metadata_shm;
-    process_data->W = 0;
-    process_data->width_aux = 0;
-    process_data->W_circ_buff_aux = 0;
+	// Variables calculo potencia
+	priv->width_ref = 1;
+	priv->error_t0 = 0;
+	priv->error_t1 = 0;
+	priv->potencia_t0 = 0;
+	priv->potencia_t1 = 0;
+	priv->dt = 0.001;
+	priv->integral = 0;
+	priv->mode = 0;
+	priv->laser_status = 0; // 0 OFF, 1 ON
+	priv->contadorFramesStop = 0;
+	priv->endP = 1000;
+	priv->delta_potencia = 0;
+	priv->track_cnt = 0;
+	priv->track = 0;
+	priv->track_length = 2000;
 
-    // process_data->w_circ_buffer[512];
+	priv->semaforo = sem_open(SEM_NAME, O_CREAT, 0644, 0);
 
-    for (int i = 0; i < 512; i++)
-    {
-        process_data->w_circ_buffer[i] = 0;
-    }
+	priv->W = 0;
+	priv->width_aux = 0;
+	priv->W_circ_buff_aux = 0;
 
-    process_data->control_NAP = 0;
-    process_data->measurement_NAP = 0;
-    process_data->cont_calibration = 0;
-    process_data->resultado = 0;
-    process_data->cont = 0;
-    process_data->z = 0;
-    process_data->circ_buffer_size = 1;
-    // write(fd_int, (void *)&enable, sizeof(int));
-    process_data->derivative = 0;
-    process_data->temperature_last_autoshutter = ((float)process_data->virtual_metadata_shm[13]) / 10;
-    process_data->cnt_last_autoshutter = 0;
-    process_data->pending_autoshutter = 0;
-    process_data->laser_external = 0;
-    process_data->last_laser_status = 0;
-    process_data->delay_laser_on = 0;
-    process_data->cont_preheating = 0;
-    while (1)
-    {
-        process_data->ki = process_data->proc_var_shm[KI];
-        process_data->kp = process_data->proc_var_shm[KP];
-        process_data->kd = process_data->proc_var_shm[KD];
-        process_data->potenciaMax = (double)process_data->proc_var_shm[MAX_POWER];
-        process_data->potenciaMin = (double)process_data->proc_var_shm[MIN_POWER];
-        if (process_data->potenciaMin > 32767)
-        {
-            process_data->potenciaMin = process_data->potenciaMin - 65536;
-        }
-        process_data->limPotenciaMax = process_data->proc_var_shm[POWER_LIMIT_MAX];
-        process_data->limPotenciaMin = process_data->proc_var_shm[POWER_LIMIT_MIN];
-        process_data->pixel_mm_ratio = ((double)process_data->proc_var_shm[PIXEL_MM_RATIO] / 1000); // se reciben en micras
-        process_data->proc_var_shm[PID_ERROR] = (int)100 * process_data->error_t1;
-        process_data->limiteIntegral = (double)process_data->proc_var_shm[LIMIT_INTEGRAL];
-        process_data->limiteSlew = ((double)process_data->proc_var_shm[LIMIT_SLEW] / 100);
-        process_data->circ_buffer_size = process_data->proc_var_shm[BUFF_SIZE];
+	for (int i = 0; i < 512; i++)
+	{
+		priv->w_circ_buffer[i] = 0;
+	}
+	priv->control_NAP = 0;
+	priv->measurement_NAP = 0;
+	priv->cont_calibration = 0;
 
-        process_data->alarm_enable = process_data->proc_var_shm[ENABLE_ALARM];
-        process_data->alarm_max = ((double)process_data->proc_var_shm[ALARM_MAX]) / 100;
-        process_data->alarm_min = ((double)process_data->proc_var_shm[ALARM_MIN]) / 100;
-        process_data->alarm_time = process_data->proc_var_shm[ALARM_TIME];
-        process_data->automeasure_flag = process_data->proc_var_shm[AUTOMEASURE];
+	priv->cnt_aux_alarm = priv->proc_var_shm[ALARM_TIME];
 
-        process_data->autoshutter_config = process_data->proc_var_shm[AUTOSHUTTER_CONFIG]; // booleano, comprobar flags
-        // decode_config
-        process_data->auto_auto_shutter_enable = process_data->autoshutter_config & 0x01;
-        process_data->auto_auto_shutter_enable_inprocess = (process_data->autoshutter_config >> 1) & 0x01;
-        process_data->auto_auto_shutter_time_xtemp = (process_data->autoshutter_config >> 3) & 0x01;
-        // decodee config end
-        process_data->autoshutter_temp_target = ((float)process_data->proc_var_shm[AUTOSHUTTER_TEMP]) / 10; // de int16 recibido a double o float, dividir entre 10
-        process_data->autoshutter_time_target = process_data->proc_var_shm[AUTOSHUTTER_TIMER] * 10000;      //	de int16 recibido a int32, multiplicar por 10
+	priv->resultado = 0;
+	priv->cont = 0;
+	priv->z = 0;
+	priv->circ_buffer_size = 1;
+	priv->derivative = 0;
 
-        process_data->laser_external = process_data->proc_var_shm[LASER_EXTERAL_CONTROL];
 
-        if (process_data->circ_buffer_size < 1)
-        {
-            process_data->circ_buffer_size = 1;
-        }
-        else if (process_data->circ_buffer_size > LMAX_CIRCULAR_BUFFER_SIZE)
-        {
-            process_data->circ_buffer_size = LMAX_CIRCULAR_BUFFER_SIZE;
-        }
-        if (process_data->mode != process_data->gen_core_shm[MODE])
-        {
-            process_data->mode = process_data->gen_core_shm[MODE];
-            if (process_data->mode == 2)
-            {
-                process_data->estadoAutomata = MANUAL;
-                printf("\nCambio a estado MANUAL\n");
-            }
-            else
-            {
-                process_data->estadoAutomata = IDLE;
-                printf("\nCambio a estado IDLE\n");
-                process_data->gen_core_shm[CHANGE_OP_MODE] = 1;
-            }
-        }
+	priv->temperature_last_autoshutter = ((float)priv->virtual_metadata_shm[13]) / 10;
+	priv->cnt_last_autoshutter = 0;
+	priv->pending_autoshutter = 0;
+	priv->laser_external = 0;
+	priv->last_laser_status = 0;
+	priv->delay_laser_on = 0;
+	priv->cont_preheating = 0;
+	while (shutdown)
+	{
+		priv->ki = priv->proc_var_shm[KI];
+		priv->kp = priv->proc_var_shm[KP];
+		priv->kd = priv->proc_var_shm[KD];
+		priv->potenciaMax = (double)priv->proc_var_shm[MAX_POWER];
+		priv->potenciaMin = (double)priv->proc_var_shm[MIN_POWER];
 
-        // read(fd_int, (int *)&pending, sizeof(int)); // Se bloquea hasta que sucede una interrupcion de uio0
-        timer.wait();
+		if (priv->potenciaMin > 32767)
+		{
+			priv->potenciaMin = priv->potenciaMin - 65536;
+		}
 
-        memcpy(process_data->metadatos, (void *)process_data->metaPtr, 48);
+		priv->limPotenciaMax = priv->proc_var_shm[POWER_LIMIT_MAX];
+		priv->limPotenciaMin = priv->proc_var_shm[POWER_LIMIT_MIN];
 
-        // Laser status
-        if (process_data->laser_external)
-        {
-            process_data->laser_status = process_data->gen_core_shm[DIGITAL_IN_0];
-            // laser_status = gen_core_shm[DIGITAL_IN_1];
-        }
-        else
-        {
-            if (process_data->laser_status)
-            {
-                if (process_data->metadatos[1] < process_data->gen_core_shm[END_OF_TRACK])
-                    process_data->laser_status = 0;
-            }
-            else
-            {
-                if (process_data->metadatos[1] >= process_data->gen_core_shm[START_TRACK_MOM_T])
-                    process_data->laser_status = 1;
-            }
-        }
+        unsafe_set<nit_mb_core_state_t, uint32_t>(&nit_mb_core_driver, nit_pwm_core_pwm_limit_max_offset, priv->proc_var_shm[POWER_LIMIT_MAX]);
+        unsafe_set<nit_mb_core_state_t, uint32_t>(&nit_mb_core_driver, nit_pwm_core_pwm_limit_min_offset, priv->proc_var_shm[POWER_LIMIT_MIN]);
 
-        // write(fd_int, (void *)&enable, sizeof(int)); // Habilita la interrupcion de uio0
+		priv->pixel_mm_ratio = ((double)priv->proc_var_shm[PIXEL_MM_RATIO] / 1000); // se reciben en micras
+		priv->proc_var_shm[PID_ERROR] = (int)100 * priv->error_t1;
+		priv->limiteIntegral = (double)priv->proc_var_shm[LIMIT_INTEGRAL];
+		priv->limiteSlew = ((double)priv->proc_var_shm[LIMIT_SLEW] / 100);
+		priv->circ_buffer_size = priv->proc_var_shm[BUFF_SIZE];
 
-        /*
-         * Cambio a lectura buffer circular
-         */
-        if (process_data->proc_var_shm[AUTO_SHUTTER])
-        {
+		priv->alarm_enable = priv->proc_var_shm[ENABLE_ALARM];
+		priv->alarm_max = ((double)priv->proc_var_shm[ALARM_MAX]) / 100;
+		priv->alarm_min = ((double)priv->proc_var_shm[ALARM_MIN]) / 100;
+		priv->automeasure_flag = priv->proc_var_shm[AUTOMEASURE];
 
-            process_data->proc_var_shm[AUTO_SHUTTER] = 0;
-            if (!process_data->measurement_NAP)
-            {
-                process_data->measurement_NAP = NAP_DURATION;
-                process_data->control_NAP = NAP_DURATION;
-                // proc_var_shm[AUTO_SHUTTER] = 0;
-                process_data->cont_calibration = WAIT_START_CALIBRATION + 1 + WAIT_STOP_CALIBRATION + WAIT_SECOND_APERTURE;
-                // if(control_unit_shm[NIT_SHUTTER] == 0)
-                //{
-                process_data->control_unit_shm[NIT_SHUTTER] = 1; // cerrar shutter
-                                                                //}
-                process_data->cnt_last_autoshutter = 0;
-                process_data->temperature_last_autoshutter = process_data->current_temperature;
-            }
-            // control_unit_shm[NIT_SHUTTER_RESET]=1;
-        }
-        if (!process_data->measurement_NAP)
-        {
-            process_data->gen_core_shm[DIGITAL_OUT_3] = 0;
-            if (process_data->delay_laser_on > 0)
-            {
-                process_data->delay_laser_on--;
-            }
-            process_data->z += 1;
-            if (process_data->z >= process_data->circ_buffer_size)
-            {
-                process_data->z = 0;
-            }
-            process_data->w_circ_buffer[process_data->z] = process_data->pixel_mm_ratio * nit_process_core_calculate_width(process_data->metadatos);
-            process_data->W_circ_buff_aux = 0;
-            for (int y = 0; y < process_data->circ_buffer_size; y++)
-            {
-                process_data->W_circ_buff_aux += process_data->w_circ_buffer[y];
-            }
-            process_data->W = process_data->W_circ_buff_aux / (process_data->circ_buffer_size);
-        }
-        else
-        { // siesta
-            process_data->gen_core_shm[DIGITAL_OUT_3] = 1;
-            process_data->W = process_data->W;
-            if ((process_data->cont_calibration <= 0) && (process_data->control_unit_shm[NIT_SHUTTER] != 0))
-            {
-                process_data->control_unit_shm[NIT_SHUTTER] = 0; // open shutter
-            }
-            else
-            {
-                if (process_data->cont_calibration == (WAIT_SECOND_APERTURE))
-                {
-                    //	control_unit_shm[NIT_SHUTTER] = 0;
-                }
-                if (process_data->cont_calibration == (1 + WAIT_STOP_CALIBRATION + WAIT_SECOND_APERTURE))
-                {
-                    process_data->control_unit_shm[NIT_OFFSET_UPDATE] = 1;
-                    // control_unit_shm[NIT_SHUTTER_RESET]=1;
-                }
-                // cont_calibration--;
-            }
-            process_data->cont_calibration--;
-            process_data->measurement_NAP--;
-            process_data->control_NAP--;
-        }
+		priv->autoshutter_config = priv->proc_var_shm[AUTOSHUTTER_CONFIG]; // booleano, comprobar flags
+		// decode_config
+		priv->auto_auto_shutter_enable = priv->autoshutter_config & 0x01;
+		priv->auto_auto_shutter_enable_inprocess = (priv->autoshutter_config >> 1) & 0x01;
+		priv->auto_auto_shutter_time_xtemp = (priv->autoshutter_config >> 3) & 0x01;
+		// decodee config end
+		priv->autoshutter_temp_target = ((float)priv->proc_var_shm[AUTOSHUTTER_TEMP]) / 10; // de int16 recibido a double o float, dividir entre 10
+		priv->autoshutter_time_target = priv->proc_var_shm[AUTOSHUTTER_TIMER] * 10000;		//	de int16 recibido a int32, multiplicar por 10
 
-        if (process_data->proc_var_shm[SET_REF_WIDTH] > 0)
-        {
-            process_data->width_ref = ((double)process_data->proc_var_shm[WIDTH_REF]) / 100;
-            process_data->proc_var_shm[SET_REF_WIDTH] = 0;
-        }
+		priv->laser_external = priv->proc_var_shm[LASER_EXTERAL_CONTROL];
 
-        switch (process_data->estadoAutomata)
-        {
-        case MANUAL:
-            process_data->potencia_t0 = process_data->proc_var_shm[POWER_MAN];
-            if (process_data->mode != 2)
-            {
-                process_data->estadoAutomata = IDLE;
-                printf("\nCambio a estado IDLE\n");
-                process_data->gen_core_shm[CHANGE_OP_MODE] = 1;
-            }
-            process_data->track_cnt = 0;
-            process_data->track = 0;
-            process_data->delay_laser_on = 0;
-            break;
+		if (priv->circ_buffer_size < 1)
+		{
+			priv->circ_buffer_size = 1;
+		}
+		else if (priv->circ_buffer_size > LMAX_CIRCULAR_BUFFER_SIZE)
+		{
+			priv->circ_buffer_size = LMAX_CIRCULAR_BUFFER_SIZE;
+		}
+		if (priv->mode != priv->mb_core_shm[MODE])
+		{
+			priv->mode = priv->mb_core_shm[MODE];
+			if (priv->mode == 2)
+			{
+				priv->estadoAutomata = MANUAL;
+				printf("\nCambio a estado MANUAL\n");
+				// if (logging == 1)
+				// {
+				// 	stop_logging = 1;
+				// 	cont = 0;
+				// 	pthread_mutex_unlock(&lock);
+				// }
+			}
+			else
+			{
+				priv->estadoAutomata = IDLE;
+				printf("\nCambio a estado IDLE\n");
+				priv->mb_core_shm[CHANGE_OP_MODE] = 1;
+			}
+		}
 
-        case IDLE:
-            process_data->gen_core_shm[CHANGE_OP_MODE] = 1;
-            process_data->width_aux = 0;
-            process_data->contadorFramesStop = 0;
+		timer->wait();
+		// read(fd_int, (int *)&pending, sizeof(int)); // Se bloquea hasta que sucede una interrupcion de uio0
+		memcpy(priv->metadatos, (void *)priv->real_metadata_shm, 48);
 
-            if (process_data->laser_status)
-            {
-                if (process_data->proc_var_shm[PREHEATING_ENA])
-                {
-                    process_data->cont_preheating = 0;
-                    process_data->estadoAutomata = PREHEATING;
-                    printf("\nCambio a estado PREHEATING\n");
-                }
-                else
-                {
-                    process_data->estadoAutomata = MIDIENDO;
-                    printf("\nCambio a estado MIDIENDO\n");
-                    process_data->contadorFramesMidiendo = 0;
-                    pthread_mutex_unlock(&process_data->lock);
-                }
-                process_data->track_length = ((unsigned int)process_data->gen_core_shm[TIME_TRACK_HIGH]);
-                process_data->track_length = (((process_data->track_length << 32) | ((unsigned int)process_data->gen_core_shm[TIME_TRACK_LOW])) * 1000) / (unsigned long)100e6;
-            }
-            else
-            {
-                process_data->potencia_t0 = process_data->proc_var_shm[POWER_MAN];
-                process_data->potencia_t1 = process_data->potencia_t0;
-            }
-            process_data->track_cnt = 0;
-            process_data->track = 0;
-            process_data->delay_laser_on = 0;
-            break;
+		// Laser status
+		if (priv->laser_external)
+		{
+			priv->laser_status = priv->mb_core_shm[DIGITAL_IN_0];
+			// laser_status = mb_core_shm[DIGITAL_IN_1];
+		}
+		else
+		{
+			if (priv->laser_status)
+			{
+				if (priv->metadatos[1] < priv->mb_core_shm[END_OF_TRACK])
+                priv->laser_status = 0;
+			}
+			else
+			{
+				if (priv->metadatos[1] >= priv->mb_core_shm[START_TRACK_MOM_T])
+                priv->laser_status = 1;
+			}
+		}
 
-        case PREHEATING:
-            process_data->potencia_t0 = process_data->proc_var_shm[PREHEATING_POWER];
-            if (process_data->cont_preheating++ >= process_data->proc_var_shm[PREHEATING_TIME])
-            {
-                process_data->estadoAutomata = MIDIENDO;
-                process_data->contadorFramesMidiendo = 0;
-                pthread_mutex_unlock(&process_data->lock);
-                printf("\nCambio a estado MIDIENDO\n");
-            }
-            break;
+		// write(fd_int, (void *)&enable, sizeof(int)); // Habilita la interrupcion de uio0
 
-        case MIDIENDO:
-            process_data->cont++;
-            if (process_data->mode == 0)
-            {
-                if (process_data->track_cnt >= process_data->track_length)
-                {
-                    process_data->track_cnt = 0;
-                    process_data->track++;
-                }
-                else
-                {
-                    process_data->track_cnt++;
-                }
-            }
-            else if (process_data->mode == 1)
-            {
-                if ((process_data->laser_status > 0) && (process_data->laser_status != process_data->last_laser_status))
-                {
-                    if (process_data->laser_external)
-                    {
-                        process_data->track++;
-                        process_data->delay_laser_on = process_data->proc_var_shm[DELAY_LASER_ON];
-                    }
-                    else
-                    {
-                        if (!process_data->measurement_NAP)
-                        {
-                            process_data->track++;
-                            process_data->delay_laser_on = process_data->proc_var_shm[DELAY_LASER_ON];
-                        }
-                    }
-                }
-            }
-            // if ((laser_status) & (metadatos[7] >= proc_var_shm[TRACK_REF_START])) //sustituido por cuenta de tracks en el ARM
-            if ((process_data->laser_status) & (process_data->track >= process_data->proc_var_shm[TRACK_REF_START]))
-            {
-                process_data->width_aux = process_data->width_aux + process_data->W;
-                process_data->contadorFramesMidiendo++;
-            }
-            process_data->potencia_t0 = process_data->proc_var_shm[POWER_MAN];
-            process_data->potencia_t1 = process_data->potencia_t0;
-            // if (metadatos[7] >= gen_core_shm[REFERENCE_TRACK]){
-            if (process_data->track >= process_data->gen_core_shm[REFERENCE_TRACK])
-            {
-                process_data->estadoAutomata = CONTROL;
-                printf("\nCambio a estado CONTROL\n");
-                if (process_data->contadorFramesMidiendo == 0)
-                {
-                    process_data->contadorFramesMidiendo = 1;
-                }
-                if (process_data->automeasure_flag == 1)
-                {
-                    process_data->width_ref = process_data->width_aux / process_data->contadorFramesMidiendo;
-                }
-                else
-                {
-                    process_data->width_ref = ((double)process_data->proc_var_shm[WIDTH_REF]) / 100;
-                }
-                process_data->width_aux = 0;
-                process_data->error_t0 = 0;
-                process_data->error_t1 = 0;
-                process_data->integral = 0;
-                process_data->derivative = 0;
-                process_data->contadorFramesMidiendo = 0;
-            }
-            break;
+		/*
+		 * Cambio a lectura buffer circular
+		 */
+		if (priv->proc_var_shm[AUTO_SHUTTER])
+		{
 
-        case CONTROL:
-            process_data->endP = process_data->proc_var_shm[END_OF_PROCESS];
-            process_data->cont++;
+			priv->proc_var_shm[AUTO_SHUTTER] = 0;
+			if (!priv->measurement_NAP)
+			{
+				priv->measurement_NAP = NAP_DURATION;
+				priv->control_NAP = NAP_DURATION;
+				// proc_var_shm[AUTO_SHUTTER] = 0;
+				priv->cont_calibration = WAIT_START_CALIBRATION + 1 + WAIT_STOP_CALIBRATION + WAIT_SECOND_APERTURE;
+				// if(control_unit_shm[NIT_SHUTTER] == 0)
+				//{
+                    priv->control_unit_shm[NIT_SHUTTER] = 1; // cerrar shutter
+										//}
+                                        priv->cnt_last_autoshutter = 0;
+                                        priv->temperature_last_autoshutter = priv->current_temperature;
+			}
+			// control_unit_shm[NIT_SHUTTER_RESET]=1;
+		}
+		if (!priv->measurement_NAP)
+		{
+			priv->mb_core_shm[DIGITAL_OUT_3] = 0;
+			if (priv->delay_laser_on > 0)
+			{
+				priv->delay_laser_on--;
+			}
+			priv->z += 1;
+			if (priv->z >= priv->circ_buffer_size)
+			{
+				priv->z = 0;
+			}
+			priv->w_circ_buffer[priv->z] = priv->pixel_mm_ratio * nit_process_core_calculate_width(priv->metadatos);
+			priv->W_circ_buff_aux = 0;
+			for (int y = 0; y < priv->circ_buffer_size; y++)
+			{
+				priv->W_circ_buff_aux += priv->w_circ_buffer[y];
+			}
+			priv->W =priv->W_circ_buff_aux / (priv->circ_buffer_size);
+		}
+		else
+		{ // siesta
+			priv->mb_core_shm[DIGITAL_OUT_3] = 1;
+			priv->W =priv->W;
+			if ((priv->cont_calibration <= 0) && (priv->control_unit_shm[NIT_SHUTTER] != 0))
+			{
+				priv->control_unit_shm[NIT_SHUTTER] = 0; // open shutter
+			}
+			else
+			{
+				if (priv->cont_calibration == (WAIT_SECOND_APERTURE))
+				{
+					//	control_unit_shm[NIT_SHUTTER] = 0;
+				}
+				if (priv->cont_calibration == (1 + WAIT_STOP_CALIBRATION + WAIT_SECOND_APERTURE))
+				{
+					priv->control_unit_shm[NIT_OFFSET_UPDATE] = 1;
+					// control_unit_shm[NIT_SHUTTER_RESET]=1;
+				}
+				// cont_calibration--;
+			}
+			priv->cont_calibration--;
+			priv->measurement_NAP--;
+			priv->control_NAP--;
+		}
 
-            if (process_data->mode == 0)
-            {
-                if (process_data->track_cnt >= process_data->track_length)
-                {
-                    process_data->track_cnt = 0;
-                    process_data->track++;
-                }
-                else
-                {
-                    process_data->track_cnt++;
-                }
-            }
-            else if (process_data->mode == 1)
-            {
-                if ((process_data->laser_status > 0) && (process_data->laser_status != process_data->last_laser_status))
-                {
-                    if (process_data->laser_external)
-                    {
-                        process_data->track++;
-                        process_data->delay_laser_on = process_data->proc_var_shm[DELAY_LASER_ON];
-                    }
-                    else
-                    {
-                        if (!process_data->measurement_NAP)
-                        {
-                            process_data->track++;
-                            process_data->delay_laser_on = process_data->proc_var_shm[DELAY_LASER_ON];
-                        }
-                    }
-                }
-            }
-            if (process_data->delay_laser_on > 0)
-            {
-                process_data->delay_laser_on--;
-            }
-            else
-            {
-                if ((!process_data->laser_status) || (process_data->control_NAP))
-                {
-                    if (process_data->contadorFramesStop++ > process_data->endP)
-                    {
-                        process_data->estadoAutomata = IDLE;
-                        printf("\nCambio a estado IDLE\n");
-                        process_data->contadorFramesStop = 0;
-                        process_data->cont = 0;
-                        process_data->stop_logging = 1;
-                        pthread_mutex_unlock(&process_data->lock);
-                    }
-                }
-                else
-                {
-                    process_data->contadorFramesStop = 0;
-                    // Comienza el c�clculo de la potencia
-                    process_data->error_t0 = process_data->width_ref - process_data->W;
-                    process_data->integral = process_data->integral + (process_data->error_t0 * process_data->dt);
+		if (priv->proc_var_shm[SET_REF_WIDTH] > 0)
+		{
+			priv->width_ref = ((double)priv->proc_var_shm[WIDTH_REF]) / 100;
+			priv->proc_var_shm[SET_REF_WIDTH] = 0;
+		}
 
-                    if (process_data->ki > 0)
-                    {
-                        process_data->limit_integral_divided = process_data->limiteIntegral / process_data->ki;
-                    }
-                    else
-                    {
-                        process_data->limit_integral_divided = 1000;
-                    }
-                    if (fabs(process_data->integral) >= (process_data->limit_integral_divided))
-                    {
-                        if (process_data->integral < 0)
-                        {
-                            process_data->integral = 0 - process_data->limit_integral_divided;
-                        }
-                        else
-                        {
-                            process_data->integral = process_data->limit_integral_divided;
-                        }
-                    }
+		switch (priv->estadoAutomata)
+		{
+		case MANUAL:
+        priv->potencia_t0 = priv->proc_var_shm[POWER_MAN];
+			if (priv->mode != 2)
+			{
+				priv->estadoAutomata = IDLE;
+				printf("\nCambio a estado IDLE\n");
+				priv->mb_core_shm[CHANGE_OP_MODE] = 1;
+			}
+			priv->track_cnt = 0;
+			priv->track = 0;
+			priv->delay_laser_on = 0;
+			break;
 
-                    //				derivative = (error_t0 - error_t1)/dt; //comentada por posibilidad de valor muy grande
-                    process_data->derivative = (process_data->error_t0 - process_data->error_t1);
-                    process_data->potencia_t0 = process_data->proc_var_shm[POWER_MAN] + (process_data->kp * process_data->error_t0) + (process_data->ki * process_data->integral) + (process_data->kd * process_data->derivative);
-                    process_data->error_t1 = process_data->error_t0;
+		case IDLE:
+        priv->mb_core_shm[CHANGE_OP_MODE] = 1;
+        priv->width_aux = 0;
+        priv->contadorFramesStop = 0;
+			if (priv->laser_status)
+			{
+				if (priv->proc_var_shm[PREHEATING_ENA])
+				{
+					priv->cont_preheating = 0;
+					priv->estadoAutomata = PREHEATING;
+					printf("\nCambio a estado PREHEATING\n");
+				}
+				else
+				{
+					priv->estadoAutomata = MIDIENDO;
+					printf("\nCambio a estado MIDIENDO\n");
+					priv->contadorFramesMidiendo = 0;
+					// pthread_mutex_unlock(&lock);
+				}
+				priv->track_length = ((unsigned int)priv->mb_core_shm[TIME_TRACK_HIGH]);
+				priv->track_length = (((priv->track_length << 32) | ((unsigned int)priv->mb_core_shm[TIME_TRACK_LOW])) * 1000) / CLK_100MHZ;
+			}
+			else
+			{
+				priv->potencia_t0 = priv->proc_var_shm[POWER_MAN];
+				priv->potencia_t1 = priv->potencia_t0;
+			}
+			priv->track_cnt = 0;
+			priv->track = 0;
+			priv->delay_laser_on = 0;
+			break;
 
-                    process_data->delta_potencia = process_data->potencia_t1 - process_data->potencia_t0;
-                    if (abs(process_data->delta_potencia) > process_data->limiteSlew)
-                    {
-                        // printf("potencia_t0 : %f", potencia_t0);
-                        if (process_data->potencia_t0 < process_data->potencia_t1)
-                        {
-                            process_data->potencia_t0 = process_data->potencia_t1 - process_data->limiteSlew;
-                        }
-                        else
-                        {
-                            process_data->potencia_t0 = process_data->potencia_t1 + process_data->limiteSlew;
-                        }
-                        // printf(" potencia_t0 despues de limit : %f\n", potencia_t0);
-                    }
-                }
-            }
+		case PREHEATING:
+        priv->potencia_t0 = priv->proc_var_shm[PREHEATING_POWER];
+			if (priv->cont_preheating++ >= priv->proc_var_shm[PREHEATING_TIME])
+			{
+				priv->estadoAutomata = MIDIENDO;
+				priv->contadorFramesMidiendo = 0;
+				// pthread_mutex_unlock(&lock);
+				printf("\nCambio a estado MIDIENDO\n");
+			}
+			break;
 
-            break;
-        default:
-            break;
-        }
+		case MIDIENDO:
+        priv->cont++;
+			if (priv->mode == 0)
+			{
+				if (priv->track_cnt >= priv->track_length)
+				{
+					priv->track_cnt = 0;
+					priv->track++;
+				}
+				else
+				{
+					priv->track_cnt++;
+				}
+			}
+			else if (priv->mode == 1)
+			{
+				if ((priv->laser_status > 0) && (priv->laser_status != priv->last_laser_status))
+				{
+					if (priv->laser_external)
+					{
+						priv->track++;
+						priv->delay_laser_on = priv->proc_var_shm[DELAY_LASER_ON];
+					}
+					else
+					{
+						if (!priv->measurement_NAP)
+						{
+							priv->track++;
+							priv->delay_laser_on = priv->proc_var_shm[DELAY_LASER_ON];
+						}
+					}
+				}
+			}
+			// if ((laser_status) & (metadatos[7] >= proc_var_shm[TRACK_REF_START])) //sustituido por cuenta de tracks en el ARM
+			if ((priv->laser_status) & (priv->track >= priv->proc_var_shm[TRACK_REF_START]))
+			{
+				priv->width_aux = priv->width_aux + priv->W;
+				priv->contadorFramesMidiendo++;
+			}
+			priv->potencia_t0 = priv->proc_var_shm[POWER_MAN];
+			priv->potencia_t1 = priv->potencia_t0;
+			// if (metadatos[7] >= mb_core_shm[REFERENCE_TRACK]){
+			if (priv->track >= priv->mb_core_shm[REFERENCE_TRACK])
+			{
+				priv->estadoAutomata = CONTROL;
+				printf("\nCambio a estado CONTROL\n");
+				if (priv->contadorFramesMidiendo == 0)
+				{
+					priv->contadorFramesMidiendo = 1;
+				}
+				if (priv->automeasure_flag == 1)
+				{
+					priv->width_ref = priv->width_aux / priv->contadorFramesMidiendo;
+				}
+				else
+				{
+					priv->width_ref = ((double)priv->proc_var_shm[WIDTH_REF]) / 100;
+				}
+				priv->width_aux = 0;
+				priv->error_t0 = 0;
+				priv->error_t1 = 0;
+				priv->integral = 0;
+				priv->derivative = 0;
+				priv->contadorFramesMidiendo = 0;
+			}
+			break;
 
-        process_data->resultado = (((int)(100 * process_data->width_ref) << 16)) | ((int)(process_data->W * 100));
+		case CONTROL:
+        priv->endP = priv->proc_var_shm[END_OF_PROCESS];
+        priv->cont++;
 
-        if (process_data->potencia_t0 > process_data->limPotenciaMax)
-        {
-            process_data->potencia_t0 = process_data->limPotenciaMax;
-        }
-        else
-        {
-            if (process_data->potencia_t0 < process_data->limPotenciaMin)
-            {
-                process_data->potencia_t0 = process_data->limPotenciaMin;
-            }
-        }
-        process_data->potencia_t1 = process_data->potencia_t0;
-        process_data->metadatos[0] = process_data->potencia_t0;
-        process_data->metadatos[7] = process_data->track;
-        process_data->metadatos[11] = (process_data->estadoAutomata << 24) | (process_data->laser_status << 16) | process_data->metadatos[11];
-        // Comienza el c�lculo del duty cycle
-        // duty = (potencia_t0 - potenciaMin) * (1000/(potenciaMax - potenciaMin));
-        process_data->duty = (process_data->potencia_t0 - process_data->potenciaMin) * (16383 / (process_data->potenciaMax - process_data->potenciaMin));
-        process_data->gen_core_shm[PWM] = (unsigned int)process_data->duty;
-        process_data->last_laser_status = process_data->laser_status;
+			if (priv->mode == 0)
+			{
+				if (priv->track_cnt >= priv->track_length)
+				{
+					priv->track_cnt = 0;
+					priv->track++;
+				}
+				else
+				{
+					priv->track_cnt++;
+				}
+			}
+			else if (priv->mode == 1)
+			{
+				if ((priv->laser_status > 0) && (priv->laser_status != priv->last_laser_status))
+				{
+					if (priv->laser_external)
+					{
+						priv->track++;
+						priv->delay_laser_on = priv->proc_var_shm[DELAY_LASER_ON];
+					}
+					else
+					{
+						if (!priv->measurement_NAP)
+						{
+							priv->track++;
+							priv->delay_laser_on = priv->proc_var_shm[DELAY_LASER_ON];
+						}
+					}
+				}
+			}
+			if (priv->delay_laser_on > 0)
+			{
+				priv->delay_laser_on--;
+			}
+			else
+			{
+				if ((!priv->laser_status) || (priv->control_NAP))
+				{
+					if (priv->contadorFramesStop++ > priv->endP)
+					{
+						priv->estadoAutomata = IDLE;
+						printf("\nCambio a estado IDLE\n");
+						priv->contadorFramesStop = 0;
+						priv->cont = 0;
+					}
+				}
+				else
+				{
+					priv->contadorFramesStop = 0;
+					// Comienza el c�clculo de la potencia
+					priv->error_t0 = priv->width_ref - priv->W;
+					priv->integral = priv->integral + (priv->error_t0 * priv->dt);
 
-        memcpy((void *)&process_data->virtual_metadata_shm[0], &process_data->metadatos, 28);    // Power, MOM00, MOM01, MOM10, MOM11, MOM02, MOM20
-        process_data->virtual_metadata_shm[7] = process_data->resultado;                         // Width
-        memcpy((void *)&process_data->virtual_metadata_shm[8], &process_data->metadatos[7], 20); // Track Nmbr, Frame Max, Frame Number, Timestamp, IO Status
+					if (priv->ki > 0)
+					{
+						priv->limit_integral_divided = priv->limiteIntegral / priv->ki;
+					}
+					else
+					{
+						priv->limit_integral_divided = 1000;
+					}
+					if (fabs(priv->integral) >= (priv->limit_integral_divided))
+					{
+						if (priv->integral < 0)
+						{
+							priv->integral = 0 - priv->limit_integral_divided;
+						}
+						else
+						{
+							priv->integral = priv->limit_integral_divided;
+						}
+					}
 
-        // gestion de la alarma
+					//				derivative = (error_t0 - error_t1)/dt; //comentada por posibilidad de valor muy grande
+					priv->derivative = (priv->error_t0 - priv->error_t1);
+					priv->potencia_t0 = priv->proc_var_shm[POWER_MAN] + (priv->kp * priv->error_t0) + (priv->ki * priv->integral) + (priv->kd * priv->derivative);
+					priv->error_t1 = priv->error_t0;
 
-        if ((process_data->alarm_enable == 1) && (process_data->laser_status))
-        {
-            if ((process_data->W > process_data->alarm_max) || (process_data->W < process_data->alarm_min))
-            {
-                if (process_data->cnt_aux_alarm > 0)
-                {
-                    process_data->cnt_aux_alarm--;
-                    process_data->alarm = 0;
-                }
-                else
-                {
-                    process_data->alarm = 1;
-                }
-            }
-            else
-            {
-                process_data->cnt_aux_alarm = process_data->alarm_time;
-                process_data->alarm = 0;
-            }
-        }
-        else
-        {
-            process_data->cnt_aux_alarm = process_data->alarm_time;
-            process_data->alarm = 0;
-        }
+					priv->delta_potencia = priv->potencia_t1 - priv->potencia_t0;
+					if (abs(priv->delta_potencia) > priv->limiteSlew)
+					{
+						// printf("potencia_t0 : %f", potencia_t0);
+						if (priv->potencia_t0 < priv->potencia_t1)
+						{
+							priv->potencia_t0 = priv->potencia_t1 - priv->limiteSlew;
+						}
+						else
+						{
+							priv->potencia_t0 = priv->potencia_t1 + priv->limiteSlew;
+						}
+						// printf(" potencia_t0 despues de limit : %f\n", potencia_t0);
+					}
+				}
+			}
 
-        // Gestion de logging
-        if (process_data->cont >= 100)
-        {
-            process_data->cont = 0;
-            pthread_mutex_unlock(&process_data->lock);
-        }
+			break;
+		default:
+			break;
+		}
 
-        // LEDS y autoshutter
-        process_data->cnt_last_autoshutter++;
-        process_data->current_temperature = ((float)process_data->virtual_metadata_shm[13]) / 10;
-        if (process_data->auto_auto_shutter_time_xtemp)
-        {
-            if (process_data->autoshutter_time_target < process_data->cnt_last_autoshutter)
-            {
-                process_data->pending_autoshutter = 1;
-                process_data->cnt_last_autoshutter = 0;
-            }
-        }
-        else
-        {
-            if (process_data->autoshutter_temp_target < (fabs(process_data->temperature_last_autoshutter - process_data->current_temperature)))
-            {
-                process_data->pending_autoshutter = 1;
-                process_data->cnt_last_autoshutter = 0;
-                process_data->temperature_last_autoshutter = process_data->current_temperature;
-            }
-        }
+		priv->resultado = (((int)(100 * priv->width_ref) << 16)) | ((int)(priv->W * 100));
 
-        switch (process_data->estadoAutomata)
-        {
-        case MANUAL:
-            if (process_data->auto_auto_shutter_enable && process_data->pending_autoshutter)
-            {
-                process_data->proc_var_shm[AUTO_SHUTTER] = 1;
-                process_data->pending_autoshutter = 0;
-            }
-            break;
-        case IDLE:
-            if (process_data->auto_auto_shutter_enable && process_data->pending_autoshutter)
-            {
-                process_data->proc_var_shm[AUTO_SHUTTER] = 1;
-                process_data->pending_autoshutter = 0;
-            }
-            break;
-        case MIDIENDO:
-            if (process_data->auto_auto_shutter_enable && process_data->auto_auto_shutter_enable_inprocess && process_data->pending_autoshutter)
-            {
-                process_data->proc_var_shm[AUTO_SHUTTER] = 1;
-                process_data->pending_autoshutter = 0;
-            }
+		if (priv->potencia_t0 > priv->limPotenciaMax)
+		{
+			priv->potencia_t0 = priv->limPotenciaMax;
+		}
+		else
+		{
+			if (priv->potencia_t0 < priv->limPotenciaMin)
+			{
+				priv->potencia_t0 = priv->limPotenciaMin;
+			}
+		}
+		priv->potencia_t1 = priv->potencia_t0;
+		priv->metadatos[0] = priv->potencia_t0;
+		priv->metadatos[7] = priv->track;
+		priv->metadatos[11] = (priv->estadoAutomata << 24) | (priv->laser_status << 16) | priv->metadatos[11];
+		// Comienza el c�lculo del duty cycle
+		// duty = (potencia_t0 - potenciaMin) * (1000/(potenciaMax - potenciaMin));
+		priv->duty = (priv->potencia_t0 - priv->potenciaMin) * (16383 / (priv->potenciaMax - priv->potenciaMin));
+		priv->mb_core_shm[PWM] = (unsigned int)priv->duty;
+		priv->last_laser_status = priv->laser_status;
 
-            break;
+		memcpy((void *)&priv->virtual_metadata_shm[0], &priv->metadatos, 28);	  // Power, MOM00, MOM01, MOM10, MOM11, MOM02, MOM20
+		priv->virtual_metadata_shm[7] = priv->resultado;						  // Width
+		memcpy((void *)&priv->virtual_metadata_shm[8], &priv->metadatos[7], 20); // Track Nmbr, Frame Max, Frame Number, Timestamp, IO Status
 
-        case CONTROL:
-            if (process_data->auto_auto_shutter_enable && process_data->auto_auto_shutter_enable_inprocess && process_data->pending_autoshutter)
-            {
-                process_data->proc_var_shm[AUTO_SHUTTER] = 1;
-                process_data->pending_autoshutter = 0;
-            }
-            break;
+		// gestion de la alarma
 
-        default:
-            break;
-        }
+		if ((priv->alarm_enable == 1) && (priv->laser_status))
+		{
+			if ((priv->W > priv->alarm_max) || (priv->W < priv->alarm_min))
+			{
+				if (priv->cnt_aux_alarm > 0)
+				{
+					priv->cnt_aux_alarm--;
+					priv->alarm = 0;
+				}
+				else
+				{
+					priv->alarm = 1;
+				}
+			}
+			else
+			{
+				priv->cnt_aux_alarm = priv->proc_var_shm[ALARM_TIME];
+				priv->alarm = 0;
+			}
+		}
+		else
+		{
+			priv->cnt_aux_alarm = priv->proc_var_shm[ALARM_TIME];
+			priv->alarm = 0;
+		}
 
-        if (process_data->alarm == 1)
-        {
-            // ROJO
-            process_data->arm_core_shm[LED_R] = 0;
-            process_data->arm_core_shm[LED_G] = 1;
-            process_data->arm_core_shm[LED_B] = 1;
-        }
-        else
-        {
+		// LEDS y autoshutter
+		priv->cnt_last_autoshutter++;
+		priv->current_temperature = ((float)priv->virtual_metadata_shm[13]) / 10;
+		if (priv->auto_auto_shutter_time_xtemp)
+		{
+			if (priv->autoshutter_time_target < priv->cnt_last_autoshutter)
+			{
+				priv->pending_autoshutter = 1;
+				priv->cnt_last_autoshutter = 0;
+			}
+		}
+		else
+		{
+			if (priv->autoshutter_temp_target < (fabs(priv->temperature_last_autoshutter - priv->current_temperature)))
+			{
+				priv->pending_autoshutter = 1;
+				priv->cnt_last_autoshutter = 0;
+				priv->temperature_last_autoshutter = priv->current_temperature;
+			}
+		}
 
-            switch (process_data->estadoAutomata)
-            {
-            case MANUAL: // AMARILLO
-                process_data->arm_core_shm[LED_R] = 0;
-                process_data->arm_core_shm[LED_G] = 0;
-                process_data->arm_core_shm[LED_B] = 1;
+		switch (priv->estadoAutomata)
+		{
+		case MANUAL:
+			if (priv->auto_auto_shutter_enable && priv->pending_autoshutter)
+			{
+				priv->proc_var_shm[AUTO_SHUTTER] = 1;
+				priv->pending_autoshutter = 0;
+			}
+			break;
+		case IDLE:
+			if (priv->auto_auto_shutter_enable && priv->pending_autoshutter)
+			{
+				priv->proc_var_shm[AUTO_SHUTTER] = 1;
+				priv->pending_autoshutter = 0;
+			}
+			break;
+		case MIDIENDO:
+			if (priv->auto_auto_shutter_enable && priv->auto_auto_shutter_enable_inprocess && priv->pending_autoshutter)
+			{
+				priv->proc_var_shm[AUTO_SHUTTER] = 1;
+				priv->pending_autoshutter = 0;
+			}
 
-                break;
-            case IDLE: // VERDE
-                process_data->arm_core_shm[LED_R] = 1;
-                process_data->arm_core_shm[LED_G] = 0;
-                process_data->arm_core_shm[LED_B] = 1;
+			break;
 
-                break;
+		case CONTROL:
+			if (priv->auto_auto_shutter_enable && priv->auto_auto_shutter_enable_inprocess && priv->pending_autoshutter)
+			{
+				priv->proc_var_shm[AUTO_SHUTTER] = 1;
+				priv->pending_autoshutter = 0;
+			}
+			break;
 
-            case MIDIENDO: // MORADO
-                process_data->arm_core_shm[LED_R] = 0;
-                process_data->arm_core_shm[LED_G] = 1;
-                process_data->arm_core_shm[LED_B] = 0;
+		default:
+			break;
+		}
 
-                break;
+		if (priv->alarm == 1)
+		{
+			// ROJO
+			priv->arm_core_shm[LED_R] = 0;
+			priv->arm_core_shm[LED_G] = 1;
+			priv->arm_core_shm[LED_B] = 1;
+		}
+		else
+		{
 
-            case CONTROL: // AZUL
-                process_data->arm_core_shm[LED_R] = 1;
-                process_data->arm_core_shm[LED_G] = 1;
-                process_data->arm_core_shm[LED_B] = 0;
+			switch (priv->estadoAutomata)
+			{
+			case MANUAL: // AMARILLO
+            priv->arm_core_shm[LED_R] = 0;
+            priv->arm_core_shm[LED_G] = 0;
+            priv->arm_core_shm[LED_B] = 1;
 
-                break;
-            default:
-                break;
-            }
-        }
+				break;
+			case IDLE: // VERDE
+            priv->arm_core_shm[LED_R] = 1;
+            priv->arm_core_shm[LED_G] = 0;
+            priv->arm_core_shm[LED_B] = 1;
 
-        process_data->gen_core_shm[DIGITAL_OUT_1] = 1; // naranja
-        if (process_data->alarm_enable == 1)
-        { // Solo si la alarma est� habilitada
+				break;
 
-            if (process_data->alarm == 1)
-            {
-                process_data->gen_core_shm[DIGITAL_OUT_0] = 0; // asignacion de la digital out 1 a la alarma
-                process_data->gen_core_shm[DIGITAL_OUT_2] = 1; // verde
-            }
-            else
-            {
-                process_data->gen_core_shm[DIGITAL_OUT_0] = 1; // asignacion de la digital out 1 a la alarma
-                process_data->gen_core_shm[DIGITAL_OUT_2] = 0; // verde
-            }
-        }
-        else
-        {
-            process_data->gen_core_shm[DIGITAL_OUT_0] = 1; // asignacion de la digital out 1 a la alarma
-            process_data->gen_core_shm[DIGITAL_OUT_2] = 0; // verde
-        }
+			case MIDIENDO: // MORADO
+            priv->arm_core_shm[LED_R] = 0;
+            priv->arm_core_shm[LED_G] = 1;
+            priv->arm_core_shm[LED_B] = 0;
 
-        sem_getvalue(process_data->semaforo, &process_data->valor1);
-        if (process_data->valor1 < 1)
-        { // permite al productor enviar hasta 2 imagenes por TCP al empezar la conexion
-            sem_post(process_data->semaforo);
-        }
-        sem_getvalue(process_data->semaforo, &process_data->valor2);
-    }
-    // close(fd_int);
-    // close(fdMetadatos);
-    // munmap(((int *)metaPtr), 64);
-    // metaPtr = NULL;
-    sem_close(process_data->semaforo);
-    sem_unlink(SEM_NAME);
-    exit(1);
+				break;
+
+			case CONTROL: // AZUL
+            priv->arm_core_shm[LED_R] = 1;
+            priv->arm_core_shm[LED_G] = 1;
+            priv->arm_core_shm[LED_B] = 0;
+
+				break;
+			default:
+				break;
+			}
+		}
+		priv->mb_core_shm[DIGITAL_OUT_1] = 1; // naranja
+		if (priv->alarm_enable == 1)
+		{ // Solo si la alarma est� habilitada
+
+			if (priv->alarm == 1)
+			{
+				priv->mb_core_shm[DIGITAL_OUT_0] = 0; // asignacion de la digital out 1 a la alarma
+				priv->mb_core_shm[DIGITAL_OUT_2] = 1; // verde
+			}
+			else
+			{
+				priv->mb_core_shm[DIGITAL_OUT_0] = 1; // asignacion de la digital out 1 a la alarma
+				priv->mb_core_shm[DIGITAL_OUT_2] = 0; // verde
+			}
+		}
+		else
+		{
+			priv->mb_core_shm[DIGITAL_OUT_0] = 1; // asignacion de la digital out 1 a la alarma
+			priv->mb_core_shm[DIGITAL_OUT_2] = 0; // verde
+		}
+		sem_getvalue(priv->semaforo, &priv->valor1);
+		if (priv->valor1 < 1)
+		{ // permite al productor enviar hasta 2 imagenes por TCP al empezar la conexion
+			sem_post(priv->semaforo);
+		}
+		sem_getvalue(priv->semaforo, &priv->valor2);
+	}
+
+	sem_close(priv->semaforo);
+	sem_unlink(SEM_NAME);
+
+
+    return 0;
 }
 
-int nit_process_core_kp_set(nit_process_core_state_t *state, uint16_t value)
+int nit_process_core_kp_set(nit_process_core_state_t *state, uint32_t value)
 {
     print_debug("%s: (%04x): %d\n", __func__, nit_process_core_kp_offset, value);
     int retval = 0;
@@ -1122,7 +1330,7 @@ int nit_process_core_kp_set(nit_process_core_state_t *state, uint16_t value)
     return retval;
 }
 
-int nit_process_core_kp_get(nit_process_core_state_t *state, uint16_t *value)
+int nit_process_core_kp_get(nit_process_core_state_t *state, uint32_t *value)
 {
     int retval = 0;
 
@@ -1137,7 +1345,7 @@ int nit_process_core_kp_get(nit_process_core_state_t *state, uint16_t *value)
     return retval;
 }
 
-int nit_process_core_ki_get(nit_process_core_state_t *state, uint16_t *value)
+int nit_process_core_ki_get(nit_process_core_state_t *state, uint32_t *value)
 {
     int retval = 0;
 
@@ -1152,7 +1360,7 @@ int nit_process_core_ki_get(nit_process_core_state_t *state, uint16_t *value)
     return retval;
 }
 
-int nit_process_core_ki_set(nit_process_core_state_t *state, uint16_t value)
+int nit_process_core_ki_set(nit_process_core_state_t *state, uint32_t value)
 {
     print_debug("%s: (%04x): %d\n", __func__, nit_process_core_kp_offset, value);
     int retval = 0;
@@ -1167,7 +1375,7 @@ int nit_process_core_ki_set(nit_process_core_state_t *state, uint16_t value)
     return retval;
 }
 
-int nit_process_core_kd_get(nit_process_core_state_t *state, uint16_t *value)
+int nit_process_core_kd_get(nit_process_core_state_t *state, uint32_t *value)
 {
     int retval = 0;
 
@@ -1182,7 +1390,7 @@ int nit_process_core_kd_get(nit_process_core_state_t *state, uint16_t *value)
     return retval;
 }
 
-int nit_process_core_kd_set(nit_process_core_state_t *state, uint16_t value)
+int nit_process_core_kd_set(nit_process_core_state_t *state, uint32_t value)
 {
     print_debug("%s: (%04x): %d\n", __func__, nit_process_core_kp_offset, value);
     int retval = 0;
@@ -1197,7 +1405,7 @@ int nit_process_core_kd_set(nit_process_core_state_t *state, uint16_t value)
     return retval;
 }
 
-int nit_process_core_max_power_get(nit_process_core_state_t *state, uint16_t *value)
+int nit_process_core_max_power_get(nit_process_core_state_t *state, uint32_t *value)
 {
     int retval = 0;
 
@@ -1212,7 +1420,7 @@ int nit_process_core_max_power_get(nit_process_core_state_t *state, uint16_t *va
     return retval;
 }
 
-int nit_process_core_max_power_set(nit_process_core_state_t *state, uint16_t value)
+int nit_process_core_max_power_set(nit_process_core_state_t *state, uint32_t value)
 {
     print_debug("%s: (%04x): %d\n", __func__, nit_process_core_kp_offset, value);
     int retval = 0;
@@ -1227,7 +1435,7 @@ int nit_process_core_max_power_set(nit_process_core_state_t *state, uint16_t val
     return retval;
 }
 
-int nit_process_core_min_power_get(nit_process_core_state_t *state, uint16_t *value)
+int nit_process_core_min_power_get(nit_process_core_state_t *state, uint32_t *value)
 {
     int retval = 0;
 
@@ -1242,7 +1450,7 @@ int nit_process_core_min_power_get(nit_process_core_state_t *state, uint16_t *va
     return retval;
 }
 
-int nit_process_core_min_power_set(nit_process_core_state_t *state, uint16_t value)
+int nit_process_core_min_power_set(nit_process_core_state_t *state, uint32_t value)
 {
     print_debug("%s: (%04x): %d\n", __func__, nit_process_core_kp_offset, value);
     int retval = 0;
@@ -1257,7 +1465,7 @@ int nit_process_core_min_power_set(nit_process_core_state_t *state, uint16_t val
     return retval;
 }
 
-int nit_process_core_power_man_get(nit_process_core_state_t *state, uint16_t *value)
+int nit_process_core_power_man_get(nit_process_core_state_t *state, uint32_t *value)
 {
     int retval = 0;
 
@@ -1272,7 +1480,7 @@ int nit_process_core_power_man_get(nit_process_core_state_t *state, uint16_t *va
     return retval;
 }
 
-int nit_process_core_power_man_set(nit_process_core_state_t *state, uint16_t value)
+int nit_process_core_power_man_set(nit_process_core_state_t *state, uint32_t value)
 {
     print_debug("%s: (%04x): %d\n", __func__, nit_process_core_kp_offset, value);
     int retval = 0;
@@ -1287,7 +1495,7 @@ int nit_process_core_power_man_set(nit_process_core_state_t *state, uint16_t val
     return retval;
 }
 
-int nit_process_core_power_limit_max_get(nit_process_core_state_t *state, uint16_t *value)
+int nit_process_core_power_limit_max_get(nit_process_core_state_t *state, uint32_t *value)
 {
     int retval = 0;
 
@@ -1302,7 +1510,7 @@ int nit_process_core_power_limit_max_get(nit_process_core_state_t *state, uint16
     return retval;
 }
 
-int nit_process_core_power_limit_max_set(nit_process_core_state_t *state, uint16_t value)
+int nit_process_core_power_limit_max_set(nit_process_core_state_t *state, uint32_t value)
 {
     print_debug("%s: (%04x): %d\n", __func__, nit_process_core_kp_offset, value);
     int retval = 0;
@@ -1317,7 +1525,7 @@ int nit_process_core_power_limit_max_set(nit_process_core_state_t *state, uint16
     return retval;
 }
 
-int nit_process_core_power_limit_min_get(nit_process_core_state_t *state, uint16_t *value)
+int nit_process_core_power_limit_min_get(nit_process_core_state_t *state, uint32_t *value)
 {
     int retval = 0;
 
@@ -1332,7 +1540,7 @@ int nit_process_core_power_limit_min_get(nit_process_core_state_t *state, uint16
     return retval;
 }
 
-int nit_process_core_power_limit_min_set(nit_process_core_state_t *state, uint16_t value)
+int nit_process_core_power_limit_min_set(nit_process_core_state_t *state, uint32_t value)
 {
     print_debug("%s: (%04x): %d\n", __func__, nit_process_core_kp_offset, value);
     int retval = 0;
@@ -1347,7 +1555,7 @@ int nit_process_core_power_limit_min_set(nit_process_core_state_t *state, uint16
     return retval;
 }
 
-int nit_process_core_set_ref_width_get(nit_process_core_state_t *state, uint16_t *value)
+int nit_process_core_set_ref_width_get(nit_process_core_state_t *state, uint32_t *value)
 {
     int retval = 0;
 
@@ -1362,7 +1570,7 @@ int nit_process_core_set_ref_width_get(nit_process_core_state_t *state, uint16_t
     return retval;
 }
 
-int nit_process_core_set_ref_width_set(nit_process_core_state_t *state, uint16_t value)
+int nit_process_core_set_ref_width_set(nit_process_core_state_t *state, uint32_t value)
 {
     print_debug("%s: (%04x): %d\n", __func__, nit_process_core_kp_offset, value);
     int retval = 0;
@@ -1377,7 +1585,7 @@ int nit_process_core_set_ref_width_set(nit_process_core_state_t *state, uint16_t
     return retval;
 }
 
-int nit_process_core_width_ref_get(nit_process_core_state_t *state, uint16_t *value)
+int nit_process_core_width_ref_get(nit_process_core_state_t *state, uint32_t *value)
 {
     int retval = 0;
 
@@ -1392,7 +1600,7 @@ int nit_process_core_width_ref_get(nit_process_core_state_t *state, uint16_t *va
     return retval;
 }
 
-int nit_process_core_width_ref_set(nit_process_core_state_t *state, uint16_t value)
+int nit_process_core_width_ref_set(nit_process_core_state_t *state, uint32_t value)
 {
     print_debug("%s: (%04x): %d\n", __func__, nit_process_core_kp_offset, value);
     int retval = 0;
@@ -1893,9 +2101,9 @@ int nit_process_core_track_ref_start_get(nit_process_core_state_t *state, uint32
     return retval;
 }
 
-int nit_process_core_laser_exteral_control_set(nit_process_core_state_t *state, uint32_t value)
+int nit_process_core_laser_external_control_set(nit_process_core_state_t *state, uint32_t value)
 {
-    print_debug("%s: (%04x): %d\n", __func__, nit_process_core_laser_exteral_control_offset, value);
+    print_debug("%s: (%04x): %d\n", __func__, nit_process_core_laser_external_control_offset, value);
     int retval = 0;
 
     if ((retval = nit_process_core_assert(state)) != 0)
@@ -1903,10 +2111,10 @@ int nit_process_core_laser_exteral_control_set(nit_process_core_state_t *state, 
         print_debug("%s: %s %d\n", __func__, "failed", retval);
         return retval;
     }
-    unsafe_set<typeof(*state), uint32_t>(state, nit_process_core_laser_exteral_control_offset, value);
+    unsafe_set<typeof(*state), uint32_t>(state, nit_process_core_laser_external_control_offset, value);
     return retval;
 }
-int nit_process_core_laser_exteral_control_get(nit_process_core_state_t *state, uint32_t *value)
+int nit_process_core_laser_external_control_get(nit_process_core_state_t *state, uint32_t *value)
 {
     int retval;
     if ((retval = nit_process_core_assert(state)) != 0)
@@ -1915,8 +2123,8 @@ int nit_process_core_laser_exteral_control_get(nit_process_core_state_t *state, 
         return retval;
     }
 
-    *value = unsafe_get<typeof(*state), uint32_t>(state, nit_process_core_laser_exteral_control_offset);
-    print_debug("%s: (%04x): %d\n", __func__, nit_process_core_laser_exteral_control_offset, *value);
+    *value = unsafe_get<typeof(*state), uint32_t>(state, nit_process_core_laser_external_control_offset);
+    print_debug("%s: (%04x): %d\n", __func__, nit_process_core_laser_external_control_offset, *value);
     return retval;
 }
 

@@ -1,7 +1,9 @@
 #ifndef _NIT_EMBEDDED_CLAMIR_DRIVER_PROCESS_CORE_H_
 #define _NIT_EMBEDDED_CLAMIR_DRIVER_PROCESS_CORE_H_
 
-#include <stdint.h>
+#include <atomic>
+#include <cstdint>
+
 #include "common.h"
 
 #include "arm_core.h"
@@ -16,8 +18,8 @@
 
 #include "utils/waitable.hpp"
 
-#define NIT_PROCESS_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(nit_mb_core_state_t, name, parameter, type, size, offset)
-#define NIT_PROCESS_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(nit_mb_core_state_t, name, parameter, type, size, offset)
+#define NIT_PROCESS_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(nit_process_core_state_t, name, parameter, type, size, offset)
+#define NIT_PROCESS_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(nit_process_core_state_t, name, parameter, type, size, offset)
 
 #if !DEBUGGING_HOST
 #define NIT_PROCESS_CORE_BASE_ADDRESS (0x50000000)
@@ -49,12 +51,15 @@
     extern nit_process_core_state_t nit_process_core_driver;
 
     int nit_process_core_open(nit_process_core_state_t *state, nit_arm_core_state_t *nit_arm_core_state, nit_control_unit_core_state_t *nit_control_unit_core_state, nit_mb_core_state_t *nit_mb_core_state, nit_framebuffer_core_state_t *nit_framebuffer_core_state);
-    int process_core_close(nit_mb_core_state_t *state);
+    int nit_process_core_close(nit_process_core_state_t *state);
 
-    int process_core_config_save_to_file(nit_mb_core_state_t *state, const char *path);
-    int process_core_config_load_from_file(nit_mb_core_state_t *state, const char *path);
+    int nit_process_core_config_save_to_file(nit_process_core_state_t *state, const char *path);
+    int nit_process_core_config_load_from_file(nit_process_core_state_t *state, const char *path);
 
-    int nit_process_core_run(nit_process_core_state_t *state, utils::waitable &timer);
+    int nit_process_core_run(nit_process_core_state_t *state, std::shared_ptr<utils::waitable> timer, std::atomic_bool& shutdown);
+
+    volatile int* nit_process_core_get_virtual_metadata_shm_ptr(nit_process_core_state_t *state);
+    
 
     NIT_PROCESS_CORE_FIELD_TABLE(NIT_PROCESS_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION)
 

@@ -39,6 +39,9 @@
 #include <drivers/pwm_core_field_table.h>
 #include <drivers/mom_core_field_table.h>
 
+#include <drivers/process_core_field_table.h>
+#include <drivers/process_core.h>
+
 #include <networking/tcp/protocol_legacy.hpp>
 
 #include <math/algorithm.hpp>
@@ -202,117 +205,26 @@ DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_mb_core, nit_gen_core, uint16_t, digita
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_mb_core, nit_gen_core, uint16_t, digital_out_3)
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_mb_core, nit_gen_core, uint16_t, digital_out_3)
 
-#include "application_legacy_control_loop.hpp"
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, kp)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, kp)
 
-int command_target_pid_controller_core_kp_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[KP]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, ki)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, ki)
 
-int command_target_pid_controller_core_kp_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[KP] = req.value.get();
-    req.value.set(ptr[KP]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, kd)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, kd)
 
-int command_target_pid_controller_core_ki_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[KI]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, max_power)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, max_power)
 
-int command_target_pid_controller_core_ki_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[KI] = req.value.get();
-    req.value.set(ptr[KI]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, min_power)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, min_power)
 
-int command_target_pid_controller_core_kd_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[KD]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, power_man)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, power_man)
 
-int command_target_pid_controller_core_kd_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[KD] = req.value.get();
-    req.value.set((uint32_t)ptr[KD]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_max_power_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[MAX_POWER]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_max_power_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[MAX_POWER] = req.value.get();
-    req.value.set(ptr[MAX_POWER]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_min_power_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[MIN_POWER]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_min_power_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[MIN_POWER] = req.value.get();
-    req.value.set(ptr[MIN_POWER]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_power_man_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[POWER_MAN]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_power_man_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[POWER_MAN] = req.value.get();
-    req.value.set(ptr[POWER_MAN]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_auto_shutter_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[AUTO_SHUTTER]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, auto_shutter)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, auto_shutter)
 
 int command_target_nit_gen_core_auto_shutter_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
@@ -334,242 +246,51 @@ int command_target_nit_gen_core_auto_shutter_write(std::shared_ptr<application> 
     return 0;
 }
 
-int command_target_nit_gen_core_set_ref_width_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[SET_REF_WIDTH]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, set_ref_width)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, set_ref_width)
 
-int command_target_nit_gen_core_set_ref_width_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[SET_REF_WIDTH] = req.value.get();
-    req.value.set(ptr[SET_REF_WIDTH]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, power_limit_max)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, power_limit_max)
 
-int command_target_nit_gen_core_power_limit_max_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[POWER_LIMIT_MAX]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, power_limit_min)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, power_limit_min)
 
-int command_target_nit_gen_core_power_limit_max_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[POWER_LIMIT_MAX] = req.value.get();
-    req.value.set(ptr[POWER_LIMIT_MAX]);
-    nit_pwm_core_pwm_limit_max_set(&nit_mb_core_driver, ptr[POWER_LIMIT_MAX]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, width_ref)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, width_ref)
 
-int command_target_nit_gen_core_power_limit_min_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[POWER_LIMIT_MIN]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, pixel_mm_ratio)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, pixel_mm_ratio)
 
-int command_target_nit_gen_core_power_limit_min_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[POWER_LIMIT_MIN] = req.value.get();
-    nit_pwm_core_pwm_limit_max_set(&nit_mb_core_driver, ptr[POWER_LIMIT_MIN]);
-    req.value.set(ptr[POWER_LIMIT_MIN]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, pid_error)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, pid_error)
 
-int command_target_nit_gen_core_width_ref_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[WIDTH_REF]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, end_of_process)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, end_of_process)
 
-int command_target_nit_gen_core_width_ref_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[WIDTH_REF] = req.value.get();
-    req.value.set(ptr[WIDTH_REF]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, limit_integral)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, limit_integral)
 
-int command_target_nit_gen_core_pixel_mm_ratio_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[PIXEL_MM_RATIO]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, limit_slew)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, limit_slew)
 
-int command_target_nit_gen_core_pixel_mm_ratio_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[PIXEL_MM_RATIO] = req.value.get();
-    req.value.set(ptr[PIXEL_MM_RATIO]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, buff_size)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, buff_size)
 
-int command_target_nit_gen_core_pid_error_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[PID_ERROR]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, enable_alarm)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, enable_alarm)
 
-int command_target_nit_gen_core_pid_error_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[PID_ERROR] = req.value.get();
-    req.value.set(ptr[PID_ERROR]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, alarm_max)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, alarm_max)
 
-int command_target_nit_gen_core_end_of_process_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[END_OF_PROCESS]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, alarm_min)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, alarm_min)
 
-int command_target_nit_gen_core_end_of_process_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[END_OF_PROCESS] = req.value.get();
-    req.value.set(ptr[END_OF_PROCESS]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, alarm_time)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, alarm_time)
 
-int command_target_nit_gen_core_limit_integral_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_gen_core_serial_number_low_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[LIMIT_INTEGRAL]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_limit_integral_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[LIMIT_INTEGRAL] = req.value.get();
-    req.value.set(ptr[LIMIT_INTEGRAL]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_limit_slew_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[LIMIT_SLEW]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_limit_slew_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[LIMIT_SLEW] = req.value.get();
-    req.value.set(ptr[LIMIT_SLEW]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_buff_size_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[BUFF_SIZE]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_buff_size_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[BUFF_SIZE] = req.value.get();
-    req.value.set(ptr[BUFF_SIZE]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_enable_alarm_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[ENABLE_ALARM]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_enable_alarm_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[ENABLE_ALARM] = req.value.get();
-    req.value.set(ptr[ENABLE_ALARM]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_alarm_max_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[ALARM_MAX]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_alarm_max_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[ALARM_MAX] = req.value.get();
-    req.value.set(ptr[ALARM_MAX]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_alarm_min_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[ALARM_MIN]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_alarm_min_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[ALARM_MIN] = req.value.get();
-    req.value.set(ptr[ALARM_MIN]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_alarm_time_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[ALARM_TIME]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_alarm_time_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[ALARM_TIME] = req.value.get();
-    req.value.set(ptr[ALARM_TIME]);
+    req.value.set(0x00000);
     send_response(socket_fd, req);
     return 0;
 }
@@ -600,183 +321,38 @@ int command_target_nit_gen_core_serial_number_low_read(std::shared_ptr<applicati
     return 0;
 }
 
-int command_target_nit_gen_core_serial_number_low_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, serial_number_low)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, serial_number_low)
 
-int command_target_nit_gen_core_automeasure_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[AUTOMEASURE]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, automeasure)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, automeasure)
 
-int command_target_nit_gen_core_automeasure_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[AUTOMEASURE] = req.value.get();
-    req.value.set(ptr[AUTOMEASURE]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, autoshutter_config)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, autoshutter_config)
 
-int command_target_nit_gen_core_autoshutter_config_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[AUTOSHUTTER_CONFIG]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, autoshutter_temp)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, autoshutter_temp)
 
-int command_target_nit_gen_core_autoshutter_config_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[AUTOSHUTTER_CONFIG] = req.value.get();
-    req.value.set(ptr[AUTOSHUTTER_CONFIG]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, autoshutter_timer)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, autoshutter_timer)
 
-int command_target_nit_gen_core_autoshutter_temperature_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[AUTOSHUTTER_TEMP]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, track_ref_start)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, track_ref_start)
 
-int command_target_nit_gen_core_autoshutter_temperature_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[AUTOSHUTTER_TEMP] = req.value.get();
-    req.value.set(ptr[AUTOSHUTTER_TEMP]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, laser_external_control)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, laser_external_control)
 
-int command_target_nit_gen_core_autoshutter_timer_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[AUTOSHUTTER_TIMER]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, delay_laser_on)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, delay_laser_on)
 
-int command_target_nit_gen_core_autoshutter_timer_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[AUTOSHUTTER_TIMER] = req.value.get();
-    req.value.set(ptr[AUTOSHUTTER_TIMER]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, preheating_ena)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, preheating_ena)
 
-int command_target_nit_gen_core_track_reference_start_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[TRACK_REF_START]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, preheating_time)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, preheating_time)
 
-int command_target_nit_gen_core_track_reference_start_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[TRACK_REF_START] = req.value.get();
-    req.value.set(ptr[TRACK_REF_START]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_laser_external_control_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[LASER_EXTERAL_CONTROL]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_laser_external_control_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[LASER_EXTERAL_CONTROL] = req.value.get();
-    req.value.set(ptr[LASER_EXTERAL_CONTROL]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_delay_laser_on_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[DELAY_LASER_ON]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_delay_laser_on_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[DELAY_LASER_ON] = req.value.get();
-    req.value.set(ptr[DELAY_LASER_ON]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_preheating_enable_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[PREHEATING_ENA]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_preheating_enable_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[PREHEATING_ENA] = req.value.get();
-    req.value.set(ptr[PREHEATING_ENA]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_preheating_time_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[PREHEATING_TIME]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_preheating_time_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[PREHEATING_TIME] = req.value.get();
-    req.value.set(ptr[PREHEATING_TIME]);
-    send_response(socket_fd, req);
-    return 0;
-}
-
-int command_target_nit_gen_core_preheating_power_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    req.value.set((uint32_t)ptr[PREHEATING_POWER]);
-    std::cout << __func__ << std::endl;
-    send_response(socket_fd, req);
-
-    return 0;
-}
-
-int command_target_nit_gen_core_preheating_power_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
-{
-    auto ptr = app->get_process_variables_shm_ptr();
-    ptr[PREHEATING_POWER] = req.value.get();
-    req.value.set(ptr[PREHEATING_POWER]);
-    send_response(socket_fd, req);
-    return 0;
-}
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, preheating_power)
+DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, preheating_power)
 
 std::map<uint16_t, command_processor_route> application::command_processor_routes_legacy = {
 
@@ -802,41 +378,41 @@ std::map<uint16_t, command_processor_route> application::command_processor_route
     {0x050F, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_drift_level_read, .write = command_target_nit_control_unit_core_drift_level_write}},
     {0x05A5, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_fpga_version_read, .write = command_target_nit_control_unit_core_fpga_version_write}},
 
-    {0x0402, {.pdata = nullptr, .read = command_target_pid_controller_core_kp_read, .write = command_target_pid_controller_core_kp_write}},
-    {0x0401, {.pdata = nullptr, .read = command_target_pid_controller_core_ki_read, .write = command_target_pid_controller_core_ki_write}},
-    {0x0403, {.pdata = nullptr, .read = command_target_pid_controller_core_kd_read, .write = command_target_pid_controller_core_kd_write}},
+    {0x0402, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_kp_read, .write = command_target_nit_process_core_kp_write}},
+    {0x0401, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_ki_read, .write = command_target_nit_process_core_ki_write}},
+    {0x0403, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_kd_read, .write = command_target_nit_process_core_kd_write}},
 
-    {0x0404, {.pdata = nullptr, .read = command_target_nit_gen_core_max_power_read, .write = command_target_nit_gen_core_max_power_write}},
-    {0x0405, {.pdata = nullptr, .read = command_target_nit_gen_core_min_power_read, .write = command_target_nit_gen_core_min_power_write}},
-    {0x0407, {.pdata = nullptr, .read = command_target_nit_gen_core_power_man_read, .write = command_target_nit_gen_core_power_man_write}},
-    {0x0409, {.pdata = nullptr, .read = command_target_nit_gen_core_auto_shutter_read, .write = command_target_nit_gen_core_auto_shutter_write}},
+    {0x0404, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_max_power_read, .write = command_target_nit_process_core_max_power_write}},
+    {0x0405, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_min_power_read, .write = command_target_nit_process_core_min_power_write}},
+    {0x0407, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_power_man_read, .write = command_target_nit_process_core_power_man_write}},
+    {0x0409, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_auto_shutter_read, .write = command_target_nit_process_core_auto_shutter_write}},
 
-    {0x040D, {.pdata = nullptr, .read = command_target_nit_gen_core_set_ref_width_read, .write = command_target_nit_gen_core_set_ref_width_write}},
-    {0x0418, {.pdata = nullptr, .read = command_target_nit_gen_core_power_limit_max_read, .write = command_target_nit_gen_core_power_limit_max_write}},
-    {0x0419, {.pdata = nullptr, .read = command_target_nit_gen_core_power_limit_min_read, .write = command_target_nit_gen_core_power_limit_min_write}},
-    {0x041F, {.pdata = nullptr, .read = command_target_nit_gen_core_width_ref_read, .write = command_target_nit_gen_core_width_ref_write}},
-    {0x0420, {.pdata = nullptr, .read = command_target_nit_gen_core_pixel_mm_ratio_read, .write = command_target_nit_gen_core_pixel_mm_ratio_write}},
-    {0x0421, {.pdata = nullptr, .read = command_target_nit_gen_core_pid_error_read, .write = command_target_nit_gen_core_pid_error_write}},
-    {0x0422, {.pdata = nullptr, .read = command_target_nit_gen_core_end_of_process_read, .write = command_target_nit_gen_core_end_of_process_write}},
-    {0x0423, {.pdata = nullptr, .read = command_target_nit_gen_core_limit_integral_read, .write = command_target_nit_gen_core_limit_integral_write}},
-    {0x0424, {.pdata = nullptr, .read = command_target_nit_gen_core_limit_slew_read, .write = command_target_nit_gen_core_limit_slew_write}},
-    {0x0425, {.pdata = nullptr, .read = command_target_nit_gen_core_buff_size_read, .write = command_target_nit_gen_core_buff_size_write}},
-    {0x04A5, {.pdata = nullptr, .read = command_target_nit_gen_core_buff_size_read, .write = command_target_nit_gen_core_buff_size_write}},
-    {0x0426, {.pdata = nullptr, .read = command_target_nit_gen_core_enable_alarm_read, .write = command_target_nit_gen_core_enable_alarm_write}},
-    {0x0427, {.pdata = nullptr, .read = command_target_nit_gen_core_alarm_max_read, .write = command_target_nit_gen_core_alarm_max_write}},
-    {0x0428, {.pdata = nullptr, .read = command_target_nit_gen_core_alarm_min_read, .write = command_target_nit_gen_core_alarm_min_write}},
-    {0x0429, {.pdata = nullptr, .read = command_target_nit_gen_core_alarm_time_read, .write = command_target_nit_gen_core_alarm_time_write}},
-    {0x042A, {.pdata = nullptr, .read = command_target_nit_gen_core_serial_number_low_read, .write = command_target_nit_gen_core_serial_number_low_write}},
-    {0x042E, {.pdata = nullptr, .read = command_target_nit_gen_core_automeasure_read, .write = command_target_nit_gen_core_automeasure_write}},
-    {0x042F, {.pdata = nullptr, .read = command_target_nit_gen_core_autoshutter_config_read, .write = command_target_nit_gen_core_autoshutter_config_write}},
-    {0x0431, {.pdata = nullptr, .read = command_target_nit_gen_core_autoshutter_temperature_read, .write = command_target_nit_gen_core_autoshutter_temperature_write}},
-    {0x0432, {.pdata = nullptr, .read = command_target_nit_gen_core_autoshutter_timer_read, .write = command_target_nit_gen_core_autoshutter_timer_write}},
-    {0x0433, {.pdata = nullptr, .read = command_target_nit_gen_core_track_reference_start_read, .write = command_target_nit_gen_core_track_reference_start_write}},
-    {0x0434, {.pdata = nullptr, .read = command_target_nit_gen_core_laser_external_control_read, .write = command_target_nit_gen_core_laser_external_control_write}},
-    {0x0435, {.pdata = nullptr, .read = command_target_nit_gen_core_delay_laser_on_read, .write = command_target_nit_gen_core_delay_laser_on_write}},
-    {0x0436, {.pdata = nullptr, .read = command_target_nit_gen_core_preheating_enable_read, .write = command_target_nit_gen_core_preheating_enable_write}},
-    {0x0437, {.pdata = nullptr, .read = command_target_nit_gen_core_preheating_time_read, .write = command_target_nit_gen_core_preheating_time_write}},
-    {0x0438, {.pdata = nullptr, .read = command_target_nit_gen_core_preheating_power_read, .write = command_target_nit_gen_core_preheating_power_write}},
+    {0x040D, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_set_ref_width_read, .write = command_target_nit_process_core_set_ref_width_write}},
+    {0x0418, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_power_limit_max_read, .write = command_target_nit_process_core_power_limit_max_write}},
+    {0x0419, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_power_limit_min_read, .write = command_target_nit_process_core_power_limit_min_write}},
+    {0x041F, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_width_ref_read, .write = command_target_nit_process_core_width_ref_write}},
+    {0x0420, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_pixel_mm_ratio_read, .write = command_target_nit_process_core_pixel_mm_ratio_write}},
+    {0x0421, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_pid_error_read, .write = command_target_nit_process_core_pid_error_write}},
+    {0x0422, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_end_of_process_read, .write = command_target_nit_process_core_end_of_process_write}},
+    {0x0423, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_limit_integral_read, .write = command_target_nit_process_core_limit_integral_write}},
+    {0x0424, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_limit_slew_read, .write = command_target_nit_process_core_limit_slew_write}},
+    {0x0425, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_buff_size_read, .write = command_target_nit_process_core_buff_size_write}},
+    {0x04A5, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_buff_size_read, .write = command_target_nit_process_core_buff_size_write}},
+    {0x0426, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_enable_alarm_read, .write = command_target_nit_process_core_enable_alarm_write}},
+    {0x0427, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_alarm_max_read, .write = command_target_nit_process_core_alarm_max_write}},
+    {0x0428, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_alarm_min_read, .write = command_target_nit_process_core_alarm_min_write}},
+    {0x0429, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_alarm_time_read, .write = command_target_nit_process_core_alarm_time_write}},
+    {0x042A, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_gen_core_serial_number_low_read, .write = command_target_nit_gen_core_serial_number_low_write}},
+    {0x042E, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_automeasure_read, .write = command_target_nit_process_core_automeasure_write}},
+    {0x042F, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_autoshutter_config_read, .write = command_target_nit_process_core_autoshutter_config_write}},
+    {0x0431, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_autoshutter_temp_read, .write = command_target_nit_process_core_autoshutter_temp_write}},
+    {0x0432, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_autoshutter_timer_read, .write = command_target_nit_process_core_autoshutter_timer_write}},
+    {0x0433, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_track_ref_start_read, .write = command_target_nit_process_core_track_ref_start_write}},
+    {0x0434, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_laser_external_control_read, .write = command_target_nit_process_core_laser_external_control_write}},
+    {0x0435, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_delay_laser_on_read, .write = command_target_nit_process_core_delay_laser_on_write}},
+    {0x0436, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_preheating_ena_read, .write = command_target_nit_process_core_preheating_ena_write}},
+    {0x0437, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_preheating_time_read, .write = command_target_nit_process_core_preheating_time_write}},
+    {0x0438, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_preheating_power_read, .write = command_target_nit_process_core_preheating_power_write}},
     {0x0406, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_mom_core_start_track_mom_t_read, .write = command_target_nit_mom_core_start_track_mom_t_write}},
     {0x040a, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_mom_core_mode_read, .write = command_target_nit_mom_core_mode_write}},
     {0x0408, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_mom_core_end_of_track_read, .write = command_target_nit_mom_core_end_of_track_write}},
@@ -960,6 +536,8 @@ void application::image_writer_legacy(int socket_fd)
 
     std::mutex socket_mutex;
 
+    volatile int* virtual_metadata_shm_ptr = nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
+
     while (!m_shutdown)
     {
 
@@ -973,6 +551,7 @@ void application::image_writer_legacy(int socket_fd)
         {
             /** because of speed we ignore driver access assertions */
             auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp1_offset);
+
             ((uint32_t*)virtual_metadata_shm_ptr)[13] = nit_control_unit_core_temp_to_degc(voltage);
         }
 

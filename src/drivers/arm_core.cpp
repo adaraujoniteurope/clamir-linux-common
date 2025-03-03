@@ -64,6 +64,8 @@ int nit_arm_core_open(nit_arm_core_state_t* state)
         return -3;
     }
 
+    state->is_open = true;
+
     return 0;
 }
 

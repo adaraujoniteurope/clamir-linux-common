@@ -206,17 +206,6 @@ void application::legacy_control_function(volatile int *virtual_metadata_shm, vo
 
 	sem_t *semaforo;
 	semaforo = sem_open(SEM_NAME, O_CREAT, 0644, 0);
-	// File descriptor de UIO
-	int pending = 0;
-	int enable = 1; // Habilita interrupciones
-	// int fd_int = open("/dev/uio0", O_RDWR);
-	// if (fd_int < 0)
-	// 	printf("No se puede abrir el descriptor de uio0 para copntrol\n");
-
-	// int fdMetadatos;
-	// fdMetadatos = open("/dev/mem", O_RDWR | O_SYNC);
-	// volatile int *real_metadata_shm = NULL;
-	// real_metadata_shm = (volatile int *)mmap(NULL, 64, PROT_READ | PROT_WRITE, MAP_SHARED, fdMetadatos, BRAM_IMG_METADATOS);
 
 	int metadatos[12];
 	double W = 0;
@@ -836,9 +825,7 @@ void application::legacy_control_function(volatile int *virtual_metadata_shm, vo
 		sem_getvalue(semaforo, &valor2);
 	}
 
-	munmap(((int *)real_metadata_shm), 64);
-	real_metadata_shm = NULL;
 	sem_close(semaforo);
 	sem_unlink(SEM_NAME);
-	exit(1);
+	
 }

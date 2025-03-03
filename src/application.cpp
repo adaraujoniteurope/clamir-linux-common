@@ -218,14 +218,23 @@ int application::initialize(int argc, char *argv[])
         }
     }
 
+    {
+        int retval = nit_process_core_open(&nit_process_core_driver, &nit_arm_core_driver, &nit_control_unit_core_driver, &nit_mb_core_driver, &nit_framebuffer_core_driver);
+        if (retval < 0)
+        {
+            return -1;
+        }
+    }
 
-    // {
-    //     int retval = nit_process_core_open(&nit_process_core_driver, &nit_arm_core_driver, &nit_control_unit_core_driver, &nit_mb_core_driver, &nit_framebuffer_core_driver);
-    //     if (retval < 0)
-    //     {
-    //         return -1;
-    //     }
-    // }
+    {
+        if (nit_process_core_config_load_from_file(&nit_process_core_driver, "process_config.json") < 0)
+        {
+            if (nit_process_core_config_save_to_file(&nit_process_core_driver, "process_config.json") < 0)
+            {
+                return -1;
+            }
+        }
+    }
 
     return 0;
 }
@@ -345,24 +354,28 @@ void application::run()
     m_server_threads.push_back(std::move(legacy_image_server_worker));
 
     m_server_threads.push_back(std::move(std::thread([this]() -> void {
+        nit_process_core_run(&nit_process_core_driver, m_timer, m_shutdown);
+    })));
 
-            uint8_t *image_shm_ptr = (uint8_t *)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
-            uint8_t *real_metadata_shm_ptr = (uint8_t *)(image_shm_ptr + sizeof(m_image_buffer));
+    // m_server_threads.push_back(std::move(std::thread([this]() -> void {
 
-            // Shared memory para metadatos, memoria virtual no asociada a ninguna BRAM que no usa el driver de devmem
-            //{Power, MOM00, MOM01, MOM10, MOM11, MOM02, MOM20, Track Nmbr, Frame Max, Frame Number, Timestamp, IO Status, Width}
-            virtual_metadata_shm_ptr = (volatile int *)mmap(NULL, 256, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    //         uint8_t *image_shm_ptr = (uint8_t *)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
+    //         uint8_t *real_metadata_shm_ptr = (uint8_t *)(image_shm_ptr + sizeof(m_image_buffer));
 
-            // Variables no escritas en la FPGA
-            process_variables_shm_ptr = (volatile int *)mmap(NULL, 512, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    //         // Shared memory para metadatos, memoria virtual no asociada a ninguna BRAM que no usa el driver de devmem
+    //         //{Power, MOM00, MOM01, MOM10, MOM11, MOM02, MOM20, Track Nmbr, Frame Max, Frame Number, Timestamp, IO Status, Width}
+    //         virtual_metadata_shm_ptr = (volatile int *)mmap(NULL, 256, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
-            legacy_control_function(virtual_metadata_shm_ptr, (volatile int *)real_metadata_shm_ptr, process_variables_shm_ptr, (volatile int *)nit_mb_core_driver.priv, (volatile int *)nit_arm_core_driver.priv, (volatile int *)nit_control_unit_core_driver.priv);
+    //         // Variables no escritas en la FPGA
+    //         process_variables_shm_ptr = (volatile int *)mmap(NULL, 512, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
-            // if (nit_process_core_run(&nit_process_core_driver, m_timer) < 0) {
-            //     std::cout << "failed to initialize process core" << std::endl;
-            // }
+    //         legacy_control_function(virtual_metadata_shm_ptr, (volatile int *)real_metadata_shm_ptr, process_variables_shm_ptr, (volatile int *)nit_mb_core_driver.priv, (volatile int *)nit_arm_core_driver.priv, (volatile int *)nit_control_unit_core_driver.priv);
 
-        })));
+    //         // if (nit_process_core_run(&nit_process_core_driver, m_timer) < 0) {
+    //         //     std::cout << "failed to initialize process core" << std::endl;
+    //         // }
+
+    //     })));
 
     while (!shutdown.load())
     {
