@@ -221,7 +221,7 @@ int command_target_nit_mom_core_time_track_low_read(std::shared_ptr<application>
         return -1;
     }
 
-    uint16_t value = (((high << 32) | (low << 0)) / 100e5);
+    uint16_t value = ((((uint64_t)high << 32) | ((uint64_t)low << 0)) / 100e5);
 
     req.value.set(value);
 
@@ -234,13 +234,15 @@ int command_target_nit_mom_core_time_track_low_write(std::shared_ptr<application
 {
     std::cout << __func__ << std::endl;
 
-    uint32_t value = req.value.get() * 100e5;
+    uint64_t value =  0;
+    value = req.value.get();
+    value *= 100e5;
 
-    if (nit_mom_core_time_track_high_set(&nit_mb_core_driver, (value & 0xFFFF0000) >> 32) < 0) {
+    if (nit_mom_core_time_track_high_set(&nit_mb_core_driver, (value & 0xFFFFFFFF00000000) >> 32) < 0) {
         return -1;
     }
 
-    if (nit_mom_core_time_track_low_set(&nit_mb_core_driver, (value & 0x0000FFFF) >> 0) < 0) {
+    if (nit_mom_core_time_track_low_set(&nit_mb_core_driver, (value & 0x00000000FFFFFFFF) >> 0) < 0) {
         return -2;
     }
 

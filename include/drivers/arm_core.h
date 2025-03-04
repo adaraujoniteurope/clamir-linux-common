@@ -8,9 +8,9 @@
 #define NIT_ARM_CORE_SIZE           0x00010000
 
 #define NIT_ARM_CORE_FIELD_TABLE(_) \
-_(arm_core,led_r,uint16_t,sizeof(uint16_t),0x0000+0) \
-_(arm_core,led_g,uint16_t,sizeof(uint16_t),0x0000+1) \
-_(arm_core,led_b,uint16_t,sizeof(uint16_t),0x0000+2) \
+_(arm_core,led_r,uint16_t,sizeof(uint16_t),0x4000+0) \
+_(arm_core,led_g,uint16_t,sizeof(uint16_t),0x4000+1) \
+_(arm_core,led_b,uint16_t,sizeof(uint16_t),0x4000+2) \
 _(arm_core,soft_reset,uint16_t,sizeof(uint16_t),0x0000+5) \
 
 DRIVER_DECLARE_OFFSET_TABLE_BEGIN(arm_core)

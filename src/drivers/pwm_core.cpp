@@ -121,7 +121,7 @@ int nit_pwm_core_pwm_limit_max_get(nit_mb_core_state_t *state, uint16_t *value)
     return retval;
 }
 
-int nit_pwm_core_pwm_limit_min_set(nit_mb_core_state_t *state, uint16_t value)
+int nit_pwm_core_pwm_limit_min_set(nit_mb_core_state_t *state, uin6_t value)
 {
     int retval = 0;
 
