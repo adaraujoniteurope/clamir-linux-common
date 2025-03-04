@@ -1,0 +1,6 @@
+[submodule "third-party/osal"]
+	path = third-party/osal
+	url = git@github.com:New-Infrared-Technologies/osal.git
+[submodule "third-party/p-net"]
+	path = third-party/p-net
+	url = git@github.com:New-Infrared-Technologies/p-net.git

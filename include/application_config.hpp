@@ -4,8 +4,6 @@
 #include <cinttypes>
 #include <string>
 
-#include <odb/core.hxx>
-
 // struct pid_config
 // {
 // 	uint16_t kp;

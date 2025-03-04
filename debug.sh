@@ -1,0 +1,1 @@
+ssh -t root@$1 'gdbserver 0.0.0.0:2000 /usr/bin/clamir'

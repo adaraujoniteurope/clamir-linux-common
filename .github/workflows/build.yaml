@@ -1,0 +1,29 @@
+name: C/C++ CI
+
+on:
+  push:
+      branches: [ master ]
+
+jobs:
+  build-dependencies:
+    runs-on: ubuntu-latest
+    env:
+      CXX: arm-linux-gnueabihf-g++
+      CC: arm-linux-gnueabihf-gcc
+    steps:
+      - name: "Get Dependencies"
+        run: sudo apt update && sudo apt install -y cmake ninja-build g++-arm-linux-gnueabihf git
+      - name: "Checkout"
+        uses: actions/checkout@v2
+        with:
+          submodules: "true"
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "Build & Install OSAL Library"
+        run:
+          cmake -G Ninja -B build-target/osal -S third-party/osal -DCMAKE_INSTALL_PREFIX=/usr -DNIT_CLAMIR_ENABLE_TESTING=No -DNIT_CLAMIR_ENABLE_PROFINET=YES  -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build-target/osal -j$(nproc) && cmake --install build-target/osal
+
+      - name: "Build & Install PNET Library"
+        run:
+          cmake -G Ninja -B build-target/p-net -S third-party/p-net -DCMAKE_INSTALL_PREFIX=/usr -DNIT_CLAMIR_ENABLE_TESTING=No -DNIT_CLAMIR_ENABLE_PROFINET=YES  -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build-target/p-net -j$(nproc) && cmake --install build-target/p-net
