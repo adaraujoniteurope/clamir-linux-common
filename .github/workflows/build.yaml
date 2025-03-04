@@ -11,13 +11,16 @@ jobs:
       CXX: arm-linux-gnueabihf-g++
       CC: arm-linux-gnueabihf-gcc
     steps:
-      - name: "Get Dependencies"
+
+      - name: "Install APT Dependencies"
         run: sudo apt update && sudo apt install -y cmake ninja-build g++-arm-linux-gnueabihf git
+
       - name: "Checkout"
         uses: actions/checkout@v2
         with:
           submodules: "true"
           token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: "Build & Install OSAL Library"
         run:
           cmake -G Ninja -B build-target/osal -S third-party/osal -DCMAKE_INSTALL_PREFIX=/usr -DNIT_CLAMIR_ENABLE_TESTING=No -DNIT_CLAMIR_ENABLE_PROFINET=YES  -DCMAKE_BUILD_TYPE=Debug
@@ -27,3 +30,13 @@ jobs:
         run:
           cmake -G Ninja -B build-target/p-net -S third-party/p-net -DCMAKE_INSTALL_PREFIX=/usr -DNIT_CLAMIR_ENABLE_TESTING=No -DNIT_CLAMIR_ENABLE_PROFINET=YES  -DCMAKE_BUILD_TYPE=Debug
           cmake --build build-target/p-net -j$(nproc) && cmake --install build-target/p-net
+
+      - name: "Build Clamir Linux Daemon"
+        run:
+          cmake -G Ninja -B build-target/clamir-linux-daemon -S . -DCMAKE_INSTALL_PREFIX=/usr -DNIT_CLAMIR_ENABLE_TESTING=No -DNIT_CLAMIR_ENABLE_PROFINET=YES  -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build-target/clamir-linux-daemon -j$(nproc)
+      - name: "Archive Clamir Linux Daemon Executable"
+        uses: actions/upload-artifact@v4
+        with:
+          name: "clamir-linux-daemon"
+          path: build-target/clamir-linux-daemon/clamir
