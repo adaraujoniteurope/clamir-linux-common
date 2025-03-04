@@ -151,8 +151,8 @@ int nit_arm_core_led_g_set(nit_arm_core_state_t* state, uint16_t value)
         return retval;
     }
 
-    print_debug("%s: write nit_arm_core_led_r_offset (%d): %d\n", __func__, nit_arm_core_led_r_offset, value);
-unsafe_set(state, nit_arm_core_led_r_offset, value);
+    print_debug("%s: write nit_arm_core_led_g_offset (%d): %d\n", __func__, nit_arm_core_led_g_offset, value);
+unsafe_set(state, nit_arm_core_led_g_offset, value);
     return retval;
 }
 
@@ -166,8 +166,8 @@ int nit_arm_core_led_g_get(nit_arm_core_state_t* state, uint16_t* value)
         return retval;
     }
 
-    *value = unsafe_get<typeof(*state), uint32_t>(state, nit_arm_core_led_r_offset);
-    print_debug("%s: write nit_arm_core_led_r_offset (%d): %d\n", __func__, nit_arm_core_led_r_offset, *value);
+    *value = unsafe_get<typeof(*state), uint32_t>(state, nit_arm_core_led_g_offset);
+    print_debug("%s: write nit_arm_core_led_g_offset (%d): %d\n", __func__, nit_arm_core_led_g_offset, *value);
     return retval;
 }
 
@@ -181,8 +181,8 @@ int nit_arm_core_led_b_set(nit_arm_core_state_t* state, uint16_t value)
         return retval;
     }
 
-    print_debug("%s: write nit_arm_core_led_r_offset (%d): %d\n", __func__, nit_arm_core_led_r_offset, value);
-unsafe_set(state, nit_arm_core_led_r_offset, value);
+    print_debug("%s: write nit_arm_core_led_b_offset (%d): %d\n", __func__, nit_arm_core_led_b_offset, value);
+unsafe_set(state, nit_arm_core_led_b_offset, value);
     return retval;
 }
 
@@ -196,8 +196,8 @@ int nit_arm_core_led_b_get(nit_arm_core_state_t* state, uint16_t* value)
         return retval;
     }
 
-    *value = unsafe_get<typeof(*state), uint32_t>(state, nit_arm_core_led_r_offset);
-    print_debug("%s: write nit_arm_core_led_r_offset (%d): %d\n", __func__, nit_arm_core_led_r_offset, *value);
+    *value = unsafe_get<typeof(*state), uint32_t>(state, nit_arm_core_led_b_offset);
+    print_debug("%s: write nit_arm_core_led_b_offset (%d): %d\n", __func__, nit_arm_core_led_b_offset, *value);
     return retval;
 }
 
@@ -211,8 +211,8 @@ int nit_arm_core_soft_reset_set(nit_arm_core_state_t* state, uint16_t value)
         return retval;
     }
 
-    print_debug("%s: write nit_arm_core_led_r_offset (%d): %d\n", __func__, nit_arm_core_led_r_offset, value);
-unsafe_set(state, nit_arm_core_led_r_offset, value);
+    print_debug("%s: write nit_arm_core_soft_reset_offset (%d): %d\n", __func__, nit_arm_core_soft_reset_offset, value);
+unsafe_set(state, nit_arm_core_soft_reset_offset, value);
 
     return retval;
 }
@@ -227,7 +227,7 @@ int nit_arm_core_soft_reset_get(nit_arm_core_state_t* state, uint16_t * value)
         return retval;
     }
 
-    *value = unsafe_get<typeof(*state), uint32_t>(state, nit_arm_core_led_r_offset);
-    print_debug("%s: write nit_arm_core_led_r_offset (%d): %d\n", __func__, nit_arm_core_led_r_offset, *value);
+    *value = unsafe_get<typeof(*state), uint32_t>(state, nit_arm_core_soft_reset_offset);
+    print_debug("%s: write nit_arm_core_soft_reset_offset (%d): %d\n", __func__, nit_arm_core_soft_reset_offset, *value);
     return retval;
 }

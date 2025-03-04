@@ -127,7 +127,7 @@ int nit_mom_core_end_of_track_set(nit_mb_core_state_t* state, uint16_t value)
     }
 
     *((volatile uint32_t*)((state->priv)) + nit_mom_core_end_of_track_offset) = value;
-    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_reference_track_offset, value);
+    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_end_of_track_offset, value);
     return retval;
 }
 
@@ -142,7 +142,7 @@ int nit_mom_core_end_of_track_get(nit_mb_core_state_t* state, uint16_t* value)
     }
 
     *value = *((volatile uint32_t*)((state->priv)) + nit_mom_core_end_of_track_offset);
-    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_reference_track_offset, *value);
+    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_end_of_track_offset, *value);
     return retval;
 }
 
@@ -159,7 +159,7 @@ int nit_mom_core_start_track_mom_t_set(nit_mb_core_state_t* state, uint16_t valu
     }
 
     *((volatile uint32_t*)((state->priv)) + nit_mom_core_start_track_mom_t_offset) = value;
-    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_reference_track_offset, value);
+    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_start_track_mom_t_offset, value);
     return retval;
 }
 
@@ -174,7 +174,7 @@ int nit_mom_core_start_track_mom_t_get(nit_mb_core_state_t* state, uint16_t* val
     }
 
     *value = *((volatile uint32_t*)((state->priv)) + nit_mom_core_start_track_mom_t_offset);
-    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_reference_track_offset, *value);
+    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_start_track_mom_t_offset, *value);
     return retval;
 }
 
@@ -205,11 +205,11 @@ int nit_mom_core_threshold_get(nit_mb_core_state_t* state, uint16_t* value)
     }
 
     *value = *((volatile uint32_t*)((state->priv)) + nit_mom_core_threshold_offset);
-    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_reference_track_offset, *value);
+    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_threshold_offset, *value);
     return retval;
 }
 
-int nit_mom_core_time_track_high_set(nit_mb_core_state_t* state, uint16_t value)
+int nit_mom_core_time_track_high_set(nit_mb_core_state_t* state, uint32_t value)
 {
     print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_time_track_high_offset, value);
 
@@ -225,7 +225,7 @@ int nit_mom_core_time_track_high_set(nit_mb_core_state_t* state, uint16_t value)
     return retval;
 }
 
-int nit_mom_core_time_track_high_get(nit_mb_core_state_t* state, uint16_t* value)
+int nit_mom_core_time_track_high_get(nit_mb_core_state_t* state, uint32_t* value)
 {
     int retval = 0;
 
@@ -236,7 +236,7 @@ int nit_mom_core_time_track_high_get(nit_mb_core_state_t* state, uint16_t* value
     }
 
     *value = *((volatile uint32_t*)((state->priv)) + nit_mom_core_time_track_high_offset);
-    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_reference_track_offset, *value);
+    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_time_track_high_offset, *value);
     return retval;
 }
 
@@ -267,7 +267,7 @@ int nit_mom_core_time_track_low_get(nit_mb_core_state_t* state, uint32_t* value)
     }
 
     *value = *((volatile uint32_t*)((state->priv)) + nit_mom_core_time_track_low_offset);
-    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_reference_track_offset, *value);
+    print_debug("%s: (0x%02x) %d\n", __func__, nit_mom_core_time_track_low_offset, *value);
     return retval;
 }
 

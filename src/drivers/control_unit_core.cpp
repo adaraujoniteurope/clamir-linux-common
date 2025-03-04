@@ -369,7 +369,7 @@ int nit_control_unit_core_offset_update_set(nit_control_unit_core_state_t *state
         return retval;
     }
 
-    *(((volatile uint32_t *)state->priv) + nit_control_unit_core_offset_update_offset) = nit_control_unit_core_offset_update_offset;
+    *(((volatile uint32_t *)state->priv) + nit_control_unit_core_offset_update_offset) = value;
     return retval;
 }
 
@@ -400,7 +400,7 @@ int nit_control_unit_core_shutter_reset_set(nit_control_unit_core_state_t *state
         return retval;
     }
 
-    *(((volatile uint32_t *)state->priv) + nit_control_unit_core_shutter_reset_offset) = nit_control_unit_core_shutter_reset_offset;
+    *(((volatile uint32_t *)state->priv) + nit_control_unit_core_shutter_reset_offset) = value;
     return retval;
 }
 

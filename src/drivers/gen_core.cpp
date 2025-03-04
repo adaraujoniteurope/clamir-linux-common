@@ -174,7 +174,7 @@ int nit_gen_core_digital_in_0_set(nit_mb_core_state_t *state, uint16_t value)
         return retval;
     }
 
-    unsafe_set(state, nit_gen_core_change_op_mode_offset, value);
+    unsafe_set(state, nit_gen_core_digital_in_0_offset, value);
 
     return retval;
 }
@@ -208,7 +208,7 @@ int nit_gen_core_digital_in_1_set(nit_mb_core_state_t *state, uint16_t value)
         return retval;
     }
 
-    unsafe_set(state, nit_gen_core_change_op_mode_offset, value);
+    unsafe_set(state, nit_gen_core_digital_in_1_offset, value);
 
     return retval;
 }
@@ -242,7 +242,7 @@ int nit_gen_core_digital_out_0_set(nit_mb_core_state_t *state, uint16_t value)
         return retval;
     }
 
-    unsafe_set(state, nit_gen_core_change_op_mode_offset, value);
+    unsafe_set(state, nit_gen_core_digital_out_0_offset, value);
 
     return retval;
 }
@@ -276,7 +276,7 @@ int nit_gen_core_digital_out_1_set(nit_mb_core_state_t *state, uint16_t value)
         return retval;
     }
 
-    unsafe_set(state, nit_gen_core_change_op_mode_offset, value);
+    unsafe_set(state, nit_gen_core_digital_out_1_offset, value);
 
     return retval;
 }
@@ -310,7 +310,7 @@ int nit_gen_core_digital_out_2_set(nit_mb_core_state_t *state, uint16_t value)
         return retval;
     }
 
-    unsafe_set(state, nit_gen_core_change_op_mode_offset, value);
+    unsafe_set(state, nit_gen_core_digital_out_2_offset, value);
 
     return retval;
 }
@@ -344,7 +344,7 @@ int nit_gen_core_digital_out_3_set(nit_mb_core_state_t *state, uint16_t value)
         return retval;
     }
 
-    unsafe_set(state, nit_gen_core_change_op_mode_offset, value);
+    unsafe_set(state, nit_gen_core_digital_out_3_offset, value);
 
     return retval;
 }
@@ -378,7 +378,7 @@ int nit_gen_core_digital_out_conf_set(nit_mb_core_state_t *state, uint16_t value
         return retval;
     }
 
-    unsafe_set(state, nit_gen_core_change_op_mode_offset, value);
+    unsafe_set(state, nit_gen_core_digital_out_conf_offset, value);
 
     return retval;
 }
@@ -395,7 +395,7 @@ int nit_gen_core_digital_out_conf_get(nit_mb_core_state_t *state, uint16_t *valu
     }
 
     *value = unsafe_get<typeof(*state), uint32_t>(state, nit_gen_core_digital_out_conf_offset);
-    print_debug("%s: (0x%04x): %d\n", __func__, nit_gen_core_change_op_mode_offset, *value);
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_gen_core_digital_out_conf_offset, *value);
 
     return retval;
 }

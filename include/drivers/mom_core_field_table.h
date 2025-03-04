@@ -15,7 +15,7 @@
     _(mom_core, track_nbr, uint16_t, sizeof(uint16_t), 0x4000 + 10)        \
     _(mom_core, mode, uint16_t, sizeof(uint16_t), 0x4000 + 11)             \
     _(mom_core, time_track_low, uint32_t, sizeof(uint32_t), 0x4000 + 12)   \
-    _(mom_core, time_track_high, uint16_t, sizeof(uint16_t), 0x4000 + 13)  \
+    _(mom_core, time_track_high, uint32_t, sizeof(uint32_t), 0x4000 + 13)  \
     _(mom_core, frame_max, uint16_t, sizeof(uint16_t), 0x4000 + 14)        \
     _(mom_core, reference_track, uint16_t, sizeof(uint16_t), 0x4000 + 15)  \
     _(mom_core, end_of_track, uint16_t, sizeof(uint16_t), 0x4000 + 16)

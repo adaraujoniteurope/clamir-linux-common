@@ -198,8 +198,57 @@ DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_mb_core, nit_mom_core, uint16_t, mode)
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_mb_core, nit_mom_core, uint16_t, mode)
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_mb_core, nit_mom_core, uint16_t, reference_track)
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_mb_core, nit_mom_core, uint16_t, reference_track)
-DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_mb_core, nit_mom_core, uint32_t, time_track_low)
-DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_mb_core, nit_mom_core, uint32_t, time_track_low)
+
+// DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_mb_core, nit_mom_core, uint32_t, time_track_low)
+// DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_mb_core, nit_mom_core, uint32_t, time_track_low)
+#include <drivers/common.h>
+
+int command_target_nit_mom_core_time_track_low_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+{
+    std::cout << __func__ << std::endl;
+
+    uint32_t high = 0;
+    uint32_t low = 0;
+
+    // high = unsafe_get<nit_mb_core_state_t, uint32_t>(&nit_mb_core_driver, nit_mom_core_time_track_high_offset);
+    // high = unsafe_get<nit_mb_core_state_t, uint32_t>(&nit_mb_core_driver, nit_mom_core_time_track_low_offset);
+
+    if (nit_mom_core_time_track_high_get(&nit_mb_core_driver, &high) < 0) {
+        return -1;
+    }
+
+    if (nit_mom_core_time_track_low_get(&nit_mb_core_driver, &low) < 0) {
+        return -1;
+    }
+
+    uint16_t value = (((high << 32) | (low << 0)) / 100e5);
+
+    req.value.set(value);
+
+    send_response(socket_fd, req);
+
+    return 0;
+}
+
+int command_target_nit_mom_core_time_track_low_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+{
+    std::cout << __func__ << std::endl;
+
+    uint32_t value = req.value.get() * 100e5;
+
+    if (nit_mom_core_time_track_high_set(&nit_mb_core_driver, (value & 0xFFFF0000) >> 32) < 0) {
+        return -1;
+    }
+
+    if (nit_mom_core_time_track_low_set(&nit_mb_core_driver, (value & 0x0000FFFF) >> 0) < 0) {
+        return -2;
+    }
+
+    send_response(socket_fd, req);
+    return 0;
+}
+
+
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_arm_core, nit_arm_core, uint16_t, soft_reset)
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_arm_core, nit_arm_core, uint16_t, soft_reset)
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_mb_core, nit_mom_core, uint16_t, threshold)
