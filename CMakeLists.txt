@@ -13,8 +13,8 @@ message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 message(STATUS "CMAKE_INCLUDE_PATH: ${CMAKE_INCLUDE_PATH}")
 message(STATUS "CMAKE_SYSTEM_INCLUDE_PATH: ${CMAKE_SYSTEM_INCLUDE_PATH}")
 
-find_package(OSAL REQUIRED)
-find_package(PNET REQUIRED)
+# find_package(OSAL REQUIRED)
+# find_package(PNET REQUIRED)
 
 # set(Boost_USE_STATIC_LIBS   ON)
 # find_package(Boost REQUIRED COMPONENTS)
@@ -55,8 +55,8 @@ message(STATUS "OSAL_INCLUDE_DIRS: ${OSAL_INCLUDE_DIR}")
 
 target_link_libraries(${PROJECT_NAME}-obj
     PUBLIC
-        OSAL::OSAL
-        PNET::PNET
+        # OSAL::OSAL
+        # PNET::PNET
         ${GSTREAMER_LIBRARIES}
         m
         # ${Boost_LIBRARIES}
