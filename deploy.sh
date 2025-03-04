@@ -1,1 +1,1 @@
-scp build-target/clamir root@192.168.1.177:/usr/bin
+scp build-target/clamir/clamir root@$1:/usr/bin

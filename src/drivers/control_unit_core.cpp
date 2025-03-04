@@ -128,12 +128,12 @@ int nit_control_unit_core_assert(nit_control_unit_core_state_t *state)
     return 0;
 }
 
-int control_unit_core_config_save_to_file(nit_control_unit_core_state_t* state, const char *path)
+int control_unit_core_config_save_to_file(nit_control_unit_core_state_t *state, const char *path)
 {
     return config_file_save_to_file(state, path);
 }
 
-int control_unit_core_config_load_from_file(nit_control_unit_core_state_t* state, const char *path)
+int control_unit_core_config_load_from_file(nit_control_unit_core_state_t *state, const char *path)
 {
     return config_file_load_from_file(state, path);
 }
@@ -150,7 +150,7 @@ int nit_control_unit_core_bias_v_set(nit_control_unit_core_state_t *state, uint1
         return retval;
     }
 
-unsafe_set(state, nit_control_unit_core_bias_v_offset, value);
+    unsafe_set(state, nit_control_unit_core_bias_v_offset, value);
     return retval;
 }
 
@@ -181,7 +181,7 @@ int nit_control_unit_core_black_level_set(nit_control_unit_core_state_t *state, 
         return retval;
     }
 
-unsafe_set(state, nit_control_unit_core_black_level_offset, value);
+    unsafe_set(state, nit_control_unit_core_black_level_offset, value);
     return retval;
 }
 
@@ -212,22 +212,7 @@ int nit_control_unit_core_bpc_en_set(nit_control_unit_core_state_t *state, uint1
         return retval;
     }
 
-unsafe_set(state, nit_control_unit_core_bpc_en_offset, value);
-    return retval;
-}
-
-int nit_control_unit_core_bpc_en_get(nit_control_unit_core_state_t *state, uint16_t *value)
-{
-    int retval = 0;
-
-    if ((retval = nit_control_unit_core_assert(state)) != 0)
-    {
-        print_debug("%s: %s %d\n", __func__, "failed", retval);
-        return retval;
-    }
-
-    *value = unsafe_get<typeof(*state), uint32_t>(state, nit_control_unit_core_bpc_en_offset);
-    print_debug("%s: (0x%04x): %d\n", __func__, nit_control_unit_core_bpc_en_offset, *value);
+    unsafe_set(state, nit_control_unit_core_bpc_en_offset, value);
     return retval;
 }
 
@@ -243,7 +228,7 @@ int nit_control_unit_core_drift_enable_set(nit_control_unit_core_state_t *state,
         return retval;
     }
 
-unsafe_set(state, nit_control_unit_core_drift_enable_offset, value);
+    unsafe_set(state, nit_control_unit_core_drift_enable_offset, value);
     return retval;
 }
 
@@ -274,7 +259,7 @@ int nit_control_unit_core_drift_position_set(nit_control_unit_core_state_t *stat
         return retval;
     }
 
-    *(((volatile uint32_t*)state->priv) + nit_control_unit_core_drift_position_offset) = nit_control_unit_core_drift_position_offset;
+    unsafe_set(state, nit_control_unit_core_drift_position_offset, value);
     return retval;
 }
 
@@ -293,6 +278,54 @@ int nit_control_unit_core_drift_position_get(nit_control_unit_core_state_t *stat
     return retval;
 }
 
+
+int nit_control_unit_core_drift_level_set(nit_control_unit_core_state_t *state, uint16_t value)
+{
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_control_unit_core_drift_level_offset, value);
+
+    int retval = 0;
+
+    if ((retval = nit_control_unit_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    unsafe_set(state, nit_control_unit_core_drift_level_offset, value);
+    return retval;
+}
+
+int nit_control_unit_core_drift_level_get(nit_control_unit_core_state_t *state, uint16_t *value)
+{
+    int retval = 0;
+
+    if ((retval = nit_control_unit_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    *value = unsafe_get<typeof(*state), uint32_t>(state, nit_control_unit_core_drift_level_offset);
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_control_unit_core_drift_level_offset, *value);
+    return retval;
+}
+
+
+int nit_control_unit_core_bpc_en_get(nit_control_unit_core_state_t *state, uint16_t *value)
+{
+    int retval = 0;
+
+    if ((retval = nit_control_unit_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    *value = unsafe_get<typeof(*state), uint32_t>(state, nit_control_unit_core_bpc_en_offset);
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_control_unit_core_bpc_en_offset, *value);
+    return retval;
+}
+
 int nit_control_unit_core_int_time_set(nit_control_unit_core_state_t *state, uint16_t value)
 {
     print_debug("%s: (0x%04x): %d\n", __func__, nit_control_unit_core_int_time_offset, value);
@@ -305,7 +338,7 @@ int nit_control_unit_core_int_time_set(nit_control_unit_core_state_t *state, uin
         return retval;
     }
 
-unsafe_set(state, nit_control_unit_core_int_time_offset, value);
+    unsafe_set(state, nit_control_unit_core_int_time_offset, value);
     return retval;
 }
 
@@ -336,7 +369,7 @@ int nit_control_unit_core_offset_update_set(nit_control_unit_core_state_t *state
         return retval;
     }
 
-    *(((volatile uint32_t*)state->priv) + nit_control_unit_core_offset_update_offset) = nit_control_unit_core_offset_update_offset;
+    *(((volatile uint32_t *)state->priv) + nit_control_unit_core_offset_update_offset) = nit_control_unit_core_offset_update_offset;
     return retval;
 }
 
@@ -367,7 +400,7 @@ int nit_control_unit_core_shutter_reset_set(nit_control_unit_core_state_t *state
         return retval;
     }
 
-    *(((volatile uint32_t*)state->priv) + nit_control_unit_core_shutter_reset_offset) = nit_control_unit_core_shutter_reset_offset;
+    *(((volatile uint32_t *)state->priv) + nit_control_unit_core_shutter_reset_offset) = nit_control_unit_core_shutter_reset_offset;
     return retval;
 }
 
@@ -398,7 +431,7 @@ int nit_control_unit_core_shutter_set(nit_control_unit_core_state_t *state, uint
         return retval;
     }
 
-unsafe_set(state, nit_control_unit_core_shutter_offset, value);
+    unsafe_set(state, nit_control_unit_core_shutter_offset, value);
     return retval;
 }
 
@@ -475,10 +508,9 @@ int nit_control_unit_core_temp2_set(nit_control_unit_core_state_t *state, uint16
         return retval;
     }
 
-unsafe_set(state, nit_control_unit_core_temp2_offset, value);
+    unsafe_set(state, nit_control_unit_core_temp2_offset, value);
     return retval;
 }
-
 
 double nit_control_unit_core_temp_get_voltage(uint16_t value)
 {

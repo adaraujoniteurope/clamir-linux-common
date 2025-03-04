@@ -130,18 +130,22 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core
 
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, save_embedded_conf)
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, save_embedded_conf)
+
 int command_target_nit_control_unit_core_arm_sw_version_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
+    std::cout << __func__ << std::endl;
     send_response(socket_fd, req);
     return 0;
 }
 
 int command_target_nit_control_unit_core_arm_sw_version_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
-    req.value.set(0x0002);
+    std::cout << __func__ << std::endl;
+    req.value.set(0x0006);
     send_response(socket_fd, req);
     return 0;
 }
+
 
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_enable)
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_enable)
@@ -152,8 +156,38 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_level)
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_level)
 
-DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, fpga_version)
-DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, fpga_version)
+// DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, fpga_version)
+// DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, fpga_version)
+
+int command_target_nit_control_unit_core_magic_id_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+{
+    std::cout << __func__ << std::endl;
+    send_response(socket_fd, req);
+    return 0;
+}
+
+int command_target_nit_control_unit_core_magic_id_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+{
+    std::cout << __func__ << std::endl;
+    req.value.set(0x0700);
+    send_response(socket_fd, req);
+    return 0;
+}
+
+int command_target_nit_control_unit_core_fpga_version_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+{
+    std::cout << __func__ << std::endl;
+    send_response(socket_fd, req);
+    return 0;
+}
+
+int command_target_nit_control_unit_core_fpga_version_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+{
+    std::cout << __func__ << std::endl;
+    req.value.set(0x0002);
+    send_response(socket_fd, req);
+    return 0;
+}
 
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_mb_core, nit_mom_core, uint16_t, start_track_mom_t)
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_mb_core, nit_mom_core, uint16_t, start_track_mom_t)
@@ -290,6 +324,7 @@ DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_
 
 int command_target_nit_gen_core_serial_number_low_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
+    std::cout << __func__ << std::endl;
     req.value.set(0x00000);
     send_response(socket_fd, req);
     return 0;
@@ -297,6 +332,7 @@ int command_target_nit_gen_core_serial_number_low_write(std::shared_ptr<applicat
 
 int command_target_nit_gen_core_serial_number_low_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
+    std::cout << __func__ << std::endl;
 
     req.route_id_set(0x04aa);
     req.value.set(0x3231);
@@ -372,11 +408,28 @@ std::map<uint16_t, command_processor_route> application::command_processor_route
     {0x0521, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_black_level_read, .write = command_target_nit_control_unit_core_black_level_write}},
     {0x0522, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_sincronization_read, .write = command_target_nit_control_unit_core_sincronization_write}},
     {0x0523, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_save_embedded_conf_read, .write = command_target_nit_control_unit_core_save_embedded_conf_write}},
+
     {0x0524, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_arm_sw_version_read, .write = command_target_nit_control_unit_core_arm_sw_version_write}},
+    {0x0525, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_magic_id_read, .write = command_target_nit_control_unit_core_magic_id_write}},
+    {0x0526, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_fpga_version_read, .write = command_target_nit_control_unit_core_fpga_version_write}},
+
+    // case 0x050D:
+    // case 0x058D:
+    //     gestor.offset = NIT_DRIFT_ENABLE;
+    //     break;
+
+    // case 0x050E:
+    // case 0x058E:
+    //     gestor.offset = NIT_DRIFT_POSITION;
+    //     break;
+
+    // case 0x058F:
+    //     gestor.offset = NIT_DRIFT_LEVEL;
+    //     break;
+
     {0x050D, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_drift_enable_read, .write = command_target_nit_control_unit_core_drift_enable_write}},
     {0x050E, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_drift_position_read, .write = command_target_nit_control_unit_core_drift_position_write}},
     {0x050F, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_drift_level_read, .write = command_target_nit_control_unit_core_drift_level_write}},
-    {0x05A5, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_fpga_version_read, .write = command_target_nit_control_unit_core_fpga_version_write}},
 
     {0x0402, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_kp_read, .write = command_target_nit_process_core_kp_write}},
     {0x0401, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_ki_read, .write = command_target_nit_process_core_ki_write}},
@@ -583,7 +636,6 @@ void application::image_writer_legacy(int socket_fd)
         {
             /** because of speed we ignore driver access assertions */
             auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp1_offset);
-
             ((uint32_t *)virtual_metadata_shm_ptr)[13] = nit_control_unit_core_temp_to_degc(voltage);
         }
 
