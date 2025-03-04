@@ -530,6 +530,26 @@ void application::command_processor_legacy(int socket_fd)
     close(socket_fd);
 }
 
+
+struct __attribute__((packed)) metadata
+{
+    int power;
+    int m00;
+    int m01;
+    int m10;
+    int m11;
+    int m02;
+    int m20;
+    int width;
+    int track_number;
+    int frame_max;
+    int frame_number;
+    int timestamp;
+    int io_status;
+    int t1;
+    int t2;
+};
+
 void application::image_writer_legacy(int socket_fd)
 {
 
@@ -541,12 +561,21 @@ void application::image_writer_legacy(int socket_fd)
 
     volatile int *virtual_metadata_shm_ptr = nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
 
+    metadata* ptr = (metadata*) virtual_metadata_shm_ptr;
+    int last_frame_index = ptr->frame_number;
+
+    int missing_frames_counter = 0;
+    int first_frame = ptr->frame_number;
+
     while (!m_shutdown)
     {
-
-        m_timer->wait();
-
         std::unique_lock<std::mutex> lk(socket_mutex);
+
+        std::this_thread::sleep_for(std::chrono::microseconds(50));
+
+        if ((last_frame_index - ptr->frame_number) == 0) {
+            continue;
+        }
 
         memcpy(m_image_buffer, image_shm_ptr, sizeof(m_image_buffer));
         memcpy(m_metadata_buffer, image_shm_ptr + sizeof(m_image_buffer), sizeof(m_metadata_buffer));
@@ -564,7 +593,10 @@ void application::image_writer_legacy(int socket_fd)
             ((uint32_t *)virtual_metadata_shm_ptr)[14] = nit_control_unit_core_temp_to_degc(voltage);
         }
 
-        image_read.emit(application::get_instance(), m_image_buffer, sizeof(m_image_buffer), m_metadata_buffer, sizeof(m_metadata_buffer));
+        if ((ptr->frame_number - last_frame_index) > 1)
+        {
+            printf("missed frame %d -> %d\n", last_frame_index, ptr->frame_number);
+        }
 
         if ((retval = write(socket_fd, (void *)virtual_metadata_shm_ptr, 60)) < 0)
         {
@@ -577,5 +609,11 @@ void application::image_writer_legacy(int socket_fd)
             std::cout << "Failed to write at socket when writing frame packet with error:" << strerror(retval) << std::endl;
             break;
         }
+        
+        last_frame_index = ptr->frame_number;
     }
+
+    printf("missed frames: %d\n", missing_frames_counter);
+    printf("total frames: %d\n", ptr->frame_number - first_frame);
+    
 }
