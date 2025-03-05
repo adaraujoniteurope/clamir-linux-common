@@ -78,6 +78,12 @@ set_property(TARGET ${PROJECT_NAME}-obj
 )
 
 configure_file(version.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/include/nit/embedded/core/version.hpp @ONLY)
+configure_file(share/${PROJECT_NAME}.service.in ${CMAKE_SOURCE_DIR}/share/${PROJECT_NAME}.service @ONLY)
+
+configure_file(scripts/build.sh.in ${CMAKE_SOURCE_DIR}/build.sh @ONLY)
+configure_file(scripts/debug.sh.in ${CMAKE_SOURCE_DIR}/debug.sh @ONLY)
+configure_file(scripts/deploy.sh.in ${CMAKE_SOURCE_DIR}/deploy.sh @ONLY)
+configure_file(scripts/launch-debug.sh.in ${CMAKE_SOURCE_DIR}/launch-debug.sh @ONLY)
 
 add_executable(${PROJECT_NAME} src/main.cpp)
 

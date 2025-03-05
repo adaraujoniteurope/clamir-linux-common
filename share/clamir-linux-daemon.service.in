@@ -5,7 +5,7 @@ After=network-online.target
 [Service]
 StandardOutput=syslog
 StandardError=syslog
-ExecStart=/usr/local/bin/clamir-linux-daemon
+ExecStart=@CMAKE_INSTALL_PREFIX@/bin/clamir-linux-daemon
 Restart=always
 
 [Install]

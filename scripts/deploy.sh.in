@@ -4,10 +4,10 @@ echo "Reloading Stopping Clamir Linux Daemon"
 ssh -t root@$1 'systemctl stop clamir-linux-daemon'
 
 echo "Copying clamir-linux-daemon"
-scp /home/arthur/Work/Software/clamir-linux-daemon/build-cmaketools/clamir-linux-daemon root@$1:/usr/local/bin
+scp @CMAKE_BINARY_DIR@/clamir-linux-daemon root@$1:@CMAKE_INSTALL_PREFIX@/bin
 
 echo "Copying clamir-linux-daemon.service"
-scp /home/arthur/Work/Software/clamir-linux-daemon/share/clamir-linux-daemon.service root@$1:/lib/systemd/system
+scp @CMAKE_SOURCE_DIR@/share/clamir-linux-daemon.service root@$1:/lib/systemd/system
 
 echo "Reloading SystemD daemon"
 ssh -t root@$1 'systemctl daemon-reload'
