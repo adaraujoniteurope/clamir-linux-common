@@ -99,8 +99,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}-obj)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
-file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES ${CMAKE_SOURCE_DIR}/share/*.conf)
-install(FILES ${${PROJECT_NAME}_SOURCES} DESTINATION ${CMAKE_INSTALL_PREFIX}/etc/clamir/drivers.conf.d)
+file(GLOB_RECURSE ${PROJECT_NAME}_CONF_SOURCES ${CMAKE_SOURCE_DIR}/share/*.json)
+
+install(FILES ${CMAKE_SOURCE_DIR}/share/${PROJECT_NAME}.service DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system/${PROJECT_NAME}.service)
 
 if(NIT_CLAMIR_ENABLE_RAW)
 endif()

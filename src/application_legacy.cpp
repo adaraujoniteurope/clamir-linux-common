@@ -25,8 +25,6 @@
 
 #include <components/timer.hpp>
 
-#include <networking/profinet/device.hpp>
-
 #include <drivers/arm_core.h>
 #include <drivers/bpc_table_core.h>
 #include <drivers/control_unit_core.h>
