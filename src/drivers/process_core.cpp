@@ -1346,26 +1346,12 @@ int nit_process_core_run(nit_process_core_state_t *state, std::shared_ptr<utils:
                 break;
             }
         }
-        priv->mb_core_shm[DIGITAL_OUT_1] = 1; // naranja
+        
         if (priv->alarm_enable == 1)
-        { // Solo si la alarma est� habilitada
+		{ // Solo si la alarma est� habilitada
+			priv->mb_core_shm[DIGITAL_OUT_0] = priv->alarm;
+		}
 
-            if (priv->alarm == 1)
-            {
-                priv->mb_core_shm[DIGITAL_OUT_0] = 0; // asignacion de la digital out 1 a la alarma
-                priv->mb_core_shm[DIGITAL_OUT_2] = 1; // verde
-            }
-            else
-            {
-                priv->mb_core_shm[DIGITAL_OUT_0] = 1; // asignacion de la digital out 1 a la alarma
-                priv->mb_core_shm[DIGITAL_OUT_2] = 0; // verde
-            }
-        }
-        else
-        {
-            priv->mb_core_shm[DIGITAL_OUT_0] = 1; // asignacion de la digital out 1 a la alarma
-            priv->mb_core_shm[DIGITAL_OUT_2] = 0; // verde
-        }
         sem_getvalue(priv->semaforo, &priv->valor1);
         if (priv->valor1 < 1)
         { // permite al productor enviar hasta 2 imagenes por TCP al empezar la conexion

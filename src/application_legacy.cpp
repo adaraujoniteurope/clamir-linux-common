@@ -48,8 +48,7 @@
 
 int send_response(int fd, packet &req)
 {
-    std::cout << "response:" << std::endl;
-    std::cout << req << std::endl;
+    std::cout << "response:" << req << std::endl;
     return ::write(fd, &req.data, sizeof(req.data));
 }
 
@@ -63,8 +62,6 @@ int send_response(int fd, packet &req)
         var_type value = req.value.get();                                                                                                     \
         prefix##_##var##_get((driver_type##_state_t *)route.pdata, &value);                                                                   \
         req.value.set(value);                                                                                                                 \
-                                                                                                                                              \
-        send_response(socket_fd, req);                                                                                                        \
                                                                                                                                               \
         return 0;                                                                                                                             \
     }
@@ -128,13 +125,24 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, sincronization)
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, sincronization)
 
-DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, save_embedded_conf)
+// DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, save_embedded_conf)
+
+int command_target_nit_control_unit_core_save_embedded_conf_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+{
+    std::cout << __func__ << std::endl;
+    // nit_control_unit_core_save_embedded_conf_set((nit_control_unit_core_state_t *)route.pdata, req.value.get());
+    // uint16_t value = req.value.get();
+    // nit_control_unit_core_save_embedded_conf_get((nit_control_unit_core_state_t *)route.pdata, &value);
+    // req.value.set(value);
+    app->save_all();
+    return 0;
+}
+
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, save_embedded_conf)
 
 int command_target_nit_control_unit_core_arm_sw_version_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    send_response(socket_fd, req);
     return 0;
 }
 
@@ -146,9 +154,27 @@ int command_target_nit_control_unit_core_arm_sw_version_read(std::shared_ptr<app
     return 0;
 }
 
+// DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_enable)
+// DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_enable)
 
-DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_enable)
-DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_enable)
+int command_target_nit_control_unit_core_drift_enable_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+{
+    std::cout << __func__ << std::endl;
+    nit_control_unit_core_drift_enable_set((nit_control_unit_core_state_t *)route.pdata, req.value.get());
+    uint16_t value = req.value.get();
+    nit_control_unit_core_drift_enable_get((nit_control_unit_core_state_t *)route.pdata, &value);
+    return 0;
+}
+
+int command_target_nit_control_unit_core_drift_enable_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+{
+    std::cout << __func__ << std::endl;
+    uint16_t value = req.value.get();
+    nit_control_unit_core_drift_enable_get((nit_control_unit_core_state_t *)route.pdata, &value);
+    req.value.set(value);
+    send_response(socket_fd, req);
+    return 0;
+}
 
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_position)
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_position)
@@ -162,7 +188,7 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core
 int command_target_nit_control_unit_core_magic_id_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    send_response(socket_fd, req);
+    ::write(socket_fd, nullptr, 0);
     return 0;
 }
 
@@ -177,7 +203,7 @@ int command_target_nit_control_unit_core_magic_id_read(std::shared_ptr<applicati
 int command_target_nit_control_unit_core_fpga_version_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    send_response(socket_fd, req);
+    ::write(socket_fd, nullptr, 0);
     return 0;
 }
 
@@ -213,11 +239,13 @@ int command_target_nit_mom_core_time_track_low_read(std::shared_ptr<application>
     // high = unsafe_get<nit_mb_core_state_t, uint32_t>(&nit_mb_core_driver, nit_mom_core_time_track_high_offset);
     // high = unsafe_get<nit_mb_core_state_t, uint32_t>(&nit_mb_core_driver, nit_mom_core_time_track_low_offset);
 
-    if (nit_mom_core_time_track_high_get(&nit_mb_core_driver, &high) < 0) {
+    if (nit_mom_core_time_track_high_get(&nit_mb_core_driver, &high) < 0)
+    {
         return -1;
     }
 
-    if (nit_mom_core_time_track_low_get(&nit_mb_core_driver, &low) < 0) {
+    if (nit_mom_core_time_track_low_get(&nit_mb_core_driver, &low) < 0)
+    {
         return -1;
     }
 
@@ -234,22 +262,22 @@ int command_target_nit_mom_core_time_track_low_write(std::shared_ptr<application
 {
     std::cout << __func__ << std::endl;
 
-    uint64_t value =  0;
+    uint64_t value = 0;
     value = req.value.get();
     value *= 100e5;
 
-    if (nit_mom_core_time_track_high_set(&nit_mb_core_driver, (value & 0xFFFFFFFF00000000) >> 32) < 0) {
+    if (nit_mom_core_time_track_high_set(&nit_mb_core_driver, (value & 0xFFFFFFFF00000000) >> 32) < 0)
+    {
         return -1;
     }
 
-    if (nit_mom_core_time_track_low_set(&nit_mb_core_driver, (value & 0x00000000FFFFFFFF) >> 0) < 0) {
+    if (nit_mom_core_time_track_low_set(&nit_mb_core_driver, (value & 0x00000000FFFFFFFF) >> 0) < 0)
+    {
         return -2;
     }
 
-    send_response(socket_fd, req);
     return 0;
 }
-
 
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_arm_core, nit_arm_core, uint16_t, soft_reset)
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_arm_core, nit_arm_core, uint16_t, soft_reset)
@@ -376,8 +404,6 @@ DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_
 int command_target_nit_gen_core_serial_number_low_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    req.value.set(0x00000);
-    send_response(socket_fd, req);
     return 0;
 }
 
@@ -547,93 +573,90 @@ std::map<uint16_t, command_processor_route> application::command_processor_route
 
 void application::command_processor_legacy(int socket_fd)
 {
-    unsigned char data[1024];
+    auto app = application::get_instance();
+
+    unsigned char data[4096];
     unsigned char *ptr = data;
+
     int length = 0;
     int client_retries = 0;
 
-    std::mutex mutex;
-
-    while (!m_shutdown & (client_retries++ < 2))
+    while (!m_shutdown & (client_retries++ < 3))
     {
-        std::unique_lock<std::mutex> lk(mutex);
-        length = read(socket_fd, ptr, sizeof(data));
+        auto bytes_to_read = sizeof(data) - (ptr - data);
 
-        if (length <= 0)
+        if (bytes_to_read == 0)
+        {
+            std::cout << "buffer is full and couldn't parse any packets." << std::endl;
+            std::cout << "dropping connection." << std::endl;
+            break;
+        }
+
+        length = read(socket_fd, ptr, bytes_to_read);
+
+        if (length < 0)
+        {
+            break;
+        }
+
+        if (length == 0)
         {
             continue;
         }
 
+        if (length % 4 != 0)
+        {
+            continue;
+        }
+
+        // auto packets = std::vector<packet>(data, data + length);
+        std::vector<packet> packets;
+        for (auto it = data; (it + 4) <= (data + length); it += 4)
+        {
+            packets.emplace_back(*(uint32_t *)it);
+        }
         client_retries = 0;
 
-        // auto length = (size_t)(ptr - data);
-        auto npackets = length / 4;
-
-        // parse all in a list of requests
-        for (int i = 0; i < npackets; i++)
+        for (auto &p : packets)
         {
+            std::cout << "request: " << p << std::endl;
+            auto route_id = p.route_id_get();
+            auto it = command_processor_routes_legacy.find(route_id);
 
-            auto packet_ptr_begin = data + 4 * i;
-            auto packet_ptr_end = packet_ptr_begin + 4;
-            auto packet_ptr_end_offset = packet_ptr_end - data;
-
-            if (packet_ptr_end_offset > length)
-            {
-                std::cout << std::format("invalid packet found by offset of {}\n", packet_ptr_end_offset - length);
-                break;
-            }
-
-            packet req(*(uint32_t *)packet_ptr_begin);
-
-            std::cout << "request:" << std::endl;
-            std::cout << req << std::endl;
-
-            auto route_id = req.route_id_get();
-            auto target = command_processor_routes_legacy.find(route_id);
-
-            if (target == command_processor_routes_legacy.end())
+            if (it == command_processor_routes_legacy.end())
             {
                 printf("couldn't find route %04x\n", route_id);
-                ::write(socket_fd, (uint8_t *)&req, sizeof(req));
+                // ::write(socket_fd, (uint8_t *)&p, sizeof(p));
                 continue;
             }
 
-            /**
-             * if rout is found and request is of type write
-             * call the route write function
-             */
-            if ((req.rw.get() == 0) & (command_processor_routes_legacy[route_id].write != nullptr))
+            auto &[id, route] = *it;
+
+            switch (p.rw.get())
             {
-                auto &_route = command_processor_routes_legacy[route_id];
-                _route.write(application::get_instance(), _route, req, socket_fd);
+            case 0:
 
-                /** TODO: this parameter save should be dissociated from network protocol */
-                // auto _ = std::async(std::launch::async, &application::save_all, application::get_instance());
-                save_all();
-                continue;
+                if (route.write == nullptr)
+                    break;
+                route.write(app, route, p, socket_fd);
+
+                break;
+            case 1:
+                if (route.read == nullptr)
+                    break;
+                route.read(app, route, p, socket_fd);
+                break;
+
+            default:
+                break;
             }
-
-            /**
-             * if route is found and request is of type read
-             * call the read function
-             */
-            else if ((req.rw.get() == 1) & (command_processor_routes_legacy[route_id].read != nullptr))
-            {
-                auto &_route = command_processor_routes_legacy[route_id];
-                _route.read(application::get_instance(), _route, req, socket_fd);
-                continue;
-            }
-
-            /**
-             * the competence of handling connection is of the route
-             * the connetion will remain open to the next request.
-             */
         }
+
+        ptr = data;
     }
 
     close(socket_fd);
 }
-
 
 struct __attribute__((packed)) metadata
 {
@@ -660,12 +683,9 @@ void application::image_writer_legacy(int socket_fd)
     int retval = 0;
 
     uint8_t *image_shm_ptr = (uint8_t *)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
-
-    std::mutex socket_mutex;
-
     volatile int *virtual_metadata_shm_ptr = nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
 
-    metadata* ptr = (metadata*) virtual_metadata_shm_ptr;
+    metadata *ptr = (metadata *)virtual_metadata_shm_ptr;
     int last_frame_index = ptr->frame_number;
 
     int missing_frames_counter = 0;
@@ -673,11 +693,11 @@ void application::image_writer_legacy(int socket_fd)
 
     while (!m_shutdown)
     {
-        std::unique_lock<std::mutex> lk(socket_mutex);
 
         std::this_thread::sleep_for(std::chrono::microseconds(50));
 
-        if ((last_frame_index - ptr->frame_number) == 0) {
+        if ((last_frame_index - ptr->frame_number) == 0)
+        {
             continue;
         }
 
@@ -712,11 +732,10 @@ void application::image_writer_legacy(int socket_fd)
             std::cout << "Failed to write at socket when writing frame packet with error:" << strerror(retval) << std::endl;
             break;
         }
-        
+
         last_frame_index = ptr->frame_number;
     }
 
     printf("missed frames: %d\n", missing_frames_counter);
     printf("total frames: %d\n", ptr->frame_number - first_frame);
-    
 }

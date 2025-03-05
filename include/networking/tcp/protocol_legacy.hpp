@@ -18,6 +18,7 @@ struct packet
     uint16_t route_id_get() { uint16_t v = endpoint.get(); v |= group.get() << 8; return v; }
     void route_id_set(uint16_t v) { group.set(v >> 8); endpoint.set(v); }
 
+    packet(uint8_t* packet) : data(*(uint32_t*)packet), endpoint(data), rw(data), group(data), value(data) {}
     packet(uint32_t packet) : data(packet), endpoint(data), rw(data), group(data), value(data) {}
 
 };
