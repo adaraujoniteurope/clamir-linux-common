@@ -1370,14 +1370,14 @@ template <typename state_type, typename type>
 constexpr type process_core_unsafe_get(state_type *state, size_t offset)
 {
     auto priv = (nit_process_core_private_state*) state->priv;
-    return (type) * (((volatile uint32_t *)priv->proc_var_shm) + offset);
+    return (type) *(((volatile uint32_t *)priv->proc_var_shm) + offset);
 }
 
 template <typename state_type, typename type>
 constexpr type process_core_unsafe_set(state_type *state, size_t offset, type value)
 {
     auto priv = (nit_process_core_private_state*) state->priv;
-    return *(((uint32_t *)priv->proc_var_shm) + offset) = value;
+    return (type) (*(((uint32_t *)priv->proc_var_shm) + offset) = value);
 }
 
 #define DRIVER_FIELD_AS_FUNCTION_DEFINITION(name, parameter, type, size, offset)   \

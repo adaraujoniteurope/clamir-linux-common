@@ -64,6 +64,23 @@ namespace std
 int application::initialize(int argc, char *argv[])
 {
 
+    const char* CONFIGURATION_DIRECTORY = std::getenv("CONFIGURATION_DIRECTORY");
+
+    if (CONFIGURATION_DIRECTORY != nullptr) {
+        std::cout << "CONFIGURATION_DIRECTORY: " << CONFIGURATION_DIRECTORY << std::endl;
+    } else {
+        std::cout << "CONFIGURATION_DIRECTORY environment variable is not set." << std::endl;
+        CONFIGURATION_DIRECTORY = std::filesystem::current_path().c_str();
+    }
+
+    std::filesystem::path configuration_path = CONFIGURATION_DIRECTORY;
+
+    try {
+        std::filesystem::create_directory(configuration_path);
+    } catch (std::exception& ex) {
+        std::cout << ex.what() << std::endl;
+    }
+
     {
         int retval = nit_arm_core_open(&nit_arm_core_driver);
 
@@ -189,33 +206,54 @@ int application::initialize(int argc, char *argv[])
     nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
 
     {
-        if (nit_arm_core_config_load_from_file(&nit_arm_core_driver, "nit_arm_core_config.json") < 0)
+        auto save_path = configuration_path;
+        save_path += "/nit_arm_core_config.json";
+
+        std::cout << "loading configuration from: " << save_path << std::endl;
+
+        if (nit_arm_core_config_load_from_file(&nit_arm_core_driver, save_path.c_str()) < 0)
         {
-            if (nit_arm_core_config_save_to_file(&nit_arm_core_driver, "nit_arm_core_config.json") < 0)
+            if (nit_arm_core_config_save_to_file(&nit_arm_core_driver, save_path.c_str()) < 0)
             {
+                std::cout << "loading configuration failed!" << std::endl;
                 return -1;
             }
         }
+
     }
 
     {
-        if (nit_control_unit_core_config_load_from_file(&nit_control_unit_core_driver, "nit_control_unit_core_config.json") < 0)
+        auto save_path = configuration_path;
+        save_path += "/nit_control_unit_core_config.json";
+
+        std::cout << "loading configuration from: " << save_path << std::endl;
+
+        if (nit_control_unit_core_config_load_from_file(&nit_control_unit_core_driver, save_path.c_str()) < 0)
         {
-            if (nit_control_unit_core_config_save_to_file(&nit_control_unit_core_driver, "nit_control_unit_core_config.json") < 0)
+            if (nit_control_unit_core_config_save_to_file(&nit_control_unit_core_driver, save_path.c_str()) < 0)
             {
+                std::cout << "loading configuration failed!" << std::endl;
                 return -1;
             }
         }
+
     }
 
     {
-        if (nit_mb_core_config_load_from_file(&nit_mb_core_driver, "nit_mb_core_config.json") < 0)
+        auto save_path = configuration_path;
+        save_path += "/nit_mb_core_config.json";
+
+        std::cout << "loading configuration from: " << save_path << std::endl;
+
+        if (nit_mb_core_config_load_from_file(&nit_mb_core_driver, save_path.c_str()) < 0)
         {
-            if (nit_mb_core_config_save_to_file(&nit_mb_core_driver, "nit_mb_core_config.json") < 0)
+            if (nit_mb_core_config_save_to_file(&nit_mb_core_driver, save_path.c_str()) < 0)
             {
+                std::cout << "loading configuration failed!" << std::endl;
                 return -1;
             }
         }
+
     }
 
     {
@@ -227,13 +265,20 @@ int application::initialize(int argc, char *argv[])
     }
 
     {
-        if (nit_process_core_config_load_from_file(&nit_process_core_driver, "nit_process_core_config.json") < 0)
+        auto save_path = configuration_path;
+        save_path += "/nit_process_core_config.json";
+
+        std::cout << "loading configuration from: " << save_path << std::endl;
+
+        if (nit_process_core_config_load_from_file(&nit_process_core_driver, save_path.c_str()) < 0)
         {
-            if (nit_process_core_config_save_to_file(&nit_process_core_driver, "nit_process_core_config.json") < 0)
+            if (nit_process_core_config_save_to_file(&nit_process_core_driver, save_path.c_str()) < 0)
             {
+                std::cout << "loading configuration failed!" << std::endl;
                 return -1;
             }
         }
+
     }
 
     return 0;

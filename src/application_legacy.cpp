@@ -49,7 +49,8 @@
 int send_response(int fd, packet &req)
 {
     std::cout << "response:" << req << std::endl;
-    return ::write(fd, &req.data, sizeof(req.data));
+    auto data = packet::encode(req);
+    return ::write(fd, &data, sizeof(data));
 }
 
 #define DEFINE_COMMAND_TARGET_WRITE_CALLBACK(driver_type, prefix, var_type, var)                                                              \
@@ -57,11 +58,14 @@ int send_response(int fd, packet &req)
     {                                                                                                                                         \
         std::cout << __func__ << std::endl;                                                                                                   \
                                                                                                                                               \
-        prefix##_##var##_set((driver_type##_state_t *)route.pdata, req.value.get());                                                          \
+        prefix##_##var##_set((driver_type##_state_t *)route.pdata, req.value);                                                                \
                                                                                                                                               \
-        var_type value = req.value.get();                                                                                                     \
+        var_type value = req.value;                                                                                                           \
         prefix##_##var##_get((driver_type##_state_t *)route.pdata, &value);                                                                   \
-        req.value.set(value);                                                                                                                 \
+        if (req.value != value)                                                                                                               \
+        {                                                                                                                                     \
+            std::cout << __func__ << ": " << std::format("failed to set value {} != {}", req.value, value) << std::endl;                      \
+        }                                                                                                                                     \
                                                                                                                                               \
         return 0;                                                                                                                             \
     }
@@ -71,11 +75,11 @@ int send_response(int fd, packet &req)
     {                                                                                                                                        \
         std::cout << __func__ << std::endl;                                                                                                  \
                                                                                                                                              \
-        var_type value = req.value.get();                                                                                                    \
+        var_type value = req.value;                                                                                                          \
         prefix##_##var##_get((driver_type##_state_t *)route.pdata, &value);                                                                  \
-        req.value.set(value);                                                                                                                \
+        req.value = value;                                                                                                                   \
                                                                                                                                              \
-        send_response(socket_fd, req);                                                                                                       \
+        send_response(socket_fd, req);                                                                                       \
                                                                                                                                              \
         return 0;                                                                                                                            \
     }
@@ -130,10 +134,10 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core
 int command_target_nit_control_unit_core_save_embedded_conf_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    // nit_control_unit_core_save_embedded_conf_set((nit_control_unit_core_state_t *)route.pdata, req.value.get());
-    // uint16_t value = req.value.get();
+    // nit_control_unit_core_save_embedded_conf_set((nit_control_unit_core_state_t *)route.pdata, req.value);
+    // uint16_t value = req.value;
     // nit_control_unit_core_save_embedded_conf_get((nit_control_unit_core_state_t *)route.pdata, &value);
-    // req.value.set(value);
+    // req = setvalue);
     app->save_all();
     return 0;
 }
@@ -149,7 +153,7 @@ int command_target_nit_control_unit_core_arm_sw_version_write(std::shared_ptr<ap
 int command_target_nit_control_unit_core_arm_sw_version_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    req.value.set(0x0006);
+    req.value = 0x0006;
     send_response(socket_fd, req);
     return 0;
 }
@@ -160,8 +164,8 @@ int command_target_nit_control_unit_core_arm_sw_version_read(std::shared_ptr<app
 int command_target_nit_control_unit_core_drift_enable_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    nit_control_unit_core_drift_enable_set((nit_control_unit_core_state_t *)route.pdata, req.value.get());
-    uint16_t value = req.value.get();
+    nit_control_unit_core_drift_enable_set((nit_control_unit_core_state_t *)route.pdata, req.value);
+    uint16_t value = req.value;
     nit_control_unit_core_drift_enable_get((nit_control_unit_core_state_t *)route.pdata, &value);
     return 0;
 }
@@ -169,9 +173,9 @@ int command_target_nit_control_unit_core_drift_enable_write(std::shared_ptr<appl
 int command_target_nit_control_unit_core_drift_enable_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    uint16_t value = req.value.get();
+    uint16_t value = req.value;
     nit_control_unit_core_drift_enable_get((nit_control_unit_core_state_t *)route.pdata, &value);
-    req.value.set(value);
+    req.value = value;
     send_response(socket_fd, req);
     return 0;
 }
@@ -195,7 +199,7 @@ int command_target_nit_control_unit_core_magic_id_write(std::shared_ptr<applicat
 int command_target_nit_control_unit_core_magic_id_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    req.value.set(0x0700);
+    req.value = 0x0700;
     send_response(socket_fd, req);
     return 0;
 }
@@ -210,7 +214,7 @@ int command_target_nit_control_unit_core_fpga_version_write(std::shared_ptr<appl
 int command_target_nit_control_unit_core_fpga_version_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    req.value.set(0x0002);
+    req.value = 0x0002;
     send_response(socket_fd, req);
     return 0;
 }
@@ -251,7 +255,7 @@ int command_target_nit_mom_core_time_track_low_read(std::shared_ptr<application>
 
     uint16_t value = ((((uint64_t)high << 32) | ((uint64_t)low << 0)) / 100e5);
 
-    req.value.set(value);
+    req.value = value;
 
     send_response(socket_fd, req);
 
@@ -263,7 +267,7 @@ int command_target_nit_mom_core_time_track_low_write(std::shared_ptr<application
     std::cout << __func__ << std::endl;
 
     uint64_t value = 0;
-    value = req.value.get();
+    value = req.value;
     value *= 100e5;
 
     if (nit_mom_core_time_track_high_set(&nit_mb_core_driver, (value & 0xFFFFFFFF00000000) >> 32) < 0)
@@ -354,8 +358,6 @@ int command_target_nit_process_core_auto_shutter_write(std::shared_ptr<applicati
     nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 0);
     nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 0);
 
-    send_response(socket_fd, req);
-
     return 0;
 }
 
@@ -412,22 +414,22 @@ int command_target_nit_gen_core_serial_number_low_read(std::shared_ptr<applicati
     std::cout << __func__ << std::endl;
 
     req.route_id_set(0x04aa);
-    req.value.set(0x3231);
+    req.value = 0x3231;
 
     send_response(socket_fd, req);
 
     req.route_id_set(0x04ab);
-    req.value.set(0x4541);
+    req.value = 0x4541;
 
     send_response(socket_fd, req);
 
     req.route_id_set(0x04ac);
-    req.value.set(0x3434);
+    req.value = 0x3434;
 
     send_response(socket_fd, req);
 
     req.route_id_set(0x04ad);
-    req.value.set(0x0037);
+    req.value = 0x0037;
 
     send_response(socket_fd, req);
 
@@ -581,18 +583,20 @@ void application::command_processor_legacy(int socket_fd)
     int length = 0;
     int client_retries = 0;
 
-    while (!m_shutdown & (client_retries++ < 3))
+    std::mutex m;
+
+    while (!m_shutdown & (client_retries < 3))
     {
-        auto bytes_to_read = sizeof(data) - (ptr - data);
+        // auto bytes_to_read = sizeof(data) - (ptr - data);
 
-        if (bytes_to_read == 0)
-        {
-            std::cout << "buffer is full and couldn't parse any packets." << std::endl;
-            std::cout << "dropping connection." << std::endl;
-            break;
-        }
+        // if (bytes_to_read == 0)
+        // {
+        //     std::cout << "buffer is full and couldn't parse any packets." << std::endl;
+        //     std::cout << "dropping connection." << std::endl;
+        //     break;
+        // }
 
-        length = read(socket_fd, ptr, bytes_to_read);
+        length = read(socket_fd, data, sizeof(data));
 
         if (length < 0)
         {
@@ -601,26 +605,35 @@ void application::command_processor_legacy(int socket_fd)
 
         if (length == 0)
         {
+            client_retries++;
             continue;
         }
 
         if (length % 4 != 0)
         {
+            // assume malformed packet
             continue;
         }
 
         // auto packets = std::vector<packet>(data, data + length);
+
         std::vector<packet> packets;
+
         for (auto it = data; (it + 4) <= (data + length); it += 4)
         {
-            packets.emplace_back(*(uint32_t *)it);
+            packet p = *(uint32_t *)it;
+            packets.push_back(p);
         }
+
         client_retries = 0;
 
         for (auto &p : packets)
         {
             std::cout << "request: " << p << std::endl;
+
             auto route_id = p.route_id_get();
+            // auto rw = p.rw.get();
+
             auto it = command_processor_routes_legacy.find(route_id);
 
             if (it == command_processor_routes_legacy.end())
@@ -632,7 +645,7 @@ void application::command_processor_legacy(int socket_fd)
 
             auto &[id, route] = *it;
 
-            switch (p.rw.get())
+            switch (p.rw)
             {
             case 0:
 
@@ -652,7 +665,7 @@ void application::command_processor_legacy(int socket_fd)
             }
         }
 
-        ptr = data;
+        // ptr = data;
     }
 
     close(socket_fd);

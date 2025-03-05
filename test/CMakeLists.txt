@@ -1,15 +1,15 @@
 add_executable(
-  test_networking_tcp_protocol
-  test_networking_tcp_protocol.cpp
+  packet_test
+  packet_test.cpp
 )
 
 target_link_libraries(
-  test_networking_tcp_protocol
+  packet_test
   ${PROJECT_NAME}-obj
   GTest::gtest_main
 )
 
-gtest_discover_tests(test_networking_tcp_protocol)
+gtest_discover_tests(packet_test)
 
 add_executable(
   test_math_control
