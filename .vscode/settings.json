@@ -93,7 +93,11 @@
         "bitset": "cpp",
         "cfenv": "cpp",
         "stdfloat": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "fft": "cpp",
+        "hash_map": "cpp",
+        "ranges": "cpp",
+        "text_encoding": "cpp"
     },
 
     "cmake.configureArgs": [ "-DNIT_CLAMIR_ENABLE_TESTING=Yes" ],

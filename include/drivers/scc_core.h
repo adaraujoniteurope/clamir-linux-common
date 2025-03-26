@@ -1,0 +1,69 @@
+#ifndef _NIT_EMBEDDED_CLAMIR_DRIVER_SCC_CORE_H_
+#define _NIT_EMBEDDED_CLAMIR_DRIVER_SCC_CORE_H_
+
+#include <atomic>
+#include <cstdint>
+
+#include "common.h"
+
+#include "arm_core.h"
+#include "mb_core.h"
+#include "control_unit_core.h"
+#include "framebuffer_core.h"
+#include "gen_core.h"
+#include "pwm_core.h"
+#include "roi_core.h"
+
+#include "scc_core_field_table.h"
+
+#include "utils/waitable.hpp"
+
+#define NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(nit_scc_core_state_t, name, parameter, type, size, offset)
+#define NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(nit_scc_core_state_t, name, parameter, type, size, offset)
+
+#if !DEBUGGING_HOST
+#define NIT_SCC_CORE_BASE_ADDRESS (0x50000000)
+#define NIT_SCC_CORE_SIZE 0x00010000
+#else
+#define NIT_SCC_CORE_BASE_ADDRESS 0x00000000
+#define NIT_SCC_CORE_SIZE 0x00010000
+#endif
+
+    DRIVER_DECLARE_OFFSET_TABLE_BEGIN(scc_core)
+    NIT_SCC_CORE_FIELD_TABLE(DRIVER_FIELD_AS_OFFSET_TABLE_ITEM)
+    DRIVER_DECLARE_OFFSET_TABLE_END(scc_core)
+
+    DRIVER_DECLARE_CONFIG_BEGIN(scc_core)
+    NIT_SCC_CORE_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_TABLE_ITEM)
+
+    DRIVER_DECLARE_CONFIG_SERIALIZER_BEGIN(scc_core)
+    NIT_SCC_CORE_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_SERIALIZER_TABLE_ITEM)
+    DRIVER_DECLARE_CONFIG_SERIALIZER_END(scc_core)
+    
+    DRIVER_DECLARE_CONFIG_DESERIALIZER_BEGIN(scc_core)
+    NIT_SCC_CORE_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_SERIALIZER_TABLE_ITEM)
+    DRIVER_DECLARE_CONFIG_DESERIALIZER_END(scc_core)
+
+    DRIVER_DECLARE_CONFIG_END(scc_core)
+
+    DRIVER_DECLARE_STATE(scc_core)
+
+    extern nit_scc_core_state_t nit_scc_core_driver;
+
+    int nit_scc_core_open(nit_scc_core_state_t *state, nit_framebuffer_core_state_t *nit_framebuffer_core_state);
+    int nit_scc_core_close(nit_scc_core_state_t *state);
+
+    int nit_scc_core_config_save_to_file(nit_scc_core_state_t *state, const char *path);
+    int nit_scc_core_config_load_from_file(nit_scc_core_state_t *state, const char *path);
+
+    /**
+     * this function is a stub to implement the core
+     * functionality by evaluating in the image capture
+     * poll.
+     */
+    int nit_scc_core_stub_eval(nit_scc_core_state_t *state);
+    
+
+    NIT_SCC_CORE_FIELD_TABLE(NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION)
+
+#endif

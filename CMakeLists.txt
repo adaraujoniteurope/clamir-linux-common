@@ -32,6 +32,7 @@ FetchContent_Declare(
       GIT_TAG v1.3.0)
 
 FetchContent_GetProperties(cereal)
+
 if (NOT cereal_POPULATED)
     FetchContent_Populate(cereal)
     add_subdirectory(
@@ -40,6 +41,20 @@ if (NOT cereal_POPULATED)
     EXCLUDE_FROM_ALL)
     add_library(cereal::cereal ALIAS cereal )
 endif ()
+
+FetchContent_Declare(
+  Eigen
+  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+  GIT_TAG master
+  GIT_SHALLOW TRUE
+  GIT_PROGRESS TRUE
+)
+
+set(EIGEN_BUILD_TESTING OFF)
+set(EIGEN_MPL2_ONLY ON)
+set(EIGEN_BUILD_PKGCONFIG OFF)
+set(EIGEN_BUILD_DOC OFF)
+FetchContent_MakeAvailable(Eigen)
 
 # file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
@@ -61,6 +76,7 @@ target_link_libraries(${PROJECT_NAME}-obj
         m
         # ${Boost_LIBRARIES}
         cereal
+        Eigen3::Eigen
 )
 
 target_include_directories(${PROJECT_NAME}-obj PUBLIC ${OSAL_INCLUDE_DIR})

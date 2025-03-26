@@ -27,6 +27,7 @@
 
 #include <drivers/arm_core.h>
 #include <drivers/bpc_table_core.h>
+#include <drivers/scc_core.h>
 #include <drivers/control_unit_core.h>
 
 #include <drivers/common.h>
@@ -737,6 +738,8 @@ void application::image_writer_legacy(int socket_fd)
             std::cout << "Failed to write at socket when writing metadata packet with error:" << strerror(retval) << std::endl;
             break;
         }
+
+        nit_scc_core_stub_eval(&nit_scc_core_driver);
 
         if ((retval = write(socket_fd, m_image_buffer, sizeof(m_image_buffer))) < 0)
         {
