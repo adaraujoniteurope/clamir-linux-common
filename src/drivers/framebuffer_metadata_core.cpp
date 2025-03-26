@@ -27,15 +27,23 @@ int framebuffer_metadata_core_open(framebuffer_metadata_core_state_t* state)
     }
 
     state->is_open = false;
-    
-	state->fd = open("/dev/mem", O_RDWR | O_SYNC);
 
-    if (state->fd < 0)
-    {
-        return -2;
+    state->fd = -1;
+    
+	if (!DEBUGGING_HOST) {
+        state->fd = open("/dev/mem", O_RDWR | O_SYNC);
+
+        if (state->fd < 0)
+        {
+            return -2;
+        }
     }
 
-	state->priv = (volatile int *)mmap(NULL, NIT_FRAMEBUFFER_METADATA_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_FRAMEBUFFER_METADATA_CORE_BASE_ADDRESS);
+    if (!DEBUGGING_HOST) {
+        state->priv = (volatile int *)mmap(NULL, NIT_FRAMEBUFFER_METADATA_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_FRAMEBUFFER_METADATA_CORE_BASE_ADDRESS);
+    } else {
+        state->priv = (volatile int *)malloc(NIT_FRAMEBUFFER_METADATA_CORE_SIZE);
+    }
 
     if (state->priv == NULL)
     {

@@ -65,7 +65,7 @@ std::function<void()> tcp_server::create(uint16_t port, std::function<void(int s
         while (!shutdown.load())
         {
 
-            int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, 100);
+            int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, 1);
             int err = errno;
 
             if (nfds < 0) {

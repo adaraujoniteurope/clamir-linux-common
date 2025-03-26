@@ -344,17 +344,47 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t
 
 int command_target_nit_process_core_auto_shutter_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {
-
-    // uint8_t *image = (uint8_t *)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
-    // nit_bpc_table_core_bpc_table_write(&nit_bpc_table_core_driver, image, 8192);
-
     nit_control_unit_core_offset_en_set(&nit_control_unit_core_driver, 1);
     nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
 
-    nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    /**
+     * 1. enter calibration
+     */
+    nit_scc_core_opmode_set(&nit_scc_core_driver, NIT_SCC_CORE_OPMODE_CALIBRATE);
 
+    /**
+     * 1. set start acquiring min
+     * 2. close shutter
+     * 3. wait for 250 ms
+     */
+    nit_scc_core_acquire_max_enable_set(&nit_scc_core_driver, 0);
+    nit_scc_core_acquire_min_enable_set(&nit_scc_core_driver, 1);
+    nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
+    /**
+     * 1. set start acquiring max
+     * 2. open shutter
+     * 3. wait for 250 ms
+     */
+    nit_scc_core_acquire_max_enable_set(&nit_scc_core_driver, 1);
+    nit_scc_core_acquire_min_enable_set(&nit_scc_core_driver, 0);
     nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
+    /**
+     * 1. disable acquiring max
+     * 2. wait for calibration to complete
+     * 3. enable scc_core processing
+     */
+    nit_scc_core_acquire_max_enable_set(&nit_scc_core_driver, 0);
+    nit_scc_core_acquire_min_enable_set(&nit_scc_core_driver, 0);
+    nit_scc_core_calibration_status_wait_idle(&nit_scc_core_driver);
+    nit_scc_core_opmode_set(&nit_scc_core_driver, NIT_SCC_CORE_OPMODE_PROCESS);
+
+    /**
+     * older offset core processing disable offset update
+     */
     nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 0);
 
     return 0;
@@ -739,7 +769,7 @@ void application::image_writer_legacy(int socket_fd)
             break;
         }
 
-        nit_scc_core_stub_eval(&nit_scc_core_driver);
+        // nit_scc_core_stub_eval(&nit_scc_core_driver);
 
         if ((retval = write(socket_fd, m_image_buffer, sizeof(m_image_buffer))) < 0)
         {

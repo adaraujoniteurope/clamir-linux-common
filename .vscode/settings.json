@@ -101,6 +101,13 @@
     },
 
     "cmake.configureArgs": [ "-DNIT_CLAMIR_ENABLE_TESTING=Yes" ],
-    "cmake.buildDirectory": "${workspaceFolder}/build-cmaketools"
-    
+    "cmake.buildDirectory": "${workspaceFolder}/build-cmaketools",
+    "cmake.debugConfig": {
+        "environment": [
+            {
+                "name": "CONFIGURATION_DIRECTORY",
+                "value": "${workspaceFolder}/tmp"
+            }
+        ]
+    }
 }

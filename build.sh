@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
-#export CC=/usr/bin/arm-linux-gnueabihf-gcc
-#export CXX=/usr/bin/arm-linux-gnueabihf-g++
+export CC=/usr/bin/arm-linux-gnueabihf-gcc
+export CXX=/usr/bin/arm-linux-gnueabihf-g++
 
 rm -rf /home/arthur/Work/Software/clamir-linux-daemon/build-cmaketools
 

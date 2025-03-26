@@ -83,7 +83,7 @@ target_include_directories(${PROJECT_NAME}-obj PUBLIC ${OSAL_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME}-obj PUBLIC ${PNET_INCLUDE_DIR})
 
 target_compile_options(${PROJECT_NAME}-obj PUBLIC -Wall -Wdeprecated -Wdeprecated-declarations -g)
-target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DDEBUGGING_HOST=0 -DNIT_CLAMIR_DEBUGGING)
+target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DDEBUGGING_HOST=1 -DNIT_CLAMIR_DEBUGGING)
 
 target_include_directories(${PROJECT_NAME}-obj PUBLIC ${BOOST_INCLUDE_DIRS})
 

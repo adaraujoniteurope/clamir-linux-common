@@ -116,7 +116,7 @@ private:
 	struct sigaction m_pipe_handler;
 
 	std::atomic_bool m_shutdown = false;
-	std::shared_ptr<abstract_timer> m_timer = std::make_shared<uio_timer>(m_shutdown);
+	std::shared_ptr<abstract_timer> m_timer;
 
 	static std::map<uint16_t, command_processor_route> command_processor_routes_legacy;
 

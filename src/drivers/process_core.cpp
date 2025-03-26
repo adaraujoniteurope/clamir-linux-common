@@ -231,7 +231,7 @@ struct nit_process_core_private_state
 
     int stop_logging;
 
-    sem_t *semaforo;
+    sem_t* semaforo;
 
     // File descriptor de UIO
     int pending = 0;
@@ -282,20 +282,20 @@ struct nit_process_core_private_state
     int delay_laser_on = 0;
     int cont_preheating = 0;
 
-    volatile int *proc_var_shm;
-    volatile int *virtual_metadata_shm;
-    volatile int *arm_core_shm;
-    volatile int *real_metadata_shm;
-    volatile int *control_unit_shm;
-    volatile int *mb_core_shm;
+    volatile int* proc_var_shm;
+    volatile int* virtual_metadata_shm;
+    volatile int* arm_core_shm;
+    volatile int* real_metadata_shm;
+    volatile int* control_unit_shm;
+    volatile int* mb_core_shm;
 };
 
 nit_process_core_state_t nit_process_core_driver;
 
 double nit_process_core_calculate_width(int metadatos[12]);
-nit_process_core_private_state *nit_process_core_process_data_ptr_get(nit_process_core_state_t *state);
+nit_process_core_private_state* nit_process_core_process_data_ptr_get(nit_process_core_state_t* state);
 
-int nit_process_core_open(nit_process_core_state_t *state, nit_arm_core_state_t *nit_arm_core_state, nit_control_unit_core_state_t *nit_control_unit_core_state, nit_mb_core_state_t *nit_mb_core_state, nit_framebuffer_core_state_t *nit_framebuffer_core_state)
+int nit_process_core_open(nit_process_core_state_t* state, nit_arm_core_state_t* nit_arm_core_state, nit_control_unit_core_state_t* nit_control_unit_core_state, nit_mb_core_state_t* nit_mb_core_state, nit_framebuffer_core_state_t* nit_framebuffer_core_state)
 {
     if (state == NULL)
     {
@@ -309,41 +309,41 @@ int nit_process_core_open(nit_process_core_state_t *state, nit_arm_core_state_t 
 
     state->is_open = false;
 
-    state->fd = open("/dev/mem", O_RDWR | O_SYNC);
+    state->fd = -1;
 
-    if (state->fd < 0)
-    {
-        return -2;
+    if (!DEBUGGING_HOST) {
+
+        state->fd = open("/dev/mem", O_RDWR | O_SYNC);
+        if (state->fd < 0)
+        {
+            return -2;
+        }
+
     }
 
-    state->priv = (void *)malloc(sizeof(nit_process_core_private_state));
-    memset((void *)state->priv, 0, sizeof(nit_process_core_private_state));
+    state->priv = (void*)malloc(sizeof(nit_process_core_private_state));
+    memset((void*)state->priv, 0, sizeof(nit_process_core_private_state));
 
     if (state->priv == NULL)
     {
         return -3;
     }
 
-    auto process = (nit_process_core_private_state *)state->priv;
+    auto process = (nit_process_core_private_state*)state->priv;
 
     process->semaforo = sem_open(SEM_NAME, O_CREAT, 0644, 0);
 
-    // state->priv = (volatile int *)(volatile int *)mmap(NULL, 512, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    if (!DEBUGGING_HOST) {
+        process->proc_var_shm = (volatile int*)mmap(NULL, 512, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    } else {
+        process->proc_var_shm = (volatile int*)malloc(512);
+    }
 
-    // if (state->priv == nullptr) {
-    //     return -4;
-    // }
-
-    // state->priv = malloc(sizeof(nit_process_core_private_state));
-
-    // if (state->priv == nullptr)
-    // {
-    //     return -1;
-    // }
-
-    process->proc_var_shm = (volatile int *)mmap(NULL, 512, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-
-    process->virtual_metadata_shm = (volatile int *)mmap(NULL, 256, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    if (!DEBUGGING_HOST) {
+        process->virtual_metadata_shm = (volatile int*)mmap(NULL, 256, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    } else {
+        process->virtual_metadata_shm = (volatile int*)malloc(256);
+    }
 
     if (process->virtual_metadata_shm == nullptr)
     {
@@ -355,28 +355,28 @@ int nit_process_core_open(nit_process_core_state_t *state, nit_arm_core_state_t 
         return -6;
     }
 
-    process->arm_core_shm = (volatile int *)nit_arm_core_state->priv;
+    process->arm_core_shm = (volatile int*)nit_arm_core_state->priv;
 
     if (nit_control_unit_core_assert(nit_control_unit_core_state) < 0)
     {
         return -7;
     }
 
-    process->control_unit_shm = (volatile int *)nit_control_unit_core_state->priv;
+    process->control_unit_shm = (volatile int*)nit_control_unit_core_state->priv;
 
     if (nit_mb_core_state_assert(nit_mb_core_state) < 0)
     {
         return -8;
     }
 
-    process->mb_core_shm = (volatile int *)nit_mb_core_state->priv;
+    process->mb_core_shm = (volatile int*)nit_mb_core_state->priv;
 
     if (nit_framebuffer_core_state_assert(nit_framebuffer_core_state) < 0)
     {
         return -9;
     }
 
-    process->real_metadata_shm = (volatile int *)nit_framebuffer_core_metadata(nit_framebuffer_core_state);
+    process->real_metadata_shm = (volatile int*)nit_framebuffer_core_metadata(nit_framebuffer_core_state);
 
     if (state->priv == NULL)
     {
@@ -389,7 +389,7 @@ int nit_process_core_open(nit_process_core_state_t *state, nit_arm_core_state_t 
     return 0;
 }
 
-int nit_process_core_close(nit_process_core_state_t *state)
+int nit_process_core_close(nit_process_core_state_t* state)
 {
     if (state == NULL)
     {
@@ -405,7 +405,7 @@ int nit_process_core_close(nit_process_core_state_t *state)
 
     if (state->priv != NULL)
     {
-        munmap((void *)state->priv, NIT_PROCESS_CORE_SIZE);
+        munmap((void*)state->priv, NIT_PROCESS_CORE_SIZE);
         state->priv = NULL;
     }
 
@@ -417,7 +417,7 @@ int nit_process_core_close(nit_process_core_state_t *state)
     return 0;
 }
 
-int nit_process_core_assert(nit_process_core_state_t *state)
+int nit_process_core_assert(nit_process_core_state_t* state)
 {
 
     if (state == NULL)
@@ -438,12 +438,12 @@ int nit_process_core_assert(nit_process_core_state_t *state)
     return 0;
 }
 
-volatile int *nit_process_core_get_virtual_metadata_shm_ptr(nit_process_core_state_t *state)
+volatile int* nit_process_core_get_virtual_metadata_shm_ptr(nit_process_core_state_t* state)
 {
     return nit_process_core_process_data_ptr_get(state)->virtual_metadata_shm;
 }
 
-nit_process_core_private_state *nit_process_core_process_data_ptr_get(nit_process_core_state_t *state)
+nit_process_core_private_state* nit_process_core_process_data_ptr_get(nit_process_core_state_t* state)
 {
     int retval = 0;
 
@@ -453,10 +453,10 @@ nit_process_core_private_state *nit_process_core_process_data_ptr_get(nit_proces
         return nullptr;
     }
 
-    return (nit_process_core_private_state *)state->priv;
+    return (nit_process_core_private_state*)state->priv;
 }
 
-int nit_process_core_config_save_to_file(nit_process_core_state_t *state, const char *path)
+int nit_process_core_config_save_to_file(nit_process_core_state_t* state, const char* path)
 {
 
     if (nit_process_core_ki_get(state, &state->config.ki) < 0)
@@ -595,7 +595,7 @@ int nit_process_core_config_save_to_file(nit_process_core_state_t *state, const 
     return config_file_save_to_file(state, path);
 }
 
-int nit_process_core_config_load_from_file(nit_process_core_state_t *state, const char *path)
+int nit_process_core_config_load_from_file(nit_process_core_state_t* state, const char* path)
 {
 
     if (config_file_load_from_file(state, path) < 0)
@@ -739,7 +739,7 @@ int nit_process_core_config_load_from_file(nit_process_core_state_t *state, cons
     return 0;
 }
 
-int nit_process_core_run(nit_process_core_state_t *state, std::shared_ptr<utils::waitable> timer, std::atomic_bool &shutdown)
+int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils::waitable> timer, std::atomic_bool& shutdown)
 {
     auto priv = nit_process_core_process_data_ptr_get(state);
 
@@ -864,7 +864,7 @@ int nit_process_core_run(nit_process_core_state_t *state, std::shared_ptr<utils:
 
         timer->wait();
         // read(fd_int, (int *)&pending, sizeof(int)); // Se bloquea hasta que sucede una interrupcion de uio0
-        memcpy(priv->metadatos, (void *)priv->real_metadata_shm, 48);
+        memcpy(priv->metadatos, (void*)priv->real_metadata_shm, 48);
 
         // Laser status
         if (priv->laser_external)
@@ -904,7 +904,7 @@ int nit_process_core_run(nit_process_core_state_t *state, std::shared_ptr<utils:
                 // if(control_unit_shm[NIT_SHUTTER] == 0)
                 //{
                 priv->control_unit_shm[NIT_SHUTTER] = 1; // cerrar shutter
-                                                         //}
+                //}
                 priv->cnt_last_autoshutter = 0;
                 priv->temperature_last_autoshutter = priv->current_temperature;
             }
@@ -1214,9 +1214,9 @@ int nit_process_core_run(nit_process_core_state_t *state, std::shared_ptr<utils:
         priv->mb_core_shm[PWM] = (unsigned int)priv->duty;
         priv->last_laser_status = priv->laser_status;
 
-        memcpy((void *)&priv->virtual_metadata_shm[0], &priv->metadatos, 28);    // Power, MOM00, MOM01, MOM10, MOM11, MOM02, MOM20
+        memcpy((void*)&priv->virtual_metadata_shm[0], &priv->metadatos, 28);    // Power, MOM00, MOM01, MOM10, MOM11, MOM02, MOM20
         priv->virtual_metadata_shm[7] = priv->resultado;                         // Width
-        memcpy((void *)&priv->virtual_metadata_shm[8], &priv->metadatos[7], 20); // Track Nmbr, Frame Max, Frame Number, Timestamp, IO Status
+        memcpy((void*)&priv->virtual_metadata_shm[8], &priv->metadatos[7], 20); // Track Nmbr, Frame Max, Frame Number, Timestamp, IO Status
 
         // gestion de la alarma
 
@@ -1346,11 +1346,11 @@ int nit_process_core_run(nit_process_core_state_t *state, std::shared_ptr<utils:
                 break;
             }
         }
-        
+
         if (priv->alarm_enable == 1)
-		{ // Solo si la alarma est� habilitada
-			priv->mb_core_shm[DIGITAL_OUT_0] = priv->alarm;
-		}
+        { // Solo si la alarma est� habilitada
+            priv->mb_core_shm[DIGITAL_OUT_0] = priv->alarm;
+        }
 
         sem_getvalue(priv->semaforo, &priv->valor1);
         if (priv->valor1 < 1)
@@ -1367,17 +1367,17 @@ int nit_process_core_run(nit_process_core_state_t *state, std::shared_ptr<utils:
 }
 
 template <typename state_type, typename type>
-constexpr type process_core_unsafe_get(state_type *state, size_t offset)
+constexpr type process_core_unsafe_get(state_type* state, size_t offset)
 {
-    auto priv = (nit_process_core_private_state*) state->priv;
-    return (type) *(((volatile uint32_t *)priv->proc_var_shm) + offset);
+    auto priv = (nit_process_core_private_state*)state->priv;
+    return (type) * (((volatile uint32_t*)priv->proc_var_shm) + offset);
 }
 
 template <typename state_type, typename type>
-constexpr type process_core_unsafe_set(state_type *state, size_t offset, type value)
+constexpr type process_core_unsafe_set(state_type* state, size_t offset, type value)
 {
-    auto priv = (nit_process_core_private_state*) state->priv;
-    return (type) (*(((uint32_t *)priv->proc_var_shm) + offset) = value);
+    auto priv = (nit_process_core_private_state*)state->priv;
+    return (type)(*(((uint32_t*)priv->proc_var_shm) + offset) = value);
 }
 
 #define DRIVER_FIELD_AS_FUNCTION_DEFINITION(name, parameter, type, size, offset)   \

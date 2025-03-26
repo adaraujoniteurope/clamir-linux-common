@@ -22,12 +22,38 @@
 #define NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(nit_scc_core_state_t, name, parameter, type, size, offset)
 
 #if !DEBUGGING_HOST
-#define NIT_SCC_CORE_BASE_ADDRESS (0x50000000)
+#define NIT_SCC_CORE_BASE_ADDRESS (0x48000000)
 #define NIT_SCC_CORE_SIZE 0x00010000
 #else
-#define NIT_SCC_CORE_BASE_ADDRESS 0x00000000
-#define NIT_SCC_CORE_SIZE 0x00010000
+#define NIT_SCC_CORE_CTRL_BASE_ADDRESS 0x00000000
+#define NIT_SCC_CORE_CTRL_BASE_SIZE 0x00002000
+
+#define NIT_SCC_CORE_SCALE_BASE_ADDRESS 0x00000000
+#define NIT_SCC_CORE_SCALE_BASE_SIZE 0x00002000
+
+#define NIT_SCC_CORE_OFFSET_BASE_ADDRESS 0x00000000
+#define NIT_SCC_CORE_OFFSET_BASE_SIZE 0x00002000
+
+#define NIT_SCC_CORE_MIN_BASE_ADDRESS 0x00000000
+#define NIT_SCC_CORE_MIN_BASE_SIZE 0x00002000
+
+#define NIT_SCC_CORE_MAX_BASE_ADDRESS 0x00000000
+#define NIT_SCC_CORE_MAX_BASE_SIZE 0x00002000
 #endif
+
+    typedef enum nit_scc_core_opmode_enum
+    {
+        NIT_SCC_CORE_OPMODE_PROCESS,
+        NIT_SCC_CORE_OPMODE_CALIBRATE,
+        NIT_SCC_CORE_OPMODE_MAX
+    } nit_scc_core_opmode_t;
+
+    typedef enum nit_scc_core_calibration_status_enum
+    {
+        NIT_SCC_CORE_CALIBRATION_STATUS_IDLE,
+        NIT_SCC_CORE_CALIBRATION_STATUS_BUSY,
+        NIT_SCC_CORE_CALIBRATION_STATUS_MAX
+    } nit_scc_core_calibration_status_t;
 
     DRIVER_DECLARE_OFFSET_TABLE_BEGIN(scc_core)
     NIT_SCC_CORE_FIELD_TABLE(DRIVER_FIELD_AS_OFFSET_TABLE_ITEM)
@@ -55,6 +81,8 @@
 
     int nit_scc_core_config_save_to_file(nit_scc_core_state_t *state, const char *path);
     int nit_scc_core_config_load_from_file(nit_scc_core_state_t *state, const char *path);
+
+    int nit_scc_core_calibration_status_wait_idle(nit_scc_core_state_t* state);
 
     /**
      * this function is a stub to implement the core

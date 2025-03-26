@@ -50,14 +50,23 @@ int nit_arm_core_open(nit_arm_core_state_t *state)
         return 0;
     }
 
-    state->fd = open("/dev/mem", O_RDWR | O_SYNC);
+    state->fd = -1;
 
-    if (state->fd < 0)
-    {
-        return -2;
+    if (!DEBUGGING_HOST) {
+        
+        state->fd = open("/dev/mem", O_RDWR | O_SYNC);
+
+        if (state->fd < 0)
+        {
+            return -2;
+        }
     }
 
-    state->priv = (volatile int *)mmap(NULL, NIT_ARM_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_ARM_CORE_BASE_ADDRESS);
+    if (!DEBUGGING_HOST) {
+        state->priv = (volatile int *)mmap(NULL, NIT_ARM_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_ARM_CORE_BASE_ADDRESS);
+    } else {
+        state->priv = (volatile int *)malloc(NIT_ARM_CORE_SIZE);
+    }
 
     if (state->priv == NULL)
     {

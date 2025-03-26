@@ -92,4 +92,8 @@ constexpr type unsafe_set(state_type *state, size_t offset, type value)
 #define print_debug(...)
 #endif
 
+#ifndef DEBUGGING_HOST
+#define DEBIGGING_HOST 0
+#endif
+
 #endif

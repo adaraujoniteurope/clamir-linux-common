@@ -29,15 +29,24 @@ int nit_framebuffer_core_open(nit_framebuffer_core_state_t* state)
 
     state->is_open = false;
 
-    state->fd = open("/dev/mem", O_RDWR | O_SYNC);
+    state->fd = -1;
 
-    if (state->fd < 0)
-    {
-        return -2;
+    if (!DEBUGGING_HOST) {
+
+        state->fd = open("/dev/mem", O_RDWR | O_SYNC);
+
+        if (state->fd < 0)
+        {
+            return -2;
+        }
     }
-
-	state->priv = (volatile int *)mmap(NULL, NIT_FRAMEBUFFER_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_FRAMEBUFFER_CORE_BASE_ADDRESS);
-
+    if (!DEBUGGING_HOST) {
+        state->priv = (volatile int*)mmap(NULL, NIT_FRAMEBUFFER_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_FRAMEBUFFER_CORE_BASE_ADDRESS);
+    }
+    else {
+        state->priv = (volatile int*)malloc(NIT_FRAMEBUFFER_CORE_SIZE);
+    }
+    
     if (state->priv == NULL)
     {
         close(state->fd);
@@ -58,30 +67,30 @@ int nit_framebuffer_core_close(nit_framebuffer_core_state_t* state)
 
     state->is_open = false;
     if (state->priv != NULL) {
-        munmap((void*) state->priv, NIT_FRAMEBUFFER_CORE_SIZE);
+        munmap((void*)state->priv, NIT_FRAMEBUFFER_CORE_SIZE);
     }
 
     if (state->fd >= 0)
     {
         close(state->fd);
     }
-    
+
     return 0;
 }
 
-int nit_framebuffer_core_config_save_to_file(nit_framebuffer_core_state_t* state, const char *path)
+int nit_framebuffer_core_config_save_to_file(nit_framebuffer_core_state_t* state, const char* path)
 {
     return 0;
 }
 
-int nit_framebuffer_core_config_load_from_file(nit_framebuffer_core_state_t* state, const char *path)
+int nit_framebuffer_core_config_load_from_file(nit_framebuffer_core_state_t* state, const char* path)
 {
     return 0;
 }
 
-volatile uint16_t * nit_framebuffer_core_get_memory_map(nit_framebuffer_core_state_t* state)
+volatile uint16_t* nit_framebuffer_core_get_memory_map(nit_framebuffer_core_state_t* state)
 {
-    return (volatile uint16_t*) state->priv;
+    return (volatile uint16_t*)state->priv;
 }
 
 int nit_framebuffer_core_state_assert(nit_framebuffer_core_state_t* state)
@@ -104,10 +113,10 @@ int nit_framebuffer_core_state_assert(nit_framebuffer_core_state_t* state)
 
 uint8_t* nit_framebuffer_core_metadata(nit_framebuffer_core_state_t* state)
 {
-    
+
     if (nit_framebuffer_core_state_assert(state) < 0) {
         return nullptr;
     }
 
-    return ((uint8_t*) state->priv) + 8192;
+    return ((uint8_t*)state->priv) + 8192;
 }

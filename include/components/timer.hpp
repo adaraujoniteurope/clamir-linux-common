@@ -91,6 +91,28 @@ public:
     unsigned long start;
 };
 
+class linux_generic_timer : public abstract_timer
+{
+    public:
+    linux_generic_timer(long ns, std::atomic_bool &shutdown) : abstract_timer(ns, shutdown) {}
+    virtual ~linux_generic_timer() { std::cout << __func__ << std::endl; }
+
+    long now() override
+    {
+        return std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    }
+
+    void run() override
+    {
+        callback(m_shutdown);
+        while (!m_shutdown.load())
+        {
+            std::this_thread::sleep_for(std::chrono::nanoseconds(m_shutdown));
+            callback(m_shutdown);
+        }
+    }
+};
+
 class linux_rtc_timer : public abstract_timer
 {
 public:

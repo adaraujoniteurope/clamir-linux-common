@@ -31,6 +31,7 @@
 
 #include "drivers/arm_core.h"
 #include "drivers/bpc_table_core.h"
+#include "drivers/scc_core.h"
 #include "drivers/control_unit_core.h"
 
 #include "drivers/common.h"
@@ -122,6 +123,14 @@ int application::initialize(int argc, char *argv[])
 
     {
         int retval = nit_mb_core_open(&nit_mb_core_driver);
+        if (retval < 0)
+        {
+            return -1;
+        }
+    }
+
+    {
+        int retval = nit_scc_core_open(&nit_scc_core_driver, &nit_framebuffer_core_driver);
         if (retval < 0)
         {
             return -1;
@@ -285,6 +294,11 @@ int application::initialize(int argc, char *argv[])
 application::application()
     : m_shutdown(false), m_command_server_router({{1, std::bind(&application::default_handler, this, std::placeholders::_1, std::placeholders::_2)}})
 {
+    if (!DEBUGGING_HOST) {
+        m_timer = std::make_shared<uio_timer>(m_shutdown);
+    } else {
+        m_timer = std::make_shared<linux_generic_timer>(1000000UL, m_shutdown);
+    }
 }
 
 int application::default_handler(const unsigned char *buffer, int)
@@ -361,12 +375,7 @@ void application::run()
     std::signal(SIGPIPE, SIG_IGN);
 
     std::atomic_bool system_timer_shutdown = false;
-
-    m_timer->elapsed += [&m_controller = m_controller](auto sender, long ns)
-    {
-        m_controller.poll();
-    };
-
+    
     m_controller.output_changed += [](double value)
     {
         uint32_t pwm_value = value * 1000.0;
@@ -390,35 +399,14 @@ void application::run()
     auto legacy_command_server_worker = std::thread(tcp_server::create(4097, std::bind(&application::command_processor_legacy, this, std::placeholders::_1), shutdown));
     auto legacy_image_server_worker = std::thread(tcp_server::create(4096, std::bind(&application::image_writer_legacy, this, std::placeholders::_1), shutdown));
 
-    // m_timer.elapsed += std::bind(&application::legacy_control_function_wrapper, this);
-
     m_server_threads.push_back(std::move(system_timer_thread));
     m_server_threads.push_back(std::move(legacy_command_server_worker));
     m_server_threads.push_back(std::move(legacy_image_server_worker));
 
     m_server_threads.push_back(std::move(std::thread([this]() -> void {
         nit_process_core_run(&nit_process_core_driver, m_timer, m_shutdown);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     })));
-
-    // m_server_threads.push_back(std::move(std::thread([this]() -> void {
-
-    //         uint8_t *image_shm_ptr = (uint8_t *)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
-    //         uint8_t *real_metadata_shm_ptr = (uint8_t *)(image_shm_ptr + sizeof(m_image_buffer));
-
-    //         // Shared memory para metadatos, memoria virtual no asociada a ninguna BRAM que no usa el driver de devmem
-    //         //{Power, MOM00, MOM01, MOM10, MOM11, MOM02, MOM20, Track Nmbr, Frame Max, Frame Number, Timestamp, IO Status, Width}
-    //         virtual_metadata_shm_ptr = (volatile int *)mmap(NULL, 256, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-
-    //         // Variables no escritas en la FPGA
-    //         process_variables_shm_ptr = (volatile int *)mmap(NULL, 512, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-
-    //         legacy_control_function(virtual_metadata_shm_ptr, (volatile int *)real_metadata_shm_ptr, process_variables_shm_ptr, (volatile int *)nit_mb_core_driver.priv, (volatile int *)nit_arm_core_driver.priv, (volatile int *)nit_control_unit_core_driver.priv);
-
-    //         // if (nit_process_core_run(&nit_process_core_driver, m_timer) < 0) {
-    //         //     std::cout << "failed to initialize process core" << std::endl;
-    //         // }
-
-    //     })));
 
     while (!shutdown.load())
     {
@@ -434,7 +422,7 @@ void application::run()
          */
         try
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         catch (std::exception &)
         {
