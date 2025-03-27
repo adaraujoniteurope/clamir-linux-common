@@ -1,0 +1,4 @@
+#ifndef _NIT_EMBEDDED_CORE_CONFIG_HPP_
+#define _NIT_EMBEDDED_CORE_CONFIG_HPP_
+
+#endif

@@ -3,6 +3,7 @@
 
 #include <nit/embedded/drivers/control_unit_core.h>
 #include <nit/embedded/utils/config_file.h>
+#include <nit/embedded/utils/memory_map.hpp>
 #include "math.h"
 
 #include <sys/fcntl.h>
@@ -34,6 +35,8 @@ const nit_bpc_table_core_config_t bpc_table_core_config_default = {
 
 };
 
+using namespace utils;
+
 int nit_bpc_table_core_open(nit_bpc_table_core_state_t* state)
 {
 
@@ -53,12 +56,9 @@ int nit_bpc_table_core_open(nit_bpc_table_core_state_t* state)
 
     state->is_open = false;
 
-    if (state->fd < 0)
-    {
-        return -2;
-    }
 
-    state->priv = (volatile int *)mmap(NULL, NIT_BPCC_TABLE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_BPCC_TABLE_BASE_ADDRESS);
+
+    state->priv = (volatile int *)memory_map_open(NULL, NIT_BPCC_TABLE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_BPCC_TABLE_BASE_ADDRESS);
 
     if (state->priv == NULL)
     {
@@ -91,7 +91,7 @@ int nit_bpc_table_core_close(nit_bpc_table_core_state_t* state)
 
 	close(state->fd);
 
-	munmap((int *)state->priv, NIT_BPCC_TABLE_SIZE);
+	memory_map_close((int *)state->priv, NIT_BPCC_TABLE_SIZE);
 
 	state->priv = NULL;
 

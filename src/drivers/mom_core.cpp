@@ -2,6 +2,7 @@
 #include <nit/embedded/drivers/mb_core.h>
 #include <nit/embedded/drivers/mom_core.h>
 #include <nit/embedded/utils/config_file.h>
+#include <nit/embedded/utils/memory_map.hpp>
 
 #include <sys/fcntl.h>
 #include <sys/mman.h>
@@ -9,6 +10,8 @@
 #include <stddef.h>
 #include <unistd.h>
 #include <stdio.h>
+
+using namespace utils;
 
 int mom_core_open(nit_mb_core_state_t* state)
 {
@@ -28,12 +31,9 @@ int mom_core_open(nit_mb_core_state_t* state)
 
     state->fd = open("/dev/mem", O_RDWR | O_SYNC);
 
-    if (state->fd < 0)
-    {
-        return -2;
-    }
 
-    state->priv = (volatile int *)mmap(NULL, NIT_MOM_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_MOM_CORE_BASE_ADDRESS);
+
+    state->priv = (volatile int *)memory_map_open(NULL, NIT_MOM_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_MOM_CORE_BASE_ADDRESS);
 
     if (state->priv == NULL)
     {
@@ -60,7 +60,7 @@ int mom_core_close(nit_mb_core_state_t* state)
     state->is_open = false;
 
     if (state->priv != NULL) {
-        munmap((void*)state->priv, NIT_MOM_CORE_SIZE);
+        memory_map_close((void*)state->priv, NIT_MOM_CORE_SIZE);
     }
 
     state->is_open = false;

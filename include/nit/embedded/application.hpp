@@ -70,6 +70,8 @@ public:
 
 #ifdef NIT_CLAMIR_HOST_MOCKUP
 	static const bool host_mockup = true;
+	#else
+	static const bool host_mockup = false;
 #endif
 
 	virtual ~application()

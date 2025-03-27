@@ -2,6 +2,7 @@
 #include <nit/embedded/drivers/mb_core.h>
 #include <nit/embedded/drivers/pwm_core.h>
 #include <nit/embedded/utils/config_file.h>
+#include <nit/embedded/utils/memory_map.hpp>
 
 #include <sys/fcntl.h>
 #include <sys/mman.h>
@@ -13,6 +14,8 @@
 const nit_pwm_core_config_t pwm_core_config_default = {
 
 };
+
+using namespace utils;
 
 int pwm_core_open(nit_mb_core_state_t *state)
 {
@@ -32,11 +35,8 @@ int pwm_core_open(nit_mb_core_state_t *state)
 
     state->fd = open("/dev/mem", O_RDWR | O_SYNC);
 
-    if (state->fd < 0)
-    {
-        return -2;
-    }
-    state->priv = (volatile int *)mmap(NULL, NIT_PWM_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_PWM_CORE_BASE_ADDRESS);
+
+    state->priv = (volatile int *)memory_map_open(NULL, NIT_PWM_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_PWM_CORE_BASE_ADDRESS);
 
     if (state->priv == NULL)
     {
@@ -65,7 +65,7 @@ int pwm_core_close(nit_mb_core_state_t *state)
 
     if (state->priv != NULL)
     {
-        munmap((void *)state->priv, NIT_PWM_CORE_BASE_ADDRESS);
+        memory_map_close((void *)state->priv, NIT_PWM_CORE_BASE_ADDRESS);
     }
 
     if (state->fd >= 0)

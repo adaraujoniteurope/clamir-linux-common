@@ -1,5 +1,6 @@
 #include <nit/embedded/drivers/scc_core.h>
 #include <nit/embedded/utils/config_file.h>
+#include <nit/embedded/utils/memory_map.hpp>
 #include "math.h"
 
 #include <sys/fcntl.h>
@@ -12,6 +13,8 @@
 #include <thread>
 
 nit_scc_core_state_t nit_scc_core_driver;
+
+using namespace utils;
 
 typedef struct scc_core_private_state_struct
 {
@@ -71,23 +74,23 @@ void nit_scc_core_cleanup(nit_scc_core_state_t* state)
     }
 
     if (priv->ctrl_shm != NULL) {
-        munmap((void*) priv->ctrl_shm, NIT_SCC_CORE_CTRL_BASE_SIZE);
+        memory_map_close((void*) priv->ctrl_shm, NIT_SCC_CORE_CTRL_BASE_SIZE);
     }
 
     if (priv->offset_shm != NULL) {
-        munmap((void*) priv->offset_shm, NIT_SCC_CORE_OFFSET_BASE_SIZE);
+        memory_map_close((void*) priv->offset_shm, NIT_SCC_CORE_OFFSET_BASE_SIZE);
     }
 
     if (priv->scale_shm != NULL) {
-        munmap((void*) priv->scale_shm, NIT_SCC_CORE_SCALE_BASE_SIZE);
+        memory_map_close((void*) priv->scale_shm, NIT_SCC_CORE_SCALE_BASE_SIZE);
     }
 
     if (priv->max_shm != NULL) {
-        munmap((void*) priv->max_shm, NIT_SCC_CORE_MAX_BASE_SIZE);
+        memory_map_close((void*) priv->max_shm, NIT_SCC_CORE_MAX_BASE_SIZE);
     }
 
     if (priv->min_shm != NULL) {
-        munmap((void*) priv->min_shm, NIT_SCC_CORE_MIN_BASE_SIZE);
+        memory_map_close((void*) priv->min_shm, NIT_SCC_CORE_MIN_BASE_SIZE);
     }
 
     return;
@@ -124,43 +127,37 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
 
     state->fd = -1;
 
-    state->fd = open("/dev/mem", O_RDWR | O_SYNC);
+    // state->fd = open("/dev/mem", O_RDWR | O_SYNC);
 
-    if (state->fd < 0)
-    {
-        nit_scc_core_cleanup(state);
-        return -1;
-    }
-
-    priv->ctrl_shm = (volatile uint32_t*) mmap(NULL, NIT_SCC_CORE_CTRL_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_CTRL_BASE_ADDRESS);
+    priv->ctrl_shm = (volatile uint32_t*) memory_map_open(NULL, NIT_SCC_CORE_CTRL_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_CTRL_BASE_ADDRESS);
 
     if (priv->ctrl_shm == NULL) {
         nit_scc_core_cleanup(state);
         return -1;
     }
 
-    priv->offset_shm = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_OFFSET_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_OFFSET_BASE_ADDRESS);
+    priv->offset_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_OFFSET_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_OFFSET_BASE_ADDRESS);
 
     if (priv->offset_shm == NULL) {
         nit_scc_core_cleanup(state);
         return -1;
     }
 
-    priv->scale_shm = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_SCALE_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_SCALE_BASE_ADDRESS);
+    priv->scale_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_SCALE_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_SCALE_BASE_ADDRESS);
 
     if (priv->scale_shm == NULL) {
         nit_scc_core_cleanup(state);
         return -1;
     }
 
-    priv->max_shm = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_MAX_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_MAX_BASE_ADDRESS);    
+    priv->max_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MAX_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_MAX_BASE_ADDRESS);    
 
     if (priv->max_shm == NULL) {
         nit_scc_core_cleanup(state);
         return -1;
     }
 
-    priv->min_shm = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_MIN_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_MIN_BASE_ADDRESS);
+    priv->min_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MIN_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_MIN_BASE_ADDRESS);
 
     if (priv->min_shm == NULL) {
         nit_scc_core_cleanup(state);
@@ -417,15 +414,17 @@ int nit_scc_core_stub_eval_calibrate_update(nit_scc_core_state_t* state) {
      */
     for (size_t i = 0; i < state->config.height; i++) {
         for (size_t j = 0; j < state->config.width; j++) {
+
             auto idx = i * state->config.width + j;
 
             auto x0 = priv->min_shm[idx];
             auto y0 = mean_min;
+
             auto x1 = priv->max_shm[idx];
             auto y1 = mean_max;
 
             auto a = (y0 - y1) / (x0 - x1);
-            auto b = (x0*y1 - x1*y0) / x0 - x1;
+            auto b = (x0*y1 - x1*y0) / (x0 - x1);
 
             priv->scale_shm[idx] = a;
             priv->offset_shm[idx] = b;

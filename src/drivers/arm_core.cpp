@@ -1,5 +1,6 @@
 #include <nit/embedded/drivers/arm_core.h>
 #include <nit/embedded/utils/config_file.h>
+#include <nit/embedded/utils/memory_map.hpp>
 
 #include <sys/fcntl.h>
 #include <sys/mman.h>
@@ -16,6 +17,8 @@ DRIVER_DEFINE_NAMES_TABLE_BEGIN(arm_core)
 DRIVER_DEFINE_NAMES_TABLE_END(arm_core)
 
 nit_arm_core_state_t nit_arm_core_driver;
+
+using namespace utils;
 
 int nit_arm_core_assert(nit_arm_core_state_t *state)
 {
@@ -54,12 +57,9 @@ int nit_arm_core_open(nit_arm_core_state_t *state)
 
     state->fd = open("/dev/mem", O_RDWR | O_SYNC);
 
-    if (state->fd < 0)
-    {
-        return -2;
-    }
 
-    state->priv = (volatile int *)mmap(NULL, NIT_ARM_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_ARM_CORE_BASE_ADDRESS);
+
+    state->priv = (volatile int *)memory_map_open(NULL, NIT_ARM_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_ARM_CORE_BASE_ADDRESS);
 
     if (state->priv == NULL)
     {
@@ -81,7 +81,7 @@ int nit_arm_core_close(nit_arm_core_state_t *state)
 
     if (state->priv != NULL)
     {
-        munmap((void *)state->priv, NIT_ARM_CORE_SIZE);
+        memory_map_close((void *)state->priv, NIT_ARM_CORE_SIZE);
     }
 
     if (state->fd >= 0)

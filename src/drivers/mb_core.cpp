@@ -9,8 +9,11 @@
 #include <nit/embedded/drivers/mb_core.h>
 
 #include <nit/embedded/utils/config_file.h>
+#include <nit/embedded/utils/memory_map.hpp>
 
 nit_mb_core_state_t nit_mb_core_driver = {0};
+
+using namespace utils;
 
 int nit_mb_core_open(nit_mb_core_state_t *state)
 {
@@ -24,12 +27,9 @@ int nit_mb_core_open(nit_mb_core_state_t *state)
 
     state->fd = open("/dev/mem", O_RDWR | O_SYNC);
 
-    if (state->fd < 0)
-    {
-        return -2;
-    }
 
-    state->priv = (volatile int *)mmap(NULL, NIT_MB_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_MB_CORE_BASE_ADDRESS);
+
+    state->priv = (volatile int *)memory_map_open(NULL, NIT_MB_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_MB_CORE_BASE_ADDRESS);
 
     if (state->priv == NULL)
     {
@@ -57,7 +57,7 @@ int nit_mb_core_close(nit_mb_core_state_t *state)
 
     if (state->priv != NULL)
     {
-        munmap((void *)state->priv, NIT_MB_CORE_SIZE);
+        memory_map_close((void *)state->priv, NIT_MB_CORE_SIZE);
     }
 
     if (state->fd >= 0)

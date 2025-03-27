@@ -1,6 +1,6 @@
 #!/usr/bin/bash -e
 
-ssh -t root@$1 'gdbserver 0.0.0.0:2000 /usr/local/clamir-linux-daemon'
+ssh -t root@$1 'gdbserver 0.0.0.0:2000 /usr/local/bin/clamir-linux-daemon'
 
 # echo "Starting SysteD Start"
 # ssh -t root@$1 'systemctl start clamir-linux-daemon'

@@ -8,6 +8,7 @@
 #include <nit/embedded/drivers/bpc_table_core.h>
 #include <nit/embedded/drivers/framebuffer_core.h>
 #include <nit/embedded/drivers/process_core.h>
+#include <nit/embedded/utils/memory_map.hpp>
 
 #include <pthread.h>
 #include <semaphore.h>
@@ -198,6 +199,8 @@
 
 #define SEM_NAME "semaforo"
 
+using namespace utils;
+
 struct nit_process_core_private_state
 {
     int estadoAutomata = 0;
@@ -246,7 +249,7 @@ struct nit_process_core_private_state
     // int fdMetadatos;
     // fdMetadatos = open("/dev/mem", O_RDWR | O_SYNC);
     // volatile int *metaPtr = real_metadata_shm;
-    // metaPtr = (volatile int *)mmap(NULL, 64, PROT_READ | PROT_WRITE, MAP_SHARED, fdMetadatos, BRAM_IMG_METADATOS);
+    // metaPtr = (volatile int *)memory_map_open(NULL, 64, PROT_READ | PROT_WRITE, MAP_SHARED, fdMetadatos, BRAM_IMG_METADATOS);
 
     int metadatos[12];
     double W = 0;
@@ -312,10 +315,7 @@ int nit_process_core_open(nit_process_core_state_t* state, nit_arm_core_state_t*
     state->fd = -1;
 
     state->fd = open("/dev/mem", O_RDWR | O_SYNC);
-    if (state->fd < 0)
-    {
-        return -2;
-    }
+
 
     state->priv = (void*)malloc(sizeof(nit_process_core_private_state));
     memset((void*)state->priv, 0, sizeof(nit_process_core_private_state));
@@ -329,9 +329,9 @@ int nit_process_core_open(nit_process_core_state_t* state, nit_arm_core_state_t*
 
     process->semaforo = sem_open(SEM_NAME, O_CREAT, 0644, 0);
 
-    process->proc_var_shm = (volatile int*)mmap(NULL, 512, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    process->proc_var_shm = (volatile int*)memory_map_open(NULL, 512, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
-    process->virtual_metadata_shm = (volatile int*)mmap(NULL, 256, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    process->virtual_metadata_shm = (volatile int*)memory_map_open(NULL, 256, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
     if (process->virtual_metadata_shm == nullptr)
     {
@@ -393,7 +393,7 @@ int nit_process_core_close(nit_process_core_state_t* state)
 
     if (state->priv != NULL)
     {
-        munmap((void*)state->priv, NIT_PROCESS_CORE_SIZE);
+        memory_map_close((void*)state->priv, NIT_PROCESS_CORE_SIZE);
         state->priv = NULL;
     }
 

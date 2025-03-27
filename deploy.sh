@@ -12,5 +12,5 @@ scp /home/arthur/Work/Software/clamir-linux-daemon/share/clamir-linux-daemon.ser
 echo "Reloading SystemD daemon"
 ssh -t root@$1 'systemctl daemon-reload'
 
-echo "Reloading Enabling SysteD Service"
-ssh -t root@$1 'systemctl enable clamir-linux-daemon'
+# echo "Reloading Enabling SysteD Service"
+# ssh -t root@$1 'systemctl enable clamir-linux-daemon'

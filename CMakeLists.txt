@@ -78,7 +78,7 @@ target_include_directories(${PROJECT_NAME}-obj PUBLIC ${OSAL_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME}-obj PUBLIC ${PNET_INCLUDE_DIR})
 
 target_compile_options(${PROJECT_NAME}-obj PUBLIC -Wall -Wdeprecated -Wdeprecated-declarations -g)
-target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DNIT_CLAMIR_HOST_MOCKUP=${NIT_CLAMIR_HOST_MOCKUP} -DNIT_CLAMIR_DEBUGGING)
+target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DNIT_CLAMIR_DEBUGGING)
 
 target_include_directories(${PROJECT_NAME}-obj PUBLIC ${BOOST_INCLUDE_DIRS})
 
@@ -89,6 +89,7 @@ set_property(TARGET ${PROJECT_NAME}-obj
 )
 
 configure_file(version.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/include/nit/embedded/core/version.hpp @ONLY)
+configure_file(config.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/include/nit/embedded/core/config.hpp @ONLY)
 configure_file(share/${PROJECT_NAME}.service.in ${CMAKE_SOURCE_DIR}/share/${PROJECT_NAME}.service @ONLY)
 
 configure_file(scripts/build.sh.in ${CMAKE_SOURCE_DIR}/build.sh @ONLY)
