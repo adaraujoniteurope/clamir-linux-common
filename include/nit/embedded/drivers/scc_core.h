@@ -16,7 +16,7 @@
 
 #include "scc_core_field_table.h"
 
-#include "utils/waitable.hpp"
+#include "nit/embedded/utils/waitable.hpp"
 
 #define NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(nit_scc_core_state_t, name, parameter, type, size, offset)
 #define NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(nit_scc_core_state_t, name, parameter, type, size, offset)

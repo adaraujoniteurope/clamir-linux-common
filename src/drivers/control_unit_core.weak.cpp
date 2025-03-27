@@ -1,5 +1,5 @@
-#include "drivers/control_unit_core.h"
-#include "utils/config_file.h"
+#include <nit/embedded/drivers/control_unit_core.h>
+#include <nit/embedded/utils/config_file.h>
 #include "math.h"
 
 #include <sys/fcntl.h>

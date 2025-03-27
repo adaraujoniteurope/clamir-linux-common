@@ -22,7 +22,7 @@
 #include <thread>
 #include <chrono>
 
-#include "application.hpp"
+#include <nit/embedded/application.hpp>
 
 std::shared_ptr<application> app;
 

@@ -1,5 +1,5 @@
-#include "drivers/scc_core.h"
-#include "utils/config_file.h"
+#include <nit/embedded/drivers/scc_core.h>
+#include <nit/embedded/utils/config_file.h>
 #include "math.h"
 
 #include <sys/fcntl.h>
@@ -58,6 +58,7 @@ void scc_core_cleanup_stub(nit_scc_core_state_t* state)
 
 void nit_scc_core_cleanup(nit_scc_core_state_t* state)
 {
+
     scc_core_private_state_t* priv = NULL;
 
     if (state == NULL) {
@@ -67,10 +68,6 @@ void nit_scc_core_cleanup(nit_scc_core_state_t* state)
     if (state->priv == NULL)
     {
         return;
-    }
-
-    if (NIT_CLAMIR_HOST_MOCKUP) {
-        scc_core_cleanup_stub(state);
     }
 
     if (priv->ctrl_shm != NULL) {
@@ -125,18 +122,15 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
 
     priv->framebuffer_shm = (int16_t*) nit_framebuffer_core_get_memory_map(nit_framebuffer_core_state);
 
-    if (!NIT_CLAMIR_HOST_MOCKUP) {
-        
-        state->fd = open("/dev/mem", O_RDWR | O_SYNC);
-
-        if (state->fd < 0)
-        {
-            nit_scc_core_cleanup(state);
-            return -1;
-        }
-    }
-
     state->fd = -1;
+
+    state->fd = open("/dev/mem", O_RDWR | O_SYNC);
+
+    if (state->fd < 0)
+    {
+        nit_scc_core_cleanup(state);
+        return -1;
+    }
 
     priv->ctrl_shm = (volatile uint32_t*) mmap(NULL, NIT_SCC_CORE_CTRL_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_CTRL_BASE_ADDRESS);
 
@@ -165,7 +159,7 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
         nit_scc_core_cleanup(state);
         return -1;
     }
-    
+
     priv->min_shm = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_MIN_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_MIN_BASE_ADDRESS);
 
     if (priv->min_shm == NULL) {

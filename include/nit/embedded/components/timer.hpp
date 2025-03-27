@@ -7,10 +7,10 @@
 #include <atomic>
 #include <iostream>
 
-#include <utils/waitable.hpp>
-#include <utils/runnable_worker.hpp>
+#include <nit/embedded/utils/waitable.hpp>
+#include <nit/embedded/utils/runnable_worker.hpp>
 
-#include <utils/signal.hpp>
+#include <nit/embedded/utils/signal.hpp>
 #include <fcntl.h>
 
 class abstract_timer : public utils::waitable, public utils::runnable_worker

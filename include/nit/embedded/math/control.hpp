@@ -11,11 +11,11 @@
 #include <fstream>
 #include <cmath>
 
-#include <utils/waitable.hpp>
-#include <components/timer.hpp>
-#include <utils/pollable_worker.hpp>
-#include <utils/numeric.hpp>
-#include <utils/signal.hpp>
+#include <nit/embedded/utils/waitable.hpp>
+#include <nit/embedded/components/timer.hpp>
+#include <nit/embedded/utils/pollable_worker.hpp>
+#include <nit/embedded/utils/numeric.hpp>
+#include <nit/embedded/utils/signal.hpp>
 
 using namespace utils::numeric;
 

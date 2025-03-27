@@ -1,7 +1,7 @@
-#include "common/defs.h"
-#include "drivers/mb_core.h"
-#include "drivers/gen_core.h"
-#include "utils/config_file.h"
+#include <nit/embedded/common/defs.h>
+#include <nit/embedded/drivers/mb_core.h>
+#include <nit/embedded/drivers/gen_core.h>
+#include <nit/embedded/utils/config_file.h>
 
 #include <sys/fcntl.h>
 #include <sys/mman.h>

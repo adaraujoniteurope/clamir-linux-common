@@ -1,8 +1,8 @@
-#include "common/defs.h"
-#include "drivers/common.h"
-#include "drivers/process_core_field_table.h"
-#include "drivers/process_core.h"
-#include "utils/config_file.h"
+#include <nit/embedded/common/defs.h>
+#include <nit/embedded/drivers/common.h>
+#include <nit/embedded/drivers/process_core_field_table.h>
+#include <nit/embedded/drivers/process_core.h>
+#include <nit/embedded/utils/config_file.h>
 
 #include <sys/fcntl.h>
 #include <sys/mman.h>

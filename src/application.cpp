@@ -1,4 +1,4 @@
-#include "application.hpp"
+#include <nit/embedded/application.hpp>
 
 #include <iostream>
 #include <thread>
@@ -21,30 +21,30 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
-#include <utils/runnable_worker.hpp>
-#include <components/timer.hpp>
-#include <components/filter.hpp>
-#include <math/control.hpp>
-#include <utils/time.hpp>
+#include <nit/embedded/utils/runnable_worker.hpp>
+#include <nit/embedded/components/timer.hpp>
+#include <nit/embedded/components/filter.hpp>
+#include <nit/embedded/math/control.hpp>
+#include <nit/embedded/utils/time.hpp>
 
-#include "components/timer.hpp"
+#include <nit/embedded/components/timer.hpp>
 
-#include "drivers/arm_core.h"
-#include "drivers/bpc_table_core.h"
-#include "drivers/scc_core.h"
-#include "drivers/control_unit_core.h"
+#include <nit/embedded/drivers/arm_core.h>
+#include <nit/embedded/drivers/bpc_table_core.h>
+#include <nit/embedded/drivers/scc_core.h>
+#include <nit/embedded/drivers/control_unit_core.h>
 
-#include "drivers/common.h"
-#include "drivers/arm_core.h"
-#include "drivers/control_unit_core.h"
-#include "drivers/process_core.h"
+#include <nit/embedded/drivers/common.h>
+#include <nit/embedded/drivers/arm_core.h>
+#include <nit/embedded/drivers/control_unit_core.h>
+#include <nit/embedded/drivers/process_core.h>
 
-#include "drivers/roi_core_field_table.h"
-#include "drivers/gen_core_field_table.h"
-#include "drivers/pwm_core_field_table.h"
-#include "drivers/mom_core_field_table.h"
+#include <nit/embedded/drivers/roi_core_field_table.h>
+#include <nit/embedded/drivers/gen_core_field_table.h>
+#include <nit/embedded/drivers/pwm_core_field_table.h>
+#include <nit/embedded/drivers/mom_core_field_table.h>
 
-#include <math/algorithm.hpp>
+#include <nit/embedded/math/algorithm.hpp>
 
 using namespace math::control;
 using namespace utils::time;
@@ -294,10 +294,10 @@ int application::initialize(int argc, char *argv[])
 application::application()
     : m_shutdown(false), m_command_server_router({{1, std::bind(&application::default_handler, this, std::placeholders::_1, std::placeholders::_2)}})
 {
-    if (!NIT_CLAMIR_HOST_MOCKUP) {
-        m_timer = std::make_shared<uio_timer>(m_shutdown);
-    } else {
+    if (application::host_mockup) {
         m_timer = std::make_shared<linux_generic_timer>(1000000UL, m_shutdown);
+    } else {
+        m_timer = std::make_shared<uio_timer>(m_shutdown);
     }
 }
 

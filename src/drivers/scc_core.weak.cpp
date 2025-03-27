@@ -1,5 +1,5 @@
-#include "drivers/scc_core.h"
-#include "utils/config_file.h"
+#include <nit/embedded/drivers/scc_core.h>
+#include <nit/embedded/utils/config_file.h>
 #include "math.h"
 
 #include <sys/fcntl.h>

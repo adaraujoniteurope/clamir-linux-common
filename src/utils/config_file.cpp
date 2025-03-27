@@ -1,4 +1,4 @@
-#include "utils/config_file.h"
+#include <nit/embedded/utils/config_file.h>
 
 #include <string.h>
 #include <stdio.h>

@@ -1,7 +1,7 @@
-#include "common/defs.h"
-#include "drivers/mb_core.h"
-#include "drivers/gen_core.h"
-#include "utils/config_file.h"
+#include <nit/embedded/common/defs.h>
+#include <nit/embedded/drivers/mb_core.h>
+#include <nit/embedded/drivers/gen_core.h>
+#include <nit/embedded/utils/config_file.h>
 
 #include <sys/fcntl.h>
 #include <sys/mman.h>
@@ -21,14 +21,11 @@ int gen_core_open(nit_mb_core_state_t *state)
 
     state->fd = -1;
 
-    if (!NIT_CLAMIR_HOST_MOCKUP) {
-        
-        state->fd = open("/dev/mem", O_RDWR | O_SYNC);
+    state->fd = open("/dev/mem", O_RDWR | O_SYNC);
 
-        if (state->fd < 0)
-        {
-            return -2;
-        }
+    if (state->fd < 0)
+    {
+        return -2;
     }
 
     state->priv = (volatile int *)mmap(NULL, NIT_GEN_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_GEN_CORE_BASE_ADDRESS);

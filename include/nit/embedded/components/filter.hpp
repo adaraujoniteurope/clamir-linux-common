@@ -6,8 +6,8 @@
 #include <functional>
 #include <atomic>
 
-#include <utils/runnable.hpp>
-#include <utils/runnable_worker.hpp>
+#include <nit/embedded/utils/runnable.hpp>
+#include <nit/embedded/utils/runnable_worker.hpp>
 
 class filter_base : utils::runnable_worker
 {

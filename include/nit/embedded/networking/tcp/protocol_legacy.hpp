@@ -1,7 +1,7 @@
 #ifndef NETWORKING_TCP_PROTOCOL_HPP_
 #define NETWORKING_TCP_PROTOCOL_HPP_
 
-#include <utils/bitfield.h>
+#include <nit/embedded/utils/bitfield.h>
 
 #include <iomanip>
 #include <iostream>

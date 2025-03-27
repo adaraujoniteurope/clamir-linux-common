@@ -1,8 +1,8 @@
-#include "drivers/bpc_table_core.h"
-#include "utils/config_file.h"
+#include <nit/embedded/drivers/bpc_table_core.h>
+#include <nit/embedded/utils/config_file.h>
 
-#include "drivers/control_unit_core.h"
-#include "utils/config_file.h"
+#include <nit/embedded/drivers/control_unit_core.h>
+#include <nit/embedded/utils/config_file.h>
 #include "math.h"
 
 #include <sys/fcntl.h>
@@ -49,17 +49,13 @@ int nit_bpc_table_core_open(nit_bpc_table_core_state_t* state)
 
     state->fd = -1;
 
-    if (!NIT_CLAMIR_HOST_MOCKUP) {
+    state->fd = open("/dev/mem", O_RDWR | O_SYNC);
 
-        state->fd = open("/dev/mem", O_RDWR | O_SYNC);
+    state->is_open = false;
 
-        state->is_open = false;
-    
-        if (state->fd < 0)
-        {
-            return -2;
-        }
-
+    if (state->fd < 0)
+    {
+        return -2;
     }
 
     state->priv = (volatile int *)mmap(NULL, NIT_BPCC_TABLE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_BPCC_TABLE_BASE_ADDRESS);

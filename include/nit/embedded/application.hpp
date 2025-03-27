@@ -14,26 +14,26 @@
 
 #include <signal.h>
 
-#include "common/defs.h"
-#include "drivers/arm_core.h"
-#include "drivers/gen_core.h"
-#include "drivers/mom_core.h"
-#include "drivers/pwm_core.h"
-#include "drivers/roi_core.h"
-#include "drivers/process_core.h"
-#include "drivers/control_unit_core.h"
-#include "drivers/bpc_table_core.h"
-#include "drivers/framebuffer_core.h"
-#include "drivers/framebuffer_metadata_core.h"
+#include <nit/embedded/common/defs.h>
+#include <nit/embedded/drivers/arm_core.h>
+#include <nit/embedded/drivers/gen_core.h>
+#include <nit/embedded/drivers/mom_core.h>
+#include <nit/embedded/drivers/pwm_core.h>
+#include <nit/embedded/drivers/roi_core.h>
+#include <nit/embedded/drivers/process_core.h>
+#include <nit/embedded/drivers/control_unit_core.h>
+#include <nit/embedded/drivers/bpc_table_core.h>
+#include <nit/embedded/drivers/framebuffer_core.h>
+#include <nit/embedded/drivers/framebuffer_metadata_core.h>
 
-#include "networking/tcp/server.hpp"
-#include "signals/event_emitter.hpp"
-#include "components/timer.hpp"
+#include <nit/embedded/networking/tcp/server.hpp>
+#include <nit/embedded/signals/event_emitter.hpp>
+#include <nit/embedded/components/timer.hpp>
 
-#include "math/control.hpp"
-#include "networking/tcp/protocol_legacy.hpp"
+#include <nit/embedded/math/control.hpp>
+#include <nit/embedded/networking/tcp/protocol_legacy.hpp>
 
-#include "application_config.hpp"
+#include <nit/embedded/application_config.hpp>
 
 #define DRIVER_CALLBACK_INDEX_TABLE_ITEM(name, parameter, type, size, offset) nit_##name##_##parameter##_command_descriptor_offset,
 
@@ -66,6 +66,11 @@ class application : std::enable_shared_from_this<application>
 	application();
 
 public:
+
+
+#ifdef NIT_CLAMIR_HOST_MOCKUP
+	static const bool host_mockup = true;
+#endif
 
 	virtual ~application()
 	{

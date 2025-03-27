@@ -1,8 +1,8 @@
 #ifndef _UTILS_RUNNABLE_WORKER_HPP_
 #define _UTILS_RUNNABLE_WORKER_HPP_
 
-#include <utils/waitable.hpp>
-#include <utils/runnable.hpp>
+#include <nit/embedded/utils/waitable.hpp>
+#include <nit/embedded/utils/runnable.hpp>
 
 #include <functional>
 #include <atomic>

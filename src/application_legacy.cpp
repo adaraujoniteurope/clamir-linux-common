@@ -1,4 +1,4 @@
-#include <application.hpp>
+#include <nit/embedded/application.hpp>
 
 #include <map>
 #include <iostream>
@@ -23,27 +23,27 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
-#include <components/timer.hpp>
+#include <nit/embedded/components/timer.hpp>
 
-#include <drivers/arm_core.h>
-#include <drivers/bpc_table_core.h>
-#include <drivers/scc_core.h>
-#include <drivers/control_unit_core.h>
+#include <nit/embedded/drivers/arm_core.h>
+#include <nit/embedded/drivers/bpc_table_core.h>
+#include <nit/embedded/drivers/scc_core.h>
+#include <nit/embedded/drivers/control_unit_core.h>
 
-#include <drivers/common.h>
-#include <drivers/arm_core.h>
-#include <drivers/control_unit_core.h>
-#include <drivers/roi_core_field_table.h>
-#include <drivers/gen_core_field_table.h>
-#include <drivers/pwm_core_field_table.h>
-#include <drivers/mom_core_field_table.h>
+#include <nit/embedded/drivers/common.h>
+#include <nit/embedded/drivers/arm_core.h>
+#include <nit/embedded/drivers/control_unit_core.h>
+#include <nit/embedded/drivers/roi_core_field_table.h>
+#include <nit/embedded/drivers/gen_core_field_table.h>
+#include <nit/embedded/drivers/pwm_core_field_table.h>
+#include <nit/embedded/drivers/mom_core_field_table.h>
 
-#include <drivers/process_core_field_table.h>
-#include <drivers/process_core.h>
+#include <nit/embedded/drivers/process_core_field_table.h>
+#include <nit/embedded/drivers/process_core.h>
 
-#include <networking/tcp/protocol_legacy.hpp>
+#include <nit/embedded/networking/tcp/protocol_legacy.hpp>
 
-#include <math/algorithm.hpp>
+#include <nit/embedded/math/algorithm.hpp>
 
 int send_response(int fd, packet &req)
 {
@@ -230,7 +230,7 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_mb_core, nit_mom_core, uint16_t, referen
 
 // DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_mb_core, nit_mom_core, uint32_t, time_track_low)
 // DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_mb_core, nit_mom_core, uint32_t, time_track_low)
-#include <drivers/common.h>
+#include <nit/embedded/drivers/common.h>
 
 int command_target_nit_mom_core_time_track_low_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
 {

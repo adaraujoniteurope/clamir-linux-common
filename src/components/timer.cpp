@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include "components/timer.hpp"
+#include <nit/embedded/components/timer.hpp>
 
 // timer timer::s_singleton;
 

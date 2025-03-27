@@ -1,13 +1,13 @@
-#include "common/defs.h"
-#include "utils/config_file.h"
-#include <utils/waitable.hpp>
+#include <nit/embedded/common/defs.h>
+#include <nit/embedded/utils/config_file.h>
+#include <nit/embedded/utils/waitable.hpp>
 
-#include <drivers/arm_core.h>
-#include <drivers/mb_core.h>
-#include <drivers/control_unit_core.h>
-#include <drivers/bpc_table_core.h>
-#include <drivers/framebuffer_core.h>
-#include <drivers/process_core.h>
+#include <nit/embedded/drivers/arm_core.h>
+#include <nit/embedded/drivers/mb_core.h>
+#include <nit/embedded/drivers/control_unit_core.h>
+#include <nit/embedded/drivers/bpc_table_core.h>
+#include <nit/embedded/drivers/framebuffer_core.h>
+#include <nit/embedded/drivers/process_core.h>
 
 #include <pthread.h>
 #include <semaphore.h>
@@ -311,14 +311,10 @@ int nit_process_core_open(nit_process_core_state_t* state, nit_arm_core_state_t*
 
     state->fd = -1;
 
-    if (!NIT_CLAMIR_HOST_MOCKUP) {
-
-        state->fd = open("/dev/mem", O_RDWR | O_SYNC);
-        if (state->fd < 0)
-        {
-            return -2;
-        }
-
+    state->fd = open("/dev/mem", O_RDWR | O_SYNC);
+    if (state->fd < 0)
+    {
+        return -2;
     }
 
     state->priv = (void*)malloc(sizeof(nit_process_core_private_state));

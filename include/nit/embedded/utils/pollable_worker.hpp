@@ -1,8 +1,8 @@
 #ifndef _UTILS_POLLABLE_WORKER_HPP_
 #define _UTILS_POLLABLE_WORKER_HPP_
 
-#include <utils/waitable.hpp>
-#include <utils/pollable.hpp>
+#include <nit/embedded/utils/waitable.hpp>
+#include <nit/embedded/utils/pollable.hpp>
 
 #include <functional>
 #include <atomic>
