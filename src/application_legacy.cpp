@@ -769,7 +769,7 @@ void application::image_writer_legacy(int socket_fd)
             break;
         }
 
-        // nit_scc_core_stub_eval(&nit_scc_core_driver);
+        nit_scc_core_stub_eval(&nit_scc_core_driver);
 
         if ((retval = write(socket_fd, m_image_buffer, sizeof(m_image_buffer))) < 0)
         {

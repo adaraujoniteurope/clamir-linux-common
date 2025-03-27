@@ -9,6 +9,7 @@
 #include <stddef.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <thread>
 
@@ -114,7 +115,8 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
 
     state->is_open = false;
 
-    state->priv = (scc_core_private_state_t*) malloc(sizeof(scc_core_private_state_struct));
+    state->priv = (scc_core_private_state_t*) malloc(sizeof(scc_core_private_state_t));
+    memset((void*)state->priv, 0, sizeof(scc_core_private_state_t));
 
     if (state->priv == nullptr) {
         nit_scc_core_cleanup(state);
@@ -127,12 +129,23 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
 
     state->fd = -1;
 
-    // state->fd = open("/dev/mem", O_RDWR | O_SYNC);
+    state->config.width = 64;
+    state->config.height = 64;
+
+    state->fd = open("scc_core_mmap.dat", O_CREAT | O_RDWR | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+
+    if (NIT_SCC_CORE_CTRL_BASE_SIZE < sizeof(nit_scc_core_config_t)) {
+        return -1;
+    }
 
     priv->ctrl_shm = (volatile uint32_t*) memory_map_open(NULL, NIT_SCC_CORE_CTRL_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_CTRL_BASE_ADDRESS);
 
     if (priv->ctrl_shm == NULL) {
         nit_scc_core_cleanup(state);
+        return -1;
+    }
+
+    if (NIT_SCC_CORE_OFFSET_BASE_SIZE < state->config.width * state->config.height * sizeof(int16_t)) {
         return -1;
     }
 
@@ -143,6 +156,11 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
         return -1;
     }
 
+
+    if (NIT_SCC_CORE_SCALE_BASE_SIZE < state->config.width * state->config.height * sizeof(int16_t)) {
+        return -1;
+    }
+
     priv->scale_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_SCALE_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_SCALE_BASE_ADDRESS);
 
     if (priv->scale_shm == NULL) {
@@ -150,10 +168,18 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
         return -1;
     }
 
+    if (NIT_SCC_CORE_MAX_BASE_SIZE < state->config.width * state->config.height * sizeof(int16_t)) {
+        return -1;
+    }
+
     priv->max_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MAX_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_MAX_BASE_ADDRESS);    
 
     if (priv->max_shm == NULL) {
         nit_scc_core_cleanup(state);
+        return -1;
+    }
+
+    if (NIT_SCC_CORE_MIN_BASE_SIZE < state->config.width * state->config.height * sizeof(int16_t)) {
         return -1;
     }
 
@@ -490,7 +516,8 @@ int nit_scc_core_stub_eval_process(nit_scc_core_state_t* state) {
 
     for (size_t i = 0; i < state->config.height; i++) {
         for (size_t j = 0; j < state->config.width; j++) {
-            priv->framebuffer_shm[i * state->config.width + j] = priv->framebuffer_shm[i * state->config.width + j] * priv->scale_shm[i * state->config.width + j] + priv->offset_shm[i * state->config.width + j];
+            size_t idx = i * state->config.width + j;
+            priv->framebuffer_shm[idx] = priv->framebuffer_shm[idx] * priv->scale_shm[idx] + priv->offset_shm[idx];
         }
     }
     return retval;
