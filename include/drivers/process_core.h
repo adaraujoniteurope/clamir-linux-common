@@ -21,7 +21,7 @@
 #define NIT_PROCESS_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(nit_process_core_state_t, name, parameter, type, size, offset)
 #define NIT_PROCESS_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(nit_process_core_state_t, name, parameter, type, size, offset)
 
-#if !DEBUGGING_HOST
+#if !NIT_CLAMIR_HOST_MOCKUP
 #define NIT_PROCESS_CORE_BASE_ADDRESS (0x50000000)
 #define NIT_PROCESS_CORE_SIZE 0x00010000
 #else

@@ -31,7 +31,7 @@ int nit_framebuffer_core_open(nit_framebuffer_core_state_t* state)
 
     state->fd = -1;
 
-    if (!DEBUGGING_HOST) {
+    if (!NIT_CLAMIR_HOST_MOCKUP) {
 
         state->fd = open("/dev/mem", O_RDWR | O_SYNC);
 
@@ -40,12 +40,8 @@ int nit_framebuffer_core_open(nit_framebuffer_core_state_t* state)
             return -2;
         }
     }
-    if (!DEBUGGING_HOST) {
-        state->priv = (volatile int*)mmap(NULL, NIT_FRAMEBUFFER_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_FRAMEBUFFER_CORE_BASE_ADDRESS);
-    }
-    else {
-        state->priv = (volatile int*)malloc(NIT_FRAMEBUFFER_CORE_SIZE);
-    }
+    
+    state->priv = (volatile int*)mmap(NULL, NIT_FRAMEBUFFER_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_FRAMEBUFFER_CORE_BASE_ADDRESS);
     
     if (state->priv == NULL)
     {

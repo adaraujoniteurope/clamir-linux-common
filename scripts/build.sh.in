@@ -5,5 +5,7 @@
 
 rm -rf @CMAKE_BINARY_DIR@
 
-cmake -G Ninja -B @CMAKE_BINARY_DIR@ -S . -DNIT_CLAMIR_ENABLE_TESTING=No -DNIT_CLAMIR_ENABLE_PROFINET=YES  -DCMAKE_BUILD_TYPE=Debug
+. /home/arthur/Tools/Xilinx/Petalinux/2024.2/SDK/environment-setup-cortexa9t2hf-neon-xilinx-linux-gnueabi
+
+cmake -G Ninja -B @CMAKE_BINARY_DIR@ -S . "-DCMAKE_C_COMPILER_WORKS=TRUE" "-DCMAKE_CXX_COMPILER_WORKS=TRUE" "-DNIT_CLAMIR_ENABLE_TESTING=No" "-DNIT_CLAMIR_ENABLE_PROFINET=YES",  "-DCMAKE_BUILD_TYPE=Debug"
 cmake --build @CMAKE_BINARY_DIR@ -j$(nproc)

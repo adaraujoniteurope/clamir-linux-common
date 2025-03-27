@@ -92,7 +92,7 @@ constexpr type unsafe_set(state_type *state, size_t offset, type value)
 #define print_debug(...)
 #endif
 
-#ifndef DEBUGGING_HOST
+#ifndef NIT_CLAMIR_HOST_MOCKUP
 #define DEBIGGING_HOST 0
 #endif
 

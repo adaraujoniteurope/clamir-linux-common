@@ -1,7 +1,13 @@
-cmake_minimum_required(VERSION 3.12)
-project(clamir-linux-daemon LANGUAGES C CXX VERSION 0.1.0)
+cmake_minimum_required(VERSION 3.5)
+project(clamir-linux-daemon LANGUAGES C CXX)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+
+option(NIT_CLAMIR_ENABLE_TESTING "Enable Testing" NO)
+option(NIT_CLAMIR_ENABLE_DOCS "Enable Documentation" NO)
+option(NIT_CLAMIR_ENABLE_PROFINET "Enable Profinet Extensio" NO)
+option(NIT_CLAMIR_HOST_MOCKUP "Enable Host Mockup" true)
 
 include(FindPkgConfig)
 if(!${PKG_CONFIG_FOUND})
@@ -13,18 +19,9 @@ message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 message(STATUS "CMAKE_INCLUDE_PATH: ${CMAKE_INCLUDE_PATH}")
 message(STATUS "CMAKE_SYSTEM_INCLUDE_PATH: ${CMAKE_SYSTEM_INCLUDE_PATH}")
 
-# find_package(OSAL REQUIRED)
-# find_package(PNET REQUIRED)
-
-# set(Boost_USE_STATIC_LIBS   ON)
-# find_package(Boost REQUIRED COMPONENTS)
-
-# find_package(Eigen3 REQUIRED)
-
-# find_package(ODB REQUIRED COMPONENTS sqlite)
-
-# include(${ODB_USE_FILE})
 include(FetchContent)
+
+set(SKIP_PORTABILITY_TEST YES CACHE INTERNAL "Turn of CEREAL Compatibility Tests")
 
 FetchContent_Declare(
       cereal
@@ -54,13 +51,11 @@ set(EIGEN_BUILD_TESTING OFF)
 set(EIGEN_MPL2_ONLY ON)
 set(EIGEN_BUILD_PKGCONFIG OFF)
 set(EIGEN_BUILD_DOC OFF)
+
 FetchContent_MakeAvailable(Eigen)
 
-# file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 list(REMOVE_ITEM ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
-
-# odb_compile(OdbCMake_SOURCES FILES ${OdbCMake_ODB_HEADERS} DB sqlite GENERATE_QUERY GENERATE_SESSION)
 
 add_library(${PROJECT_NAME}-obj ${${PROJECT_NAME}_SOURCES})
 
@@ -83,7 +78,7 @@ target_include_directories(${PROJECT_NAME}-obj PUBLIC ${OSAL_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME}-obj PUBLIC ${PNET_INCLUDE_DIR})
 
 target_compile_options(${PROJECT_NAME}-obj PUBLIC -Wall -Wdeprecated -Wdeprecated-declarations -g)
-target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DDEBUGGING_HOST=1 -DNIT_CLAMIR_DEBUGGING)
+target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DNIT_CLAMIR_HOST_MOCKUP=${NIT_CLAMIR_HOST_MOCKUP} -DNIT_CLAMIR_DEBUGGING)
 
 target_include_directories(${PROJECT_NAME}-obj PUBLIC ${BOOST_INCLUDE_DIRS})
 

@@ -311,7 +311,7 @@ int nit_process_core_open(nit_process_core_state_t* state, nit_arm_core_state_t*
 
     state->fd = -1;
 
-    if (!DEBUGGING_HOST) {
+    if (!NIT_CLAMIR_HOST_MOCKUP) {
 
         state->fd = open("/dev/mem", O_RDWR | O_SYNC);
         if (state->fd < 0)
@@ -333,17 +333,9 @@ int nit_process_core_open(nit_process_core_state_t* state, nit_arm_core_state_t*
 
     process->semaforo = sem_open(SEM_NAME, O_CREAT, 0644, 0);
 
-    if (!DEBUGGING_HOST) {
-        process->proc_var_shm = (volatile int*)mmap(NULL, 512, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    } else {
-        process->proc_var_shm = (volatile int*)malloc(512);
-    }
+    process->proc_var_shm = (volatile int*)mmap(NULL, 512, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
-    if (!DEBUGGING_HOST) {
-        process->virtual_metadata_shm = (volatile int*)mmap(NULL, 256, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    } else {
-        process->virtual_metadata_shm = (volatile int*)malloc(256);
-    }
+    process->virtual_metadata_shm = (volatile int*)mmap(NULL, 256, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
     if (process->virtual_metadata_shm == nullptr)
     {

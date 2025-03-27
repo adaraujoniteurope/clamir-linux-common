@@ -294,7 +294,7 @@ int application::initialize(int argc, char *argv[])
 application::application()
     : m_shutdown(false), m_command_server_router({{1, std::bind(&application::default_handler, this, std::placeholders::_1, std::placeholders::_2)}})
 {
-    if (!DEBUGGING_HOST) {
+    if (!NIT_CLAMIR_HOST_MOCKUP) {
         m_timer = std::make_shared<uio_timer>(m_shutdown);
     } else {
         m_timer = std::make_shared<linux_generic_timer>(1000000UL, m_shutdown);

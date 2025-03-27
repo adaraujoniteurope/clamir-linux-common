@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#if !DEBUGGING_HOST
+#if !NIT_CLAMIR_HOST_MOCKUP
 #define NIT_FRAMEBUFFER_METADATA_CORE_BASE_ADDRESS  (0x42000000 + 0x2000)
 #define NIT_FRAMEBUFFER_METADATA_CORE_SIZE          0x00010000
 #else

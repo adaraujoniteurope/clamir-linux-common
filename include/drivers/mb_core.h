@@ -9,7 +9,7 @@
 #include "pwm_core_field_table.h"
 #include "roi_core_field_table.h"
 
-#if !DEBUGGING_HOST
+#if !NIT_CLAMIR_HOST_MOCKUP
 #define NIT_MB_CORE_BASE_ADDRESS 0x50000000
 #define NIT_MB_CORE_SIZE 5242888
 #else

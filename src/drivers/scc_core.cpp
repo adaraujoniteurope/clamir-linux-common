@@ -69,7 +69,7 @@ void nit_scc_core_cleanup(nit_scc_core_state_t* state)
         return;
     }
 
-    if (DEBUGGING_HOST) {
+    if (NIT_CLAMIR_HOST_MOCKUP) {
         scc_core_cleanup_stub(state);
     }
 
@@ -125,7 +125,7 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
 
     priv->framebuffer_shm = (int16_t*) nit_framebuffer_core_get_memory_map(nit_framebuffer_core_state);
 
-    if (!DEBUGGING_HOST) {
+    if (!NIT_CLAMIR_HOST_MOCKUP) {
         
         state->fd = open("/dev/mem", O_RDWR | O_SYNC);
 
@@ -138,55 +138,35 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
 
     state->fd = -1;
 
-    if (!DEBUGGING_HOST) {
-        priv->ctrl_shm = (volatile uint32_t*) mmap(NULL, NIT_SCC_CORE_CTRL_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_CTRL_BASE_ADDRESS);
-    } else {
-        priv->ctrl_shm = (volatile uint32_t*) malloc(NIT_SCC_CORE_CTRL_BASE_SIZE);
-    }
+    priv->ctrl_shm = (volatile uint32_t*) mmap(NULL, NIT_SCC_CORE_CTRL_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_CTRL_BASE_ADDRESS);
 
     if (priv->ctrl_shm == NULL) {
         nit_scc_core_cleanup(state);
         return -1;
     }
 
-    if (!DEBUGGING_HOST) {
-        priv->offset_shm = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_OFFSET_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_OFFSET_BASE_ADDRESS);
-    } else {
-        priv->offset_shm = (volatile int16_t*)malloc(NIT_SCC_CORE_OFFSET_BASE_SIZE);
-    }
+    priv->offset_shm = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_OFFSET_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_OFFSET_BASE_ADDRESS);
 
     if (priv->offset_shm == NULL) {
         nit_scc_core_cleanup(state);
         return -1;
     }
 
-    if (!DEBUGGING_HOST) {
-        priv->scale_shm = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_SCALE_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_SCALE_BASE_ADDRESS);
-    } else {
-        priv->scale_shm = (volatile int16_t*)malloc(NIT_SCC_CORE_SCALE_BASE_SIZE);
-    }
+    priv->scale_shm = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_SCALE_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_SCALE_BASE_ADDRESS);
 
     if (priv->scale_shm == NULL) {
         nit_scc_core_cleanup(state);
         return -1;
     }
 
-    if (!DEBUGGING_HOST) {
-        priv->max_shm = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_MAX_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_MAX_BASE_ADDRESS);    
-    } else {
-        priv->max_shm = (volatile int16_t*)malloc(NIT_SCC_CORE_MAX_BASE_SIZE);
-    }
+    priv->max_shm = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_MAX_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_MAX_BASE_ADDRESS);    
 
     if (priv->max_shm == NULL) {
         nit_scc_core_cleanup(state);
         return -1;
     }
-
-    if (!DEBUGGING_HOST) {
-        priv->min_shm = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_MIN_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_MIN_BASE_ADDRESS);
-    } else {
-        priv->min_shm = (volatile int16_t*)malloc(NIT_SCC_CORE_MIN_BASE_SIZE);
-    }
+    
+    priv->min_shm = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_MIN_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_MIN_BASE_ADDRESS);
 
     if (priv->min_shm == NULL) {
         nit_scc_core_cleanup(state);

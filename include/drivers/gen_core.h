@@ -6,7 +6,7 @@
 #include "mb_core.h"
 #include "gen_core_field_table.h"
 
-#if !DEBUGGING_HOST
+#if !NIT_CLAMIR_HOST_MOCKUP
 #define NIT_GEN_CORE_BASE_ADDRESS 0x50000000
 #define NIT_GEN_CORE_SIZE 0x00010000
 #else
