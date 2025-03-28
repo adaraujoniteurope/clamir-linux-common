@@ -45,6 +45,8 @@
 
 #include <nit/embedded/math/algorithm.hpp>
 
+#include <nit/embedded/vision/frame_generator.hpp>
+
 int send_response(int fd, packet &req)
 {
     std::cout << "response:" << req << std::endl;
@@ -357,30 +359,42 @@ int command_target_nit_process_core_auto_shutter_write(std::shared_ptr<applicati
      * 2. close shutter
      * 3. wait for 250 ms
      */
-    nit_scc_core_acquire_max_enable_set(&nit_scc_core_driver, 0);
-    nit_scc_core_acquire_min_enable_set(&nit_scc_core_driver, 1);
+    nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MIN);
+
+    if (app->host_mockup) {
+        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_CLOSED);
+    }
+
     nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
     /**
      * 1. set start acquiring max
      * 2. open shutter
      * 3. wait for 250 ms
      */
-    nit_scc_core_acquire_max_enable_set(&nit_scc_core_driver, 1);
-    nit_scc_core_acquire_min_enable_set(&nit_scc_core_driver, 0);
+    nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MAX);
+    
+    if (app->host_mockup) {
+        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_OPEN);
+    }
+
     nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
     /**
      * 1. disable acquiring max
      * 2. wait for calibration to complete
      * 3. enable scc_core processing
      */
-    nit_scc_core_acquire_max_enable_set(&nit_scc_core_driver, 0);
-    nit_scc_core_acquire_min_enable_set(&nit_scc_core_driver, 0);
-    nit_scc_core_calibration_status_wait_idle(&nit_scc_core_driver);
+    nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_UPDATING);
+    nit_scc_core_calibration_mode_wait_idle(&nit_scc_core_driver);
+
     nit_scc_core_opmode_set(&nit_scc_core_driver, NIT_SCC_CORE_OPMODE_PROCESS);
+
+    if (app->host_mockup) {
+        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_PATTERN_BALL);
+    }
 
     /**
      * older offset core processing disable offset update
@@ -733,27 +747,17 @@ void application::image_writer_legacy(int socket_fd)
     int missing_frames_counter = 0;
     int first_frame = ptr->frame_number;
 
-    auto wait_interval = std::chrono::microseconds(50);
-
-    /**
-     * if testing on host, set the wait interval to 1ms
-     */
-    if (application::host_mockup) {
-        wait_interval = std::chrono::microseconds(1000);
-    }
-
     while (!m_shutdown)
     {
 
-        std::this_thread::sleep_for(std::chrono::microseconds(wait_interval));
+        std::this_thread::sleep_for(std::chrono::microseconds(std::chrono::microseconds(50)));
 
-        /**
-         * just poll and verify for new frame increment if not mocking up on host
-         */
-        if ((last_frame_index - ptr->frame_number) == 0 && !application::host_mockup)
+        if ((last_frame_index - ptr->frame_number) == 0)
         {
             continue;
         }
+
+        nit_scc_core_stub_eval(&nit_scc_core_driver);
 
         memcpy(m_image_buffer, image_shm_ptr, sizeof(m_image_buffer));
         memcpy(m_metadata_buffer, image_shm_ptr + sizeof(m_image_buffer), sizeof(m_metadata_buffer));
@@ -780,8 +784,6 @@ void application::image_writer_legacy(int socket_fd)
             std::cout << "Failed to write at socket when writing metadata packet with error:" << strerror(retval) << std::endl;
             break;
         }
-
-        nit_scc_core_stub_eval(&nit_scc_core_driver);
 
         if ((retval = write(socket_fd, m_image_buffer, sizeof(m_image_buffer))) < 0)
         {

@@ -13,14 +13,14 @@ namespace math::algorithm
     {
 
         template<typename buffer_type>
-        constexpr double moments(buffer_type* buffer, const size_t cols, const size_t rows, size_t i, size_t j)
+        constexpr buffer_type moments(buffer_type* buffer, const size_t cols, const size_t rows, size_t i, size_t j)
         {
-            double m_ij = 0;
+            buffer_type m_ij = 0;
             for (size_t r = 0; r < rows; r++)
             {
                 for (size_t c = 0; c < cols; c++)
                 {
-                    m_ij += buffer[r * cols + c] * ::pow(c,i) * ::pow(c,j);
+                    m_ij += (double) buffer[r * cols + c] * ::pow(c,i) * ::pow(c,j);
                 }
             }
 

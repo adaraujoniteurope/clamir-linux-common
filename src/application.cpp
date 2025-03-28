@@ -44,6 +44,8 @@
 #include <nit/embedded/drivers/pwm_core_field_table.h>
 #include <nit/embedded/drivers/mom_core_field_table.h>
 
+#include <nit/embedded/drivers/framebuffer_core.h>
+
 #include <nit/embedded/math/algorithm.hpp>
 
 using namespace math::control;
@@ -106,15 +108,17 @@ int application::initialize(int argc, char *argv[])
     }
 
     {
-        int retval = nit_framebuffer_core_open(&nit_framebuffer_core_driver);
-        if (retval < 0)
-        {
-            return -1;
-        }
-    }
 
-    {
-        int retval = framebuffer_metadata_core_open(&nit_framebuffer_metadata_core_driver);
+        nit_framebuffer_core_config_t config = {
+            .operating_mode = NIT_FRAMEBUFFER_CORE_OPERATING_MODE_NORMAL
+        };
+
+        if (host_mockup) {
+            config.operating_mode = NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_PATTERN_BALL;
+        }
+
+        int retval = nit_framebuffer_core_open(&nit_framebuffer_core_driver, &config);
+
         if (retval < 0)
         {
             return -1;
@@ -295,7 +299,7 @@ application::application()
     : m_shutdown(false), m_command_server_router({{1, std::bind(&application::default_handler, this, std::placeholders::_1, std::placeholders::_2)}})
 {
     if (application::host_mockup) {
-        m_timer = std::make_shared<linux_generic_timer>(1000000UL, m_shutdown);
+        m_timer = std::make_shared<linux_generic_timer>(41000000UL, m_shutdown);
     } else {
         m_timer = std::make_shared<uio_timer>(m_shutdown);
     }
@@ -382,17 +386,17 @@ void application::run()
         nit_pwm_core_pwm_set(&nit_mb_core_driver, pwm_value);
     };
 
-    image_read += [this](auto self, auto image_buffer_ptr, auto image_size, auto image_metadata_buffer_ptr, auto metadata_size)
-    {
-        double m00 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 0, 0);
-        double m01 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 0, 1);
-        double m10 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 1, 0);
-        double m11 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 1, 1);
-        double m02 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 0, 2);
-        double m20 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 2, 0);
-        double width = math::algorithm::moments::width_2d<double>(m00, m01, m10, m11, m02, m20);
-        m_controller.feedback_set(width);
-    };
+    // image_read += [this](auto self, auto image_buffer_ptr, auto image_size, auto image_metadata_buffer_ptr, auto metadata_size)
+    // {
+    //     double m00 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 0, 0);
+    //     double m01 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 0, 1);
+    //     double m10 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 1, 0);
+    //     double m11 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 1, 1);
+    //     double m02 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 0, 2);
+    //     double m20 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 2, 0);
+    //     double width = math::algorithm::moments::width_2d<double>(m00, m01, m10, m11, m02, m20);
+    //     m_controller.feedback_set(width);
+    // };
 
     std::thread system_timer_thread = std::thread(m_timer->get_worker());
 
@@ -406,6 +410,10 @@ void application::run()
     m_server_threads.push_back(std::move(std::thread([this]() -> void {
         nit_process_core_run(&nit_process_core_driver, m_timer, m_shutdown);
         // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    })));
+
+    m_server_threads.push_back(std::move(std::thread([this]() -> void {
+        nit_framebuffer_core_run(&nit_framebuffer_core_driver, m_timer, m_shutdown);
     })));
 
     while (!shutdown.load())

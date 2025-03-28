@@ -1,4 +1,4 @@
-#include <nit/embedded/drivers/scc_core.h>
+#include <nit/embedded/drivers/framebuffer_core.h>
 #include <nit/embedded/utils/config_file.h>
 #include "math.h"
 
@@ -9,4 +9,4 @@
 #include <unistd.h>
 #include <stdio.h>
 
-// NIT_SCC_CORE_FIELD_TABLE(NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION)
+NIT_FRAMEBUFFER_CORE_FIELD_TABLE(NIT_FRAMEBUFFER_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION)

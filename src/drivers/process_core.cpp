@@ -1202,9 +1202,25 @@ int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils:
         priv->mb_core_shm[PWM] = (unsigned int)priv->duty;
         priv->last_laser_status = priv->laser_status;
 
-        memcpy((void*)&priv->virtual_metadata_shm[0], &priv->metadatos, 28);    // Power, MOM00, MOM01, MOM10, MOM11, MOM02, MOM20
-        priv->virtual_metadata_shm[7] = priv->resultado;                         // Width
-        memcpy((void*)&priv->virtual_metadata_shm[8], &priv->metadatos[7], 20); // Track Nmbr, Frame Max, Frame Number, Timestamp, IO Status
+        priv->virtual_metadata_shm[0] = priv->metadatos[0];
+        priv->virtual_metadata_shm[1] = priv->metadatos[1];
+        priv->virtual_metadata_shm[2] = priv->metadatos[2];
+        priv->virtual_metadata_shm[3] = priv->metadatos[3];
+        priv->virtual_metadata_shm[4] = priv->metadatos[4];
+        priv->virtual_metadata_shm[5] = priv->metadatos[5];
+        priv->virtual_metadata_shm[6] = priv->metadatos[6];
+
+        priv->virtual_metadata_shm[7] = priv->resultado;
+
+        priv->virtual_metadata_shm[8] = priv->metadatos[7];
+        priv->virtual_metadata_shm[9] = priv->metadatos[8];
+        priv->virtual_metadata_shm[10] = priv->metadatos[9];
+        priv->virtual_metadata_shm[11] = priv->metadatos[10];
+        priv->virtual_metadata_shm[12] = priv->metadatos[11];
+
+        // memcpy((void*)&priv->virtual_metadata_shm[0], &priv->metadatos, 28);    // Power, MOM00, MOM01, MOM10, MOM11, MOM02, MOM20
+        // priv->virtual_metadata_shm[7] = priv->resultado;                         // Width
+        // memcpy((void*)&priv->virtual_metadata_shm[8], &priv->metadatos[7], 20); // Track Nmbr, Frame Max, Frame Number, Timestamp, IO Status
 
         // gestion de la alarma
 
@@ -1406,11 +1422,11 @@ double nit_process_core_calculate_width(int metadatos[12])
     double X, Y;
     double u20, u11, u02;
     M00 = metadatos[1];
-    M01 = metadatos[2];
-    M10 = metadatos[3];
+    M10 = metadatos[2];
+    M01 = metadatos[3];
     M11 = metadatos[4];
-    M02 = metadatos[5];
-    M20 = metadatos[6];
+    M20 = metadatos[5];
+    M02 = metadatos[6];
     // Procesos de calculo
     if (M00 == 0)
         M00 = 1;

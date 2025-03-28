@@ -24,7 +24,6 @@
 #include <nit/embedded/drivers/control_unit_core.h>
 #include <nit/embedded/drivers/bpc_table_core.h>
 #include <nit/embedded/drivers/framebuffer_core.h>
-#include <nit/embedded/drivers/framebuffer_metadata_core.h>
 
 #include <nit/embedded/networking/tcp/server.hpp>
 #include <nit/embedded/signals/event_emitter.hpp>

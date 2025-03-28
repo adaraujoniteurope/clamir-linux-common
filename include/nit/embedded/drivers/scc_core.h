@@ -60,12 +60,14 @@
         NIT_SCC_CORE_OPMODE_MAX
     } nit_scc_core_opmode_t;
 
-    typedef enum nit_scc_core_calibration_status_enum
+    typedef enum nit_scc_core_calibration_mode_enum
     {
         NIT_SCC_CORE_CALIBRATION_STATUS_IDLE,
-        NIT_SCC_CORE_CALIBRATION_STATUS_BUSY,
+        NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MIN,
+        NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MAX,
+        NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_UPDATING,
         NIT_SCC_CORE_CALIBRATION_STATUS_MAX
-    } nit_scc_core_calibration_status_t;
+    } nit_scc_core_calibration_mode_t;
 
     DRIVER_DECLARE_OFFSET_TABLE_BEGIN(scc_core)
     NIT_SCC_CORE_FIELD_TABLE(DRIVER_FIELD_AS_OFFSET_TABLE_ITEM)
@@ -94,7 +96,7 @@
     int nit_scc_core_config_save_to_file(nit_scc_core_state_t *state, const char *path);
     int nit_scc_core_config_load_from_file(nit_scc_core_state_t *state, const char *path);
 
-    int nit_scc_core_calibration_status_wait_idle(nit_scc_core_state_t* state);
+    int nit_scc_core_calibration_mode_wait_idle(nit_scc_core_state_t* state);
 
     /**
      * this function is a stub to implement the core
