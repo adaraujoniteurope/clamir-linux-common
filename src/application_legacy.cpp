@@ -733,12 +733,24 @@ void application::image_writer_legacy(int socket_fd)
     int missing_frames_counter = 0;
     int first_frame = ptr->frame_number;
 
+    auto wait_interval = std::chrono::microseconds(50);
+
+    /**
+     * if testing on host, set the wait interval to 1ms
+     */
+    if (application::host_mockup) {
+        wait_interval = std::chrono::microseconds(1000);
+    }
+
     while (!m_shutdown)
     {
 
-        std::this_thread::sleep_for(std::chrono::microseconds(50));
+        std::this_thread::sleep_for(std::chrono::microseconds(wait_interval));
 
-        if ((last_frame_index - ptr->frame_number) == 0)
+        /**
+         * just poll and verify for new frame increment if not mocking up on host
+         */
+        if ((last_frame_index - ptr->frame_number) == 0 && !application::host_mockup)
         {
             continue;
         }
