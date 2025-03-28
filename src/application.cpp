@@ -292,6 +292,23 @@ int application::initialize(int argc, char *argv[])
 
     }
 
+    {
+        auto save_path = configuration_path;
+        save_path += "/nit_scc_core_config.json";
+
+        std::cout << "loading configuration from: " << save_path << std::endl;
+
+        if (nit_scc_core_config_load_from_file(&nit_scc_core_driver, save_path.c_str()) < 0)
+        {
+            if (nit_scc_core_config_save_to_file(&nit_scc_core_driver, save_path.c_str()) < 0)
+            {
+                std::cout << "loading configuration failed!" << std::endl;
+                return -1;
+            }
+        }
+
+    }
+
     return 0;
 }
 
@@ -299,7 +316,7 @@ application::application()
     : m_shutdown(false), m_command_server_router({{1, std::bind(&application::default_handler, this, std::placeholders::_1, std::placeholders::_2)}})
 {
     if (application::host_mockup) {
-        m_timer = std::make_shared<linux_generic_timer>(41000000UL, m_shutdown);
+        m_timer = std::make_shared<linux_generic_timer>(1000000UL, m_shutdown);
     } else {
         m_timer = std::make_shared<uio_timer>(m_shutdown);
     }

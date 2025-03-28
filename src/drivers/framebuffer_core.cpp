@@ -277,7 +277,7 @@ int nit_framebuffer_core_loop(nit_framebuffer_core_state_t* state)
     auto frame = nit_framebuffer_core_private_state_get(state)->frame;
     auto metadata = nit_framebuffer_core_private_state_get(state)->metadata;
 
-    if ((std::chrono::high_resolution_clock::now() - last) > std::chrono::milliseconds(41)) {
+    if ((std::chrono::high_resolution_clock::now() - last) > std::chrono::milliseconds(1)) {
 
         if (x > (64 - radius / 2) || x < ( 0 + radius / 2)) {
 
@@ -331,23 +331,19 @@ int nit_framebuffer_core_loop(nit_framebuffer_core_state_t* state)
         }
 
         sensor<int16_t>::gain_table_apply((int16_t*)frame, gain_table, 64, 64);
-
         last = std::chrono::high_resolution_clock::now();
-
-
         track_number += 1;
         frame_max += 1;
         frame_number += 1;
         timestamp += 1;
-        
     }
 
     auto m00 = math::algorithm::moments::moments<int16_t>((int16_t*)frame, 64, 64, 0, 0);
-    auto m01 = math::algorithm::moments::moments<int16_t>((int16_t*)frame, 64, 64, 0, 1);
-    auto m10 = math::algorithm::moments::moments<int16_t>((int16_t*)frame, 64, 64, 1, 0);
+    auto m01 = math::algorithm::moments::moments<int16_t>((int16_t*)frame, 64, 64, 1, 0);
+    auto m10 = math::algorithm::moments::moments<int16_t>((int16_t*)frame, 64, 64, 0, 1);
     auto m11 = math::algorithm::moments::moments<int16_t>((int16_t*)frame, 64, 64, 1, 1);
-    auto m02 = math::algorithm::moments::moments<int16_t>((int16_t*)frame, 64, 64, 0, 2);
-    auto m20 = math::algorithm::moments::moments<int16_t>((int16_t*)frame, 64, 64, 2, 0);
+    auto m02 = math::algorithm::moments::moments<int16_t>((int16_t*)frame, 64, 64, 2, 0);
+    auto m20 = math::algorithm::moments::moments<int16_t>((int16_t*)frame, 64, 64, 0, 2);
 
     metadata[0] = power;
     metadata[1] = m00;

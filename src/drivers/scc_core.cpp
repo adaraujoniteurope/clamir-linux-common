@@ -19,16 +19,24 @@ using namespace utils;
 
 typedef struct scc_core_private_state_struct
 {
+    int dev_fd;
 
     volatile int* framebuffer_metadata_shm;
     volatile int16_t* framebuffer_shm;
 
     volatile uint32_t* ctrl_shm;
-    volatile int16_t scale_shm[64][64];
-    volatile int16_t offset_shm[64][64];
 
-    volatile int16_t min_shm[64][64];
-    volatile int16_t max_shm[64][64];
+    volatile int16_t* scale_shm;
+    volatile int16_t* offset_shm;
+
+    int scale_default_fd;
+    volatile int16_t* scale_default;
+
+    int offset_default_fd;
+    volatile int16_t* offset_default;
+
+    volatile int16_t* min_shm;
+    volatile int16_t* max_shm;
 
 
 } scc_core_private_state_t;
@@ -129,74 +137,83 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
 
     priv->framebuffer_shm = (int16_t*) nit_framebuffer_core_get_memory_map(nit_framebuffer_core_state);
 
-    state->fd = -1;
+    priv->dev_fd = -1;
 
     state->config.width = 64;
     state->config.height = 64;
 
-    state->fd = open("scc_core_mmap.dat", O_CREAT | O_RDWR | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    priv->dev_fd = open("/dev/mem", O_CREAT | O_RDWR | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 
     if (NIT_SCC_CORE_CTRL_BASE_SIZE < sizeof(nit_scc_core_config_t)) {
         return -1;
     }
 
-    priv->ctrl_shm = (volatile uint32_t*) memory_map_open(NULL, NIT_SCC_CORE_CTRL_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_CTRL_BASE_ADDRESS);
+    priv->ctrl_shm = (volatile uint32_t*) memory_map_open(NULL, NIT_SCC_CORE_CTRL_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->dev_fd, NIT_SCC_CORE_CTRL_BASE_ADDRESS);
 
     if (priv->ctrl_shm == NULL) {
         nit_scc_core_cleanup(state);
         return -1;
     }
 
-    if (NIT_SCC_CORE_OFFSET_BASE_SIZE < state->config.width * state->config.height * sizeof(int16_t)) {
+     priv->offset_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_OFFSET_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->dev_fd, NIT_SCC_CORE_OFFSET_BASE_ADDRESS);
+
+    if (priv->offset_shm == NULL) {
+         nit_scc_core_cleanup(state);
+         return -1;
+    }
+
+    priv->scale_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_SCALE_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->dev_fd, NIT_SCC_CORE_SCALE_BASE_ADDRESS);
+
+    if (priv->scale_shm == NULL) {
+        nit_scc_core_cleanup(state);
         return -1;
     }
 
-    // priv->offset_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_OFFSET_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_OFFSET_BASE_ADDRESS);
+    priv->scale_default_fd = open("scc_core_scale_default.dat", O_CREAT | O_RDWR | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 
-    // if (priv->offset_shm == NULL) {
-    //     nit_scc_core_cleanup(state);
-    //     return -1;
-    // }
+    if (priv->scale_default_fd < 0) {
+        print_debug("%s: couldn't open scale data file\n", __func__);
+        return -1;
+    }
 
+    priv->scale_default = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_SCALE_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->scale_default_fd, NIT_SCC_CORE_SCALE_BASE_ADDRESS);
 
-    // if (NIT_SCC_CORE_SCALE_BASE_SIZE < state->config.width * state->config.height * sizeof(int16_t)) {
-    //     return -1;
-    // }
+    // read(priv->scale_default_fd, (void*) priv->scale_default, sizeof(int16_t) * state->config.width * state->config.height);
 
-    // priv->scale_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_SCALE_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_SCALE_BASE_ADDRESS);
+    if (priv->scale_default == NULL) {
+        nit_scc_core_cleanup(state);
+        return -1;
+    }
 
-    // if (priv->scale_shm == NULL) {
-    //     nit_scc_core_cleanup(state);
-    //     return -1;
-    // }
+    priv->offset_default_fd = open("scc_core_offset_default.dat", O_CREAT | O_RDWR | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 
-    // if (NIT_SCC_CORE_MAX_BASE_SIZE < state->config.width * state->config.height * sizeof(int16_t)) {
-    //     return -1;
-    // }
+    if (priv->offset_default_fd < 0) {
+        print_debug("%s: couldn't open offset data file\n", __func__);
+        return -1;
+    }
 
-    // priv->max_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MAX_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_MAX_BASE_ADDRESS);    
+    priv->offset_default = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_SCALE_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->offset_default_fd, NIT_SCC_CORE_SCALE_BASE_ADDRESS);
 
-    // if (priv->max_shm == NULL) {
-    //     nit_scc_core_cleanup(state);
-    //     return -1;
-    // }
+    // read(priv->offset_default_fd, (void*) priv->offset_default, sizeof(int16_t) * state->config.width * state->config.height);
 
-    // if (NIT_SCC_CORE_MIN_BASE_SIZE < state->config.width * state->config.height * sizeof(int16_t)) {
-    //     return -1;
-    // }
+    if (priv->offset_default == NULL) {
+        nit_scc_core_cleanup(state);
+        return -1;
+    }
 
-    // priv->min_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MIN_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, state->fd, NIT_SCC_CORE_MIN_BASE_ADDRESS);
+    priv->max_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MAX_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, -1, NIT_SCC_CORE_MAX_BASE_ADDRESS);    
 
-    // if (priv->min_shm == NULL) {
-    //     nit_scc_core_cleanup(state);
-    //     return -1;
-    // }
+    if (priv->max_shm == NULL) {
+        nit_scc_core_cleanup(state);
+        return -1;
+    }
 
-    // if (nit_framebuffer_core_state_assert(nit_framebuffer_core_state) < 0)
-    // {
-    //     nit_scc_core_cleanup(state);
-    //     return -1;
-    // }
+    priv->min_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MIN_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, -1, NIT_SCC_CORE_MIN_BASE_ADDRESS);
+
+    if (priv->min_shm == NULL) {
+        nit_scc_core_cleanup(state);
+        return -1;
+    }
 
     state->is_open = true;
 
@@ -226,9 +243,9 @@ int nit_scc_core_close(nit_scc_core_state_t* state)
         free((void*)state->priv);
     }
 
-    if (state->fd >= 0)
+    if (priv->dev_fd >= 0)
     {
-        close(state->fd);
+        close(priv->dev_fd);
     }
 
     state->is_open = false;
@@ -263,10 +280,11 @@ int nit_scc_core_reset(nit_scc_core_state_t* state)
     {
         for (size_t col = 0; col < state->config.height; col ++)
         {
-            priv->max_shm[row][col] = 0;
-            priv->min_shm[row][col] = 0;
-            priv->scale_shm[row][col] = 100;
-            priv->offset_shm[row][col] = 0;
+            size_t index = row * state->config.width + col;
+            priv->max_shm[index] = 0;
+            priv->min_shm[index] = 0;
+            priv->scale_shm[index] = 100;
+            priv->offset_shm[index] = 0;
         }
     }
     return 0;
@@ -274,14 +292,22 @@ int nit_scc_core_reset(nit_scc_core_state_t* state)
 
 int nit_scc_core_config_save_to_file(nit_scc_core_state_t* state, const char* path)
 {
-    nit_scc_core_opmode_get(state, &state->config.opmode);
+
+    nit_scc_core_calibration_bypass_get(state, &state->config.calibration_bypass);
+    nit_scc_core_width_get(state, &state->config.width);
+    nit_scc_core_height_get(state, &state->config.width);
+
     return config_file_save_to_file(state, path);
 }
 
 int nit_scc_core_config_load_from_file(nit_scc_core_state_t* state, const char* path)
 {
     auto retval = config_file_load_from_file(state, path);
-    nit_scc_core_opmode_set(state, state->config.opmode);
+
+    nit_scc_core_calibration_bypass_set(state, state->config.calibration_bypass);
+    nit_scc_core_width_set(state, state->config.width);
+    nit_scc_core_height_set(state, state->config.width);
+
     return retval;
 }
 
@@ -348,6 +374,146 @@ int nit_scc_core_opmode_get(nit_scc_core_state_t* state, uint16_t* value)
     *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_opmode_offset);
 
     print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_opmode_offset, *value);
+    return retval;
+}
+
+int nit_scc_core_process_bypass_get(nit_scc_core_state_t* state, uint16_t* value)
+{
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_process_bypass_offset);
+
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_process_bypass_offset, *value);
+    return retval;
+}
+
+int nit_scc_core_process_bypass_set(nit_scc_core_state_t* state, uint16_t value)
+{
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_process_bypass_offset, value);
+
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_process_bypass_offset) = value;
+
+    return retval;
+}
+
+int nit_scc_core_calibration_bypass_get(nit_scc_core_state_t* state, uint16_t* value)
+{
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_calibration_bypass_offset);
+
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_calibration_bypass_offset, *value);
+    return retval;
+}
+
+int nit_scc_core_calibration_bypass_set(nit_scc_core_state_t* state, uint16_t value)
+{
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_calibration_bypass_offset, value);
+
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_calibration_bypass_offset) = value;
+
+    return retval;
+}
+
+int nit_scc_core_width_get(nit_scc_core_state_t* state, uint16_t* value)
+{
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_width_offset);
+
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_width_offset, *value);
+    return retval;
+}
+
+int nit_scc_core_width_set(nit_scc_core_state_t* state, uint16_t value)
+{
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_width_offset, value);
+
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_width_offset) = value;
+
+    return retval;
+}
+
+int nit_scc_core_height_get(nit_scc_core_state_t* state, uint16_t* value)
+{
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_height_offset);
+
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_height_offset, *value);
+    return retval;
+}
+
+int nit_scc_core_height_set(nit_scc_core_state_t* state, uint16_t value)
+{
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_height_offset, value);
+
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_height_offset) = value;
+
     return retval;
 }
 
@@ -447,7 +613,8 @@ int nit_scc_core_stub_eval_calibrate_update(nit_scc_core_state_t* state) {
      */
     for (size_t row = 0; row < state->config.height; row++) {
         for (size_t col = 0; col < state->config.width; col++) {
-            mean_min = mean_min + (double)priv->min_shm[row][col];
+            size_t index = row * state->config.width + col;
+            mean_min = mean_min + (double)priv->min_shm[index];
         }
     }
 
@@ -460,7 +627,8 @@ int nit_scc_core_stub_eval_calibrate_update(nit_scc_core_state_t* state) {
      */
     for (size_t row = 0; row < state->config.height; row++) {
         for (size_t col = 0; col < state->config.width; col++) {
-            mean_max += priv->max_shm[row][col];
+            size_t index = row * state->config.width + col;
+            mean_max += priv->max_shm[index];
         }
     }
     
@@ -477,11 +645,11 @@ int nit_scc_core_stub_eval_calibrate_update(nit_scc_core_state_t* state) {
      */
     for (size_t row = 0; row < state->config.height; row++) {
         for (size_t col = 0; col < state->config.width; col++) {
-
-            double x0 = priv->min_shm[row][col];
+            size_t index = row * state->config.width + col;
+            double x0 = priv->min_shm[index];
             double y0 = mean_min;
 
-            double x1 = priv->max_shm[row][col];
+            double x1 = priv->max_shm[index];
             double y1 = mean_max;
 
             if (x0 == x1) {
@@ -492,8 +660,8 @@ int nit_scc_core_stub_eval_calibrate_update(nit_scc_core_state_t* state) {
             double a = (y1 - y0) / (x1 - x0);
             double b = y1-a*x1;
 
-            priv->scale_shm[row][col] = a * (INT16_MAX >> 1);
-            priv->offset_shm[row][col] = b * (INT16_MAX >> 1);
+            priv->scale_shm[index] = a * (INT16_MAX >> 1);
+            priv->offset_shm[index] = b * (INT16_MAX >> 1);
         }
     }
 
@@ -559,7 +727,8 @@ int nit_scc_core_stub_eval_calibrate(nit_scc_core_state_t* state) {
 
 }
 
-int nit_scc_core_stub_eval_process(nit_scc_core_state_t* state) {
+int nit_scc_core_stub_eval_process(nit_scc_core_state_t* state)
+{
 
     int retval = 0;
     static int processing_override = false;
@@ -576,21 +745,22 @@ int nit_scc_core_stub_eval_process(nit_scc_core_state_t* state) {
         return 0;
     }
 
+    if (state->config.calibration_bypass)
+    {
+        memcpy((void*)priv->scale_shm, (void*)priv->scale_default, state->config.width * state->config.height * sizeof(int16_t));
+        memcpy((void*)priv->offset_shm, (void*)priv->offset_default, state->config.width * state->config.height * sizeof(int16_t));
+    }
+
     for (size_t row = 0; row < state->config.height; row++) {
         for (size_t col = 0; col < state->config.width; col++) {
             size_t index = row * state->config.width + col;
-            priv->framebuffer_shm[index] = ((double)(priv->framebuffer_shm[index] * priv->scale_shm[row][col] + priv->offset_shm[row][col]))/((double)(INT16_MAX >> 1));
+            priv->framebuffer_shm[index] = ((double)(priv->framebuffer_shm[index] * priv->scale_shm[index] + priv->offset_shm[index]))/((double)(INT16_MAX >> 1));
         }
     }
 
     return retval;
 }
 
-/**
- * this model will be implemented on hardware
- * is convenient that it has this structure once
- * it will have a state machine to control it...
- */
 int nit_scc_core_stub_eval(nit_scc_core_state_t* state) {
 
     int retval = 0;
@@ -606,9 +776,17 @@ int nit_scc_core_stub_eval(nit_scc_core_state_t* state) {
 
     switch(opmode) {
         case NIT_SCC_CORE_OPMODE_PROCESS:
+
+            if (state->config.process_bypass) {
+                break;
+            }
+
             nit_scc_core_stub_eval_process(state);
+
             break;
         case NIT_SCC_CORE_OPMODE_CALIBRATE:
+
+            
             nit_scc_core_stub_eval_calibrate(state);
             break;
         default:
