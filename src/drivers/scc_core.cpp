@@ -169,20 +169,66 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
         return -1;
     }
 
-    priv->scale_default_fd = open("scc_core_scale_default.dat", O_CREAT | O_RDWR | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    if (state->config.scale_default_file_path.empty()) {
+        state->config.scale_default_file_path = "scc_core_offset_default.dat";
+    }
+
+    priv->scale_default_fd = open(state->config.scale_default_file_path.c_str(), O_CREAT | O_RDWR | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 
     if (priv->scale_default_fd < 0) {
         print_debug("%s: couldn't open scale data file\n", __func__);
         return -1;
     }
 
-    priv->scale_default = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_SCALE_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->scale_default_fd, NIT_SCC_CORE_SCALE_BASE_ADDRESS);
-
-    // read(priv->scale_default_fd, (void*) priv->scale_default, sizeof(int16_t) * state->config.width * state->config.height);
+    priv->scale_default = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_SCALE_DEFAULT_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->scale_default_fd, NIT_SCC_CORE_SCALE_DEFAULT_BASE_ADDRESS);
 
     if (priv->scale_default == NULL) {
         nit_scc_core_cleanup(state);
         return -1;
+    }
+
+
+    if (std::filesystem::is_empty(state->config.scale_default_file_path)) {
+        
+        int16_t* buffer = nullptr;
+        buffer = (int16_t*) malloc(sizeof(int16_t) * state->config.width * state->config.height);
+
+        if (buffer == nullptr) {
+            print_debug("%s: failed to allocate memory for the default scale matrix.", __func__);
+            exit(1);
+        }
+
+        memset(buffer, 0, state->config.width * state->config.height);
+
+        for (int row = 0; row < state->config.height; row++)
+            for (int col = 0; col < state->config.width; col++)
+            {
+                int index = row * state->config.width + col;
+                buffer[index] = INT16_MAX >> 1;
+            }
+        
+        if (write(priv->scale_default_fd, buffer, sizeof(int16_t) * state->config.width * state->config.height) < 0)
+        {
+            print_debug("%s: failed to write default values to scale matrix.", __func__);
+        }
+
+        free(buffer);
+
+        /**
+         * check if file war written successfully
+         */
+        for (int row = 0; row < state->config.height; row++)
+            for (int col = 0; col < state->config.width; col++)
+            {
+                int index = row * state->config.width + col;
+                if (priv->scale_default[index] != (INT16_MAX >> 1)) {
+                    print_debug("%s: failed to write on scale file default coefficient at row: %d col: %d", __func__, row, col);
+                }
+            }
+    }
+
+    if (state->config.offset_default_file_path.empty()) {
+        state->config.offset_default_file_path = "scc_core_offset_default.dat";
     }
 
     priv->offset_default_fd = open("scc_core_offset_default.dat", O_CREAT | O_RDWR | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
@@ -192,13 +238,44 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
         return -1;
     }
 
-    priv->offset_default = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_SCALE_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->offset_default_fd, NIT_SCC_CORE_SCALE_BASE_ADDRESS);
-
-    // read(priv->offset_default_fd, (void*) priv->offset_default, sizeof(int16_t) * state->config.width * state->config.height);
+    priv->offset_default = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_OFFSET_DEFAULT_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->offset_default_fd, NIT_SCC_CORE_OFFSET_DEFAULT_BASE_ADDRESS);
 
     if (priv->offset_default == NULL) {
         nit_scc_core_cleanup(state);
         return -1;
+    }
+
+    if (std::filesystem::is_empty(state->config.offset_default_file_path)) {
+
+        int16_t* buffer = nullptr;
+
+        buffer = (int16_t*) malloc(sizeof(int16_t) * state->config.width * state->config.height);
+
+        if (buffer == nullptr) {
+            print_debug("%s: failed to allocate memory for the default offset matrix.", __func__);
+            exit(1);
+        }
+
+        memset(buffer, 0, state->config.width * state->config.height);
+        
+        if (write(priv->offset_default_fd, buffer, sizeof(int16_t) * state->config.width * state->config.height) < 0)
+        {
+            print_debug("%s: failed to write default values to offset matrix.", __func__);
+        }
+
+        free(buffer);
+
+        /**
+         * check if file war written successfully
+         */
+        for (int row = 0; row < state->config.height; row++)
+            for (int col = 0; col < state->config.width; col++)
+            {
+                int index = row * state->config.width + col;
+                if (priv->scale_default[index] != 0) {
+                    print_debug("%s: failed to write on offset file default coefficient at row: %d col: %d", __func__, row, col);
+                }
+            }
     }
 
     priv->max_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MAX_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, -1, NIT_SCC_CORE_MAX_BASE_ADDRESS);    
@@ -267,15 +344,6 @@ int nit_scc_core_reset(nit_scc_core_state_t* state)
 
     auto priv = (scc_core_private_state_t*) state->priv;
 
-    // for (size_t i = 0; i < state->config.width * state->config.height; i++) {
-        
-    //     priv->max_shm[i] = 0;
-    //     priv->min_shm[i] = 0;
-
-    //     priv->scale_shm[i] = 1000;
-    //     priv->offset_shm[i] = 0;
-    // }
-
     for (size_t row = 0; row < state->config.height; row ++)
     {
         for (size_t col = 0; col < state->config.height; col ++)
@@ -283,7 +351,7 @@ int nit_scc_core_reset(nit_scc_core_state_t* state)
             size_t index = row * state->config.width + col;
             priv->max_shm[index] = 0;
             priv->min_shm[index] = 0;
-            priv->scale_shm[index] = 100;
+            priv->scale_shm[index] = (INT16_MAX >> 1);
             priv->offset_shm[index] = 0;
         }
     }
@@ -296,18 +364,15 @@ int nit_scc_core_config_save_to_file(nit_scc_core_state_t* state, const char* pa
     nit_scc_core_calibration_bypass_get(state, &state->config.calibration_bypass);
     nit_scc_core_width_get(state, &state->config.width);
     nit_scc_core_height_get(state, &state->config.width);
-
     return config_file_save_to_file(state, path);
 }
 
 int nit_scc_core_config_load_from_file(nit_scc_core_state_t* state, const char* path)
 {
     auto retval = config_file_load_from_file(state, path);
-
     nit_scc_core_calibration_bypass_set(state, state->config.calibration_bypass);
     nit_scc_core_width_set(state, state->config.width);
     nit_scc_core_height_set(state, state->config.width);
-
     return retval;
 }
 

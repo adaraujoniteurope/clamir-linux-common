@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/clamir-scc-util-generate-scale-default.dir/link.d "CMakeFiles/clamir-scc-util-generate-scale-default.dir/clamir-scc-util-generate-scale-default.cpp.o" -o clamir-scc-util-generate-scale-default

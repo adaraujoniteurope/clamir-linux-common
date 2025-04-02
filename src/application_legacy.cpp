@@ -47,7 +47,7 @@
 
 #include <nit/embedded/vision/frame_generator.hpp>
 
-int send_response(int fd, packet &req)
+int send_response(int fd, packet& req)
 {
     std::cout << "response:" << req << std::endl;
     auto data = packet::encode(req);
@@ -132,7 +132,7 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core
 
 // DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, save_embedded_conf)
 
-int command_target_nit_control_unit_core_save_embedded_conf_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_control_unit_core_save_embedded_conf_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
     // nit_control_unit_core_save_embedded_conf_set((nit_control_unit_core_state_t *)route.pdata, req.value);
@@ -145,13 +145,13 @@ int command_target_nit_control_unit_core_save_embedded_conf_write(std::shared_pt
 
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, save_embedded_conf)
 
-int command_target_nit_control_unit_core_arm_sw_version_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_control_unit_core_arm_sw_version_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
     return 0;
 }
 
-int command_target_nit_control_unit_core_arm_sw_version_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_control_unit_core_arm_sw_version_read(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
     req.value = 0x0006;
@@ -162,20 +162,20 @@ int command_target_nit_control_unit_core_arm_sw_version_read(std::shared_ptr<app
 // DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_enable)
 // DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_enable)
 
-int command_target_nit_control_unit_core_drift_enable_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_control_unit_core_drift_enable_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    nit_control_unit_core_drift_enable_set((nit_control_unit_core_state_t *)route.pdata, req.value);
+    nit_control_unit_core_drift_enable_set((nit_control_unit_core_state_t*)route.pdata, req.value);
     uint16_t value = req.value;
-    nit_control_unit_core_drift_enable_get((nit_control_unit_core_state_t *)route.pdata, &value);
+    nit_control_unit_core_drift_enable_get((nit_control_unit_core_state_t*)route.pdata, &value);
     return 0;
 }
 
-int command_target_nit_control_unit_core_drift_enable_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_control_unit_core_drift_enable_read(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
     uint16_t value = req.value;
-    nit_control_unit_core_drift_enable_get((nit_control_unit_core_state_t *)route.pdata, &value);
+    nit_control_unit_core_drift_enable_get((nit_control_unit_core_state_t*)route.pdata, &value);
     req.value = value;
     send_response(socket_fd, req);
     return 0;
@@ -190,14 +190,14 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core
 // DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, fpga_version)
 // DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, fpga_version)
 
-int command_target_nit_control_unit_core_magic_id_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_control_unit_core_magic_id_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
     ::write(socket_fd, nullptr, 0);
     return 0;
 }
 
-int command_target_nit_control_unit_core_magic_id_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_control_unit_core_magic_id_read(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
     req.value = 0x0700;
@@ -205,14 +205,14 @@ int command_target_nit_control_unit_core_magic_id_read(std::shared_ptr<applicati
     return 0;
 }
 
-int command_target_nit_control_unit_core_fpga_version_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_control_unit_core_fpga_version_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
     ::write(socket_fd, nullptr, 0);
     return 0;
 }
 
-int command_target_nit_control_unit_core_fpga_version_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_control_unit_core_fpga_version_read(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
     req.value = 0x0002;
@@ -234,7 +234,7 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_mb_core, nit_mom_core, uint16_t, referen
 // DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_mb_core, nit_mom_core, uint32_t, time_track_low)
 #include <nit/embedded/drivers/common.h>
 
-int command_target_nit_mom_core_time_track_low_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_mom_core_time_track_low_read(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
 
@@ -263,7 +263,7 @@ int command_target_nit_mom_core_time_track_low_read(std::shared_ptr<application>
     return 0;
 }
 
-int command_target_nit_mom_core_time_track_low_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_mom_core_time_track_low_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
 
@@ -341,10 +341,15 @@ DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, power_man)
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, power_man)
 
-DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, auto_shutter)
-// DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, auto_shutter)
+int command_target_scc_core_calibrate_read(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
+{
+    std::cout << __func__ << std::endl;
+    uint32_t value = req.value;
+    req.value = value;
+    send_response(socket_fd, req); return 0;
+}
 
-int command_target_nit_process_core_auto_shutter_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_scc_core_calibrate_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     nit_control_unit_core_offset_en_set(&nit_control_unit_core_driver, 1);
     nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
@@ -374,7 +379,7 @@ int command_target_nit_process_core_auto_shutter_write(std::shared_ptr<applicati
      * 3. wait for 250 ms
      */
     nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MAX);
-    
+
     if (app->host_mockup) {
         nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_OPEN);
     }
@@ -399,6 +404,36 @@ int command_target_nit_process_core_auto_shutter_write(std::shared_ptr<applicati
     /**
      * older offset core processing disable offset update
      */
+    nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 0);
+
+    return 0;
+}
+
+DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, background_remove)
+// DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, background_remove)
+
+int command_target_nit_process_core_background_remove_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
+{
+
+    nit_control_unit_core_offset_en_set(&nit_control_unit_core_driver, 1);
+    nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
+    
+    nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);
+
+    if (app->host_mockup) {
+        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_CLOSED);
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
+    nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 0);
+
+    if (app->host_mockup) {
+        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_OPEN);
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
     nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 0);
 
     return 0;
@@ -446,13 +481,13 @@ DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, alarm_time)
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_t, alarm_time)
 
-int command_target_nit_gen_core_serial_number_low_write(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_gen_core_serial_number_low_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
     return 0;
 }
 
-int command_target_nit_gen_core_serial_number_low_read(std::shared_ptr<application> app, command_processor_route &route, packet &req, int socket_fd)
+int command_target_nit_gen_core_serial_number_low_read(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
 
@@ -514,114 +549,101 @@ DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_process_core, nit_process_core, uint32_
 
 std::map<uint16_t, command_processor_route> application::command_processor_routes_legacy = {
 
-    {0x0501, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_int_time_read, .write = command_target_nit_control_unit_core_int_time_write}},
-    {0x0502, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_bias_v_read, .write = command_target_nit_control_unit_core_bias_v_write}},
-    {0x0503, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_offset_en_read, .write = command_target_nit_control_unit_core_offset_en_write}},
-    {0x0504, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_offset_update_read, .write = command_target_nit_control_unit_core_offset_update_write}},
-    {0x0505, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_shutter_read, .write = command_target_nit_control_unit_core_shutter_write}},
-    {0x0506, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_bpc_en_read, .write = command_target_nit_control_unit_core_bpc_en_write}},
-    {0x0507, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_bpc_mem_write_read, .write = command_target_nit_control_unit_core_bpc_mem_write_write}},
-    {0x0508, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_bpc_identify_read, .write = command_target_nit_control_unit_core_bpc_identify_write}},
-    {0x0509, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_temp1_read, .write = command_target_nit_control_unit_core_temp1_write}},
-    {0x050A, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_temp2_read, .write = command_target_nit_control_unit_core_temp2_write}},
-    {0x050B, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_temp3_read, .write = command_target_nit_control_unit_core_temp3_write}},
-    {0x050C, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_temp4_read, .write = command_target_nit_control_unit_core_temp4_write}},
-    {0x0520, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_trigger_usec_read, .write = command_target_nit_control_unit_core_trigger_usec_write}},
-    {0x0521, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_black_level_read, .write = command_target_nit_control_unit_core_black_level_write}},
-    {0x0522, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_sincronization_read, .write = command_target_nit_control_unit_core_sincronization_write}},
-    {0x0523, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_save_embedded_conf_read, .write = command_target_nit_control_unit_core_save_embedded_conf_write}},
+    {0x0501, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_int_time_read, .write = command_target_nit_control_unit_core_int_time_write}},
+    {0x0502, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_bias_v_read, .write = command_target_nit_control_unit_core_bias_v_write}},
+    {0x0503, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_offset_en_read, .write = command_target_nit_control_unit_core_offset_en_write}},
+    {0x0504, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_offset_update_read, .write = command_target_nit_control_unit_core_offset_update_write}},
+    {0x0505, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_shutter_read, .write = command_target_nit_control_unit_core_shutter_write}},
+    {0x0506, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_bpc_en_read, .write = command_target_nit_control_unit_core_bpc_en_write}},
+    {0x0507, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_bpc_mem_write_read, .write = command_target_nit_control_unit_core_bpc_mem_write_write}},
+    {0x0508, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_bpc_identify_read, .write = command_target_nit_control_unit_core_bpc_identify_write}},
+    {0x0509, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_temp1_read, .write = command_target_nit_control_unit_core_temp1_write}},
+    {0x050A, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_temp2_read, .write = command_target_nit_control_unit_core_temp2_write}},
+    {0x050B, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_temp3_read, .write = command_target_nit_control_unit_core_temp3_write}},
+    {0x050C, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_temp4_read, .write = command_target_nit_control_unit_core_temp4_write}},
 
-    {0x0524, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_arm_sw_version_read, .write = command_target_nit_control_unit_core_arm_sw_version_write}},
-    {0x0525, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_magic_id_read, .write = command_target_nit_control_unit_core_magic_id_write}},
-    {0x0526, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_fpga_version_read, .write = command_target_nit_control_unit_core_fpga_version_write}},
+    {0x050D, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_drift_enable_read, .write = command_target_nit_control_unit_core_drift_enable_write}},
+    {0x050E, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_drift_position_read, .write = command_target_nit_control_unit_core_drift_position_write}},
+    {0x050F, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_drift_level_read, .write = command_target_nit_control_unit_core_drift_level_write}},
 
-    // case 0x050D:
-    // case 0x058D:
-    //     gestor.offset = NIT_DRIFT_ENABLE;
-    //     break;
+    {0x0520, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_trigger_usec_read, .write = command_target_nit_control_unit_core_trigger_usec_write}},
+    {0x0521, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_black_level_read, .write = command_target_nit_control_unit_core_black_level_write}},
+    {0x0522, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_sincronization_read, .write = command_target_nit_control_unit_core_sincronization_write}},
+    {0x0523, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_save_embedded_conf_read, .write = command_target_nit_control_unit_core_save_embedded_conf_write}},
 
-    // case 0x050E:
-    // case 0x058E:
-    //     gestor.offset = NIT_DRIFT_POSITION;
-    //     break;
+    {0x0524, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_arm_sw_version_read, .write = command_target_nit_control_unit_core_arm_sw_version_write}},
+    {0x0525, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_magic_id_read, .write = command_target_nit_control_unit_core_magic_id_write}},
+    {0x0526, {.pdata = (void*)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_fpga_version_read, .write = command_target_nit_control_unit_core_fpga_version_write}},
 
-    // case 0x058F:
-    //     gestor.offset = NIT_DRIFT_LEVEL;
-    //     break;
+    {0x0402, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_kp_read, .write = command_target_nit_process_core_kp_write}},
+    {0x0401, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_ki_read, .write = command_target_nit_process_core_ki_write}},
+    {0x0403, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_kd_read, .write = command_target_nit_process_core_kd_write}},
 
-    {0x050D, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_drift_enable_read, .write = command_target_nit_control_unit_core_drift_enable_write}},
-    {0x050E, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_drift_position_read, .write = command_target_nit_control_unit_core_drift_position_write}},
-    {0x050F, {.pdata = (void *)&nit_control_unit_core_driver, .read = command_target_nit_control_unit_core_drift_level_read, .write = command_target_nit_control_unit_core_drift_level_write}},
+    {0x0404, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_max_power_read, .write = command_target_nit_process_core_max_power_write}},
+    {0x0405, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_min_power_read, .write = command_target_nit_process_core_min_power_write}},
+    {0x0407, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_power_man_read, .write = command_target_nit_process_core_power_man_write}},
+    {0x0409, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_background_remove_read, .write = command_target_nit_process_core_background_remove_write}},
 
-    {0x0402, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_kp_read, .write = command_target_nit_process_core_kp_write}},
-    {0x0401, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_ki_read, .write = command_target_nit_process_core_ki_write}},
-    {0x0403, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_kd_read, .write = command_target_nit_process_core_kd_write}},
+    {0x040D, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_set_ref_width_read, .write = command_target_nit_process_core_set_ref_width_write}},
+    {0x0418, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_power_limit_max_read, .write = command_target_nit_process_core_power_limit_max_write}},
+    {0x0419, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_power_limit_min_read, .write = command_target_nit_process_core_power_limit_min_write}},
+    {0x041F, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_width_ref_read, .write = command_target_nit_process_core_width_ref_write}},
+    {0x0420, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_pixel_mm_ratio_read, .write = command_target_nit_process_core_pixel_mm_ratio_write}},
+    {0x0421, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_pid_error_read, .write = command_target_nit_process_core_pid_error_write}},
+    {0x0422, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_end_of_process_read, .write = command_target_nit_process_core_end_of_process_write}},
+    {0x0423, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_limit_integral_read, .write = command_target_nit_process_core_limit_integral_write}},
+    {0x0424, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_limit_slew_read, .write = command_target_nit_process_core_limit_slew_write}},
+    {0x0425, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_buff_size_read, .write = command_target_nit_process_core_buff_size_write}},
+    {0x04A5, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_buff_size_read, .write = command_target_nit_process_core_buff_size_write}},
+    {0x0426, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_enable_alarm_read, .write = command_target_nit_process_core_enable_alarm_write}},
+    {0x0427, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_alarm_max_read, .write = command_target_nit_process_core_alarm_max_write}},
+    {0x0428, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_alarm_min_read, .write = command_target_nit_process_core_alarm_min_write}},
+    {0x0429, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_alarm_time_read, .write = command_target_nit_process_core_alarm_time_write}},
+    {0x042A, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_gen_core_serial_number_low_read, .write = command_target_nit_gen_core_serial_number_low_write}},
+    {0x042E, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_automeasure_read, .write = command_target_nit_process_core_automeasure_write}},
+    {0x042F, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_autoshutter_config_read, .write = command_target_nit_process_core_autoshutter_config_write}},
+    {0x0431, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_autoshutter_temp_read, .write = command_target_nit_process_core_autoshutter_temp_write}},
+    {0x0432, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_autoshutter_timer_read, .write = command_target_nit_process_core_autoshutter_timer_write}},
+    {0x0433, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_track_ref_start_read, .write = command_target_nit_process_core_track_ref_start_write}},
+    {0x0434, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_laser_external_control_read, .write = command_target_nit_process_core_laser_external_control_write}},
+    {0x0435, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_delay_laser_on_read, .write = command_target_nit_process_core_delay_laser_on_write}},
+    {0x0436, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_preheating_ena_read, .write = command_target_nit_process_core_preheating_ena_write}},
+    {0x0437, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_preheating_time_read, .write = command_target_nit_process_core_preheating_time_write}},
+    {0x0438, {.pdata = (void*)&nit_process_core_driver, .read = command_target_nit_process_core_preheating_power_read, .write = command_target_nit_process_core_preheating_power_write}},
+    {0x0406, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_mom_core_start_track_mom_t_read, .write = command_target_nit_mom_core_start_track_mom_t_write}},
+    {0x040a, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_mom_core_mode_read, .write = command_target_nit_mom_core_mode_write}},
+    {0x0408, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_mom_core_end_of_track_read, .write = command_target_nit_mom_core_end_of_track_write}},
 
-    {0x0404, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_max_power_read, .write = command_target_nit_process_core_max_power_write}},
-    {0x0405, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_min_power_read, .write = command_target_nit_process_core_min_power_write}},
-    {0x0407, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_power_man_read, .write = command_target_nit_process_core_power_man_write}},
-    {0x0409, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_auto_shutter_read, .write = command_target_nit_process_core_auto_shutter_write}},
-
-    {0x040D, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_set_ref_width_read, .write = command_target_nit_process_core_set_ref_width_write}},
-    {0x0418, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_power_limit_max_read, .write = command_target_nit_process_core_power_limit_max_write}},
-    {0x0419, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_power_limit_min_read, .write = command_target_nit_process_core_power_limit_min_write}},
-    {0x041F, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_width_ref_read, .write = command_target_nit_process_core_width_ref_write}},
-    {0x0420, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_pixel_mm_ratio_read, .write = command_target_nit_process_core_pixel_mm_ratio_write}},
-    {0x0421, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_pid_error_read, .write = command_target_nit_process_core_pid_error_write}},
-    {0x0422, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_end_of_process_read, .write = command_target_nit_process_core_end_of_process_write}},
-    {0x0423, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_limit_integral_read, .write = command_target_nit_process_core_limit_integral_write}},
-    {0x0424, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_limit_slew_read, .write = command_target_nit_process_core_limit_slew_write}},
-    {0x0425, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_buff_size_read, .write = command_target_nit_process_core_buff_size_write}},
-    {0x04A5, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_buff_size_read, .write = command_target_nit_process_core_buff_size_write}},
-    {0x0426, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_enable_alarm_read, .write = command_target_nit_process_core_enable_alarm_write}},
-    {0x0427, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_alarm_max_read, .write = command_target_nit_process_core_alarm_max_write}},
-    {0x0428, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_alarm_min_read, .write = command_target_nit_process_core_alarm_min_write}},
-    {0x0429, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_alarm_time_read, .write = command_target_nit_process_core_alarm_time_write}},
-    {0x042A, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_gen_core_serial_number_low_read, .write = command_target_nit_gen_core_serial_number_low_write}},
-    {0x042E, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_automeasure_read, .write = command_target_nit_process_core_automeasure_write}},
-    {0x042F, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_autoshutter_config_read, .write = command_target_nit_process_core_autoshutter_config_write}},
-    {0x0431, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_autoshutter_temp_read, .write = command_target_nit_process_core_autoshutter_temp_write}},
-    {0x0432, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_autoshutter_timer_read, .write = command_target_nit_process_core_autoshutter_timer_write}},
-    {0x0433, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_track_ref_start_read, .write = command_target_nit_process_core_track_ref_start_write}},
-    {0x0434, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_laser_external_control_read, .write = command_target_nit_process_core_laser_external_control_write}},
-    {0x0435, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_delay_laser_on_read, .write = command_target_nit_process_core_delay_laser_on_write}},
-    {0x0436, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_preheating_ena_read, .write = command_target_nit_process_core_preheating_ena_write}},
-    {0x0437, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_preheating_time_read, .write = command_target_nit_process_core_preheating_time_write}},
-    {0x0438, {.pdata = (void *)&nit_process_core_driver, .read = command_target_nit_process_core_preheating_power_read, .write = command_target_nit_process_core_preheating_power_write}},
-    {0x0406, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_mom_core_start_track_mom_t_read, .write = command_target_nit_mom_core_start_track_mom_t_write}},
-    {0x040a, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_mom_core_mode_read, .write = command_target_nit_mom_core_mode_write}},
-    {0x0408, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_mom_core_end_of_track_read, .write = command_target_nit_mom_core_end_of_track_write}},
-    // {0x048A, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_mom_core_mode_read, .write = command_target_nit_mom_core_mode_write}},
-    {0x040B, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_mom_core_reference_track_read, .write = command_target_nit_mom_core_reference_track_write}},
-    {0x040C, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_mom_core_time_track_low_read, .write = command_target_nit_mom_core_time_track_low_write}},
-    {0x040E, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_arm_core_soft_reset_read, .write = command_target_nit_arm_core_soft_reset_write}},
-    {0x040F, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_mom_core_threshold_read, .write = command_target_nit_mom_core_threshold_write}},
-    // {0x0412, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_roi_core_x1_read, .write = command_target_nit_roi_core_x1_write}},
-    {0x0410, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_roi_core_round_read, .write = command_target_nit_roi_core_round_write}},
-    {0x0411, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_gen_core_enable_roi_read, .write = command_target_nit_gen_core_enable_roi_write}},
-    {0x0412, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_roi_core_x1_read, .write = command_target_nit_roi_core_x1_write}},
-    {0x0413, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_roi_core_y1_read, .write = command_target_nit_roi_core_y1_write}},
-    {0x0414, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_roi_core_x2_read, .write = command_target_nit_roi_core_x2_write}},
-    {0x0415, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_roi_core_y2_read, .write = command_target_nit_roi_core_y2_write}},
-    {0x0416, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_mom_core_mode_read, .write = command_target_nit_mom_core_mode_write}},
-    {0x041A, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_arm_core_led_r_read, .write = command_target_nit_arm_core_led_r_write}},
-    {0x041B, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_arm_core_led_g_read, .write = command_target_nit_arm_core_led_g_write}},
-    {0x041C, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_arm_core_led_b_read, .write = command_target_nit_arm_core_led_b_write}},
-    {0x0417, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_pwm_core_pwm_read, .write = command_target_nit_pwm_core_pwm_write}},
-    {0x041D, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_pwm_core_pwm_limit_max_read, .write = command_target_nit_pwm_core_pwm_limit_max_write}},
-    {0x041E, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_pwm_core_pwm_limit_min_read, .write = command_target_nit_pwm_core_pwm_limit_min_write}},
-    {0x0430, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_gen_core_digital_out_conf_read, .write = command_target_nit_gen_core_digital_out_conf_write}},
-    {0x0439, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_gen_core_digital_out_0_read, .write = command_target_nit_gen_core_digital_out_0_write}},
-    {0x043A, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_gen_core_digital_out_1_read, .write = command_target_nit_gen_core_digital_out_1_write}},
-    {0x043B, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_gen_core_digital_out_2_read, .write = command_target_nit_gen_core_digital_out_2_write}},
-    {0x043C, {.pdata = (void *)&nit_mb_core_driver, .read = command_target_nit_gen_core_digital_out_3_read, .write = command_target_nit_gen_core_digital_out_3_write}}};
+    {0x040B, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_mom_core_reference_track_read, .write = command_target_nit_mom_core_reference_track_write}},
+    {0x040C, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_mom_core_time_track_low_read, .write = command_target_nit_mom_core_time_track_low_write}},
+    {0x040E, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_arm_core_soft_reset_read, .write = command_target_nit_arm_core_soft_reset_write}},
+    {0x040F, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_mom_core_threshold_read, .write = command_target_nit_mom_core_threshold_write}},
+    
+    {0x0410, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_roi_core_round_read, .write = command_target_nit_roi_core_round_write}},
+    {0x0411, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_gen_core_enable_roi_read, .write = command_target_nit_gen_core_enable_roi_write}},
+    {0x0412, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_roi_core_x1_read, .write = command_target_nit_roi_core_x1_write}},
+    {0x0413, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_roi_core_y1_read, .write = command_target_nit_roi_core_y1_write}},
+    {0x0414, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_roi_core_x2_read, .write = command_target_nit_roi_core_x2_write}},
+    {0x0415, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_roi_core_y2_read, .write = command_target_nit_roi_core_y2_write}},
+    {0x0416, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_mom_core_mode_read, .write = command_target_nit_mom_core_mode_write}},
+    {0x041A, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_arm_core_led_r_read, .write = command_target_nit_arm_core_led_r_write}},
+    {0x041B, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_arm_core_led_g_read, .write = command_target_nit_arm_core_led_g_write}},
+    {0x041C, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_arm_core_led_b_read, .write = command_target_nit_arm_core_led_b_write}},
+    {0x0417, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_pwm_core_pwm_read, .write = command_target_nit_pwm_core_pwm_write}},
+    {0x041D, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_pwm_core_pwm_limit_max_read, .write = command_target_nit_pwm_core_pwm_limit_max_write}},
+    {0x041E, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_pwm_core_pwm_limit_min_read, .write = command_target_nit_pwm_core_pwm_limit_min_write}},
+    {0x0430, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_gen_core_digital_out_conf_read, .write = command_target_nit_gen_core_digital_out_conf_write}},
+    {0x0439, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_gen_core_digital_out_0_read, .write = command_target_nit_gen_core_digital_out_0_write}},
+    {0x043A, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_gen_core_digital_out_1_read, .write = command_target_nit_gen_core_digital_out_1_write}},
+    {0x043B, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_gen_core_digital_out_2_read, .write = command_target_nit_gen_core_digital_out_2_write}},
+    {0x043C, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_gen_core_digital_out_3_read, .write = command_target_nit_gen_core_digital_out_3_write}} };
 
 void application::command_processor_legacy(int socket_fd)
 {
     auto app = application::get_instance();
 
     unsigned char data[4096];
-    unsigned char *ptr = data;
+    unsigned char* ptr = data;
 
     int length = 0;
     int client_retries = 0;
@@ -664,13 +686,13 @@ void application::command_processor_legacy(int socket_fd)
 
         for (auto it = data; (it + 4) <= (data + length); it += 4)
         {
-            packet p = *(uint32_t *)it;
+            packet p = *(uint32_t*)it;
             packets.push_back(p);
         }
 
         client_retries = 0;
 
-        for (auto &p : packets)
+        for (auto& p : packets)
         {
             std::cout << "request: " << p << std::endl;
 
@@ -686,7 +708,7 @@ void application::command_processor_legacy(int socket_fd)
                 continue;
             }
 
-            auto &[id, route] = *it;
+            auto& [id, route] = *it;
 
             switch (p.rw)
             {
@@ -738,10 +760,10 @@ void application::image_writer_legacy(int socket_fd)
 
     int retval = 0;
 
-    uint8_t *image_shm_ptr = (uint8_t *)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
-    volatile int *virtual_metadata_shm_ptr = nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
+    uint8_t* image_shm_ptr = (uint8_t*)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
+    volatile int* virtual_metadata_shm_ptr = nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
 
-    metadata *ptr = (metadata *)virtual_metadata_shm_ptr;
+    metadata* ptr = (metadata*)virtual_metadata_shm_ptr;
     int last_frame_index = ptr->frame_number;
 
     int missing_frames_counter = 0;
@@ -765,13 +787,13 @@ void application::image_writer_legacy(int socket_fd)
         {
             /** because of speed we ignore driver access assertions */
             auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp1_offset);
-            ((uint32_t *)virtual_metadata_shm_ptr)[13] = nit_control_unit_core_temp_to_degc(voltage);
+            ((uint32_t*)virtual_metadata_shm_ptr)[13] = nit_control_unit_core_temp_to_degc(voltage);
         }
 
         {
             /** because of speed we ignore driver access assertions */
             auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp2_offset);
-            ((uint32_t *)virtual_metadata_shm_ptr)[14] = nit_control_unit_core_temp_to_degc(voltage);
+            ((uint32_t*)virtual_metadata_shm_ptr)[14] = nit_control_unit_core_temp_to_degc(voltage);
         }
 
         if ((ptr->frame_number - last_frame_index) > 1)
@@ -779,7 +801,7 @@ void application::image_writer_legacy(int socket_fd)
             printf("missed frame %d -> %d\n", last_frame_index, ptr->frame_number);
         }
 
-        if ((retval = write(socket_fd, (void *)virtual_metadata_shm_ptr, 60)) < 0)
+        if ((retval = write(socket_fd, (void*)virtual_metadata_shm_ptr, 60)) < 0)
         {
             std::cout << "Failed to write at socket when writing metadata packet with error:" << strerror(retval) << std::endl;
             break;

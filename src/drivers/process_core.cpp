@@ -511,7 +511,7 @@ int nit_process_core_config_save_to_file(nit_process_core_state_t* state, const 
     {
         return -16;
     }
-    if (nit_process_core_auto_shutter_get(state, &state->config.auto_shutter) < 0)
+    if (nit_process_core_background_remove_get(state, &state->config.background_remove) < 0)
     {
         return -17;
     }
@@ -655,7 +655,7 @@ int nit_process_core_config_load_from_file(nit_process_core_state_t* state, cons
     {
         return -16;
     }
-    if (nit_process_core_auto_shutter_set(state, state->config.auto_shutter) < 0)
+    if (nit_process_core_background_remove_set(state, state->config.background_remove) < 0)
     {
         return -17;
     }

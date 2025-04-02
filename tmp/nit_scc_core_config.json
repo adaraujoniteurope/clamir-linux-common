@@ -1,6 +1,8 @@
 {
     "value0": {
-        "opmode": 0,
+        "scale_default_file_path": "scc_core_offset_default.dat",
+        "offset_default_file_path": "scc_core_offset_default.dat",
+        "opmode": 1,
         "calibration_mode": 0,
         "process_bypass": 0,
         "calibration_bypass": 1,

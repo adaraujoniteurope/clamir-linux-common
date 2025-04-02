@@ -18,7 +18,7 @@
     _(process_core, limit_integral, uint32_t, sizeof(uint32_t), 13)        \
     _(process_core, limit_slew, uint32_t, sizeof(uint32_t), 14)            \
     _(process_core, buff_size, uint32_t, sizeof(uint32_t), 15)             \
-    _(process_core, auto_shutter, uint32_t, sizeof(uint32_t), 16)          \
+    _(process_core, background_remove, uint32_t, sizeof(uint32_t), 16)          \
     _(process_core, enable_alarm, uint32_t, sizeof(uint32_t), 17)          \
     _(process_core, alarm_max, uint32_t, sizeof(uint32_t), 18)             \
     _(process_core, alarm_min, uint32_t, sizeof(uint32_t), 19)             \

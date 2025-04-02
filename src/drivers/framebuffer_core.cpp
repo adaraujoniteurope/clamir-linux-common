@@ -190,7 +190,11 @@ int nit_framebuffer_core_config_save_to_file(nit_framebuffer_core_state_t* state
 
 int nit_framebuffer_core_config_load_from_file(nit_framebuffer_core_state_t* state, const char* path)
 {
-    return 0;
+    auto retval = config_file_load_from_file(state, path);
+
+    if (retval < 0) {
+        return retval;
+    }
 }
 
 int nit_framebuffer_core_state_assert(nit_framebuffer_core_state_t* state)

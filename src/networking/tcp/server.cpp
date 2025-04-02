@@ -5,6 +5,7 @@
 
 std::function<void()> tcp_server::create(uint16_t port, std::function<void(int socket_fd)> handler, std::atomic_bool& shutdown, bool reuseaddr)
 {
+    
     return [port, handler, reuseaddr, &shutdown = shutdown]() -> void
     {
         std::vector<std::thread> threads;
