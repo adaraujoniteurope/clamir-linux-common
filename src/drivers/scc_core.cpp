@@ -170,7 +170,7 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
     }
 
     if (state->config.scale_default_file_path.empty()) {
-        state->config.scale_default_file_path = "scc_core_offset_default.dat";
+        state->config.scale_default_file_path = "scc_core_scale_default.dat";
     }
 
     priv->scale_default_fd = open(state->config.scale_default_file_path.c_str(), O_CREAT | O_RDWR | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
@@ -227,11 +227,13 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
             }
     }
 
+    memcpy((void*)priv->scale_shm, (void*) priv->scale_default, state->config.width * state->config.height * sizeof(int16_t));
+
     if (state->config.offset_default_file_path.empty()) {
         state->config.offset_default_file_path = "scc_core_offset_default.dat";
     }
 
-    priv->offset_default_fd = open("scc_core_offset_default.dat", O_CREAT | O_RDWR | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    priv->offset_default_fd = open(state->config.offset_default_file_path.c_str(), O_CREAT | O_RDWR | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 
     if (priv->offset_default_fd < 0) {
         print_debug("%s: couldn't open offset data file\n", __func__);
@@ -277,6 +279,8 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
                 }
             }
     }
+
+    memcpy((void*)priv->offset_shm, (void*) priv->offset_default, state->config.width * state->config.height * sizeof(int16_t));
 
     priv->max_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MAX_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, -1, NIT_SCC_CORE_MAX_BASE_ADDRESS);    
 
@@ -792,6 +796,19 @@ int nit_scc_core_stub_eval_calibrate(nit_scc_core_state_t* state) {
 
 }
 
+int nit_scc_core_stub_eval_process_eval(nit_scc_core_state_t* state, volatile int16_t* target, volatile int16_t* source, volatile int16_t* scale, volatile int16_t* offset)
+{
+    
+    for (size_t row = 0; row < state->config.height; row++) {
+        for (size_t col = 0; col < state->config.width; col++) {
+            size_t index = row * state->config.width + col;
+            target[index] = ((double)(source[index] * scale[index] + offset[index]))/((double)(INT16_MAX >> 1));
+        }
+    }
+
+    return 0;
+}
+
 int nit_scc_core_stub_eval_process(nit_scc_core_state_t* state)
 {
 
@@ -806,21 +823,20 @@ int nit_scc_core_stub_eval_process(nit_scc_core_state_t* state)
 
     scc_core_private_state_t* priv = (scc_core_private_state_t*)state->priv;
 
+    if (priv == nullptr)
+    {
+        return -1;
+    }
+
     if (processing_override == true) {
         return 0;
     }
 
     if (state->config.calibration_bypass)
     {
-        memcpy((void*)priv->scale_shm, (void*)priv->scale_default, state->config.width * state->config.height * sizeof(int16_t));
-        memcpy((void*)priv->offset_shm, (void*)priv->offset_default, state->config.width * state->config.height * sizeof(int16_t));
-    }
-
-    for (size_t row = 0; row < state->config.height; row++) {
-        for (size_t col = 0; col < state->config.width; col++) {
-            size_t index = row * state->config.width + col;
-            priv->framebuffer_shm[index] = ((double)(priv->framebuffer_shm[index] * priv->scale_shm[index] + priv->offset_shm[index]))/((double)(INT16_MAX >> 1));
-        }
+        nit_scc_core_stub_eval_process_eval(state, priv->framebuffer_shm, priv->framebuffer_shm, priv->scale_default, priv->offset_default);
+    } else {
+        nit_scc_core_stub_eval_process_eval(state, priv->framebuffer_shm, priv->framebuffer_shm, priv->scale_shm, priv->offset_shm);
     }
 
     return retval;

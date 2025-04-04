@@ -2,7 +2,7 @@
 <!DOCTYPE boost_serialization>
 <boost_serialization signature="serialization::archive" version="20">
 <config class_id="0" tracking_level="0" version="0">
-	<opmode>0</opmode>
+	<opmode>1</opmode>
 	<calibration_mode>0</calibration_mode>
 	<process_bypass>0</process_bypass>
 	<calibration_bypass>0</calibration_bypass>
