@@ -783,7 +783,7 @@ void application::image_writer_legacy(int socket_fd)
             continue;
         }
 
-        nit_scc_core_stub_eval(&nit_scc_core_driver);
+        // nit_scc_core_stub_eval(&nit_scc_core_driver);
 
         memcpy(m_image_buffer, image_shm_ptr, sizeof(m_image_buffer));
         memcpy(m_metadata_buffer, image_shm_ptr + sizeof(m_image_buffer), sizeof(m_metadata_buffer));
