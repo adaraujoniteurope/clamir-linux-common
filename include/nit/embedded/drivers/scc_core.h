@@ -18,6 +18,9 @@
 
 #include "nit/embedded/utils/waitable.hpp"
 
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/nvp.hpp>
+
 #define NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(nit_scc_core_state_t, name, parameter, type, size, offset)
 #define NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(nit_scc_core_state_t, name, parameter, type, size, offset)
 
@@ -85,14 +88,14 @@
     NIT_SCC_CORE_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_TABLE_ITEM)
 
     DRIVER_DECLARE_CONFIG_SERIALIZER_BEGIN(scc_core)
-    cereal::make_nvp("scale_default_file_path", scale_default_file_path),
-    cereal::make_nvp("offset_default_file_path", offset_default_file_path),
+    boost::serialization::make_nvp("scale_default_file_path", scale_default_file_path),
+    boost::serialization::make_nvp("offset_default_file_path", offset_default_file_path),
     NIT_SCC_CORE_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_SERIALIZER_TABLE_ITEM)
     DRIVER_DECLARE_CONFIG_SERIALIZER_END(scc_core)
     
     DRIVER_DECLARE_CONFIG_DESERIALIZER_BEGIN(scc_core)
-    cereal::make_nvp("scale_default_file_path", scale_default_file_path),
-    cereal::make_nvp("offset_default_file_path", offset_default_file_path),
+    boost::serialization::make_nvp("scale_default_file_path", scale_default_file_path),
+    boost::serialization::make_nvp("offset_default_file_path", offset_default_file_path),
     NIT_SCC_CORE_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_SERIALIZER_TABLE_ITEM)
     DRIVER_DECLARE_CONFIG_DESERIALIZER_END(scc_core)
 

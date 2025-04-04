@@ -4,3 +4,6 @@
 [submodule "third-party/p-net"]
 	path = third-party/p-net
 	url = git@github.com:New-Infrared-Technologies/p-net.git
+[submodule "third-party/cereal"]
+	path = third-party/cereal
+	url = git@github.com:New-Infrared-Technologies/cereal.git

@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <memory>
 
 #include "common.h"
 

@@ -1,8 +1,11 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
+#include <memory>
+
 #include <stdbool.h>
-#include <cereal/archives/json.hpp>
+
+#include <boost/serialization/nvp.hpp>
 
 #define DRIVER_DECLARE_STATE(name)    \
     struct nit_##name##_state_t       \
@@ -24,24 +27,17 @@
 
 #define DRIVER_DECLARE_CONFIG_SERIALIZER_BEGIN(name) \
     template <class archiver>                        \
-    void save(archiver &ar) const                    \
-    {                                                \
-        ar(
-
+    void serialize(archiver &ar, const unsigned int version)                    \
+    {                                               
 #define DRIVER_DECLARE_CONFIG_SERIALIZER_END(name) \
-            reserved \
-        );                                         \
     }
 
 #define DRIVER_DECLARE_CONFIG_DESERIALIZER_BEGIN(name) \
     template <class archiver>                          \
-    void load(archiver &ar)                            \
-    {                                                  \
-        ar(
+    void load(archiver &ar, const unsigned int version)                            \
+    {
 
 #define DRIVER_DECLARE_CONFIG_DESERIALIZER_END(name) \
-            reserved \
-        );                                           \
     }
 
 #define DRIVER_DECLARE_OFFSET_TABLE_BEGIN(name)    \
@@ -62,7 +58,7 @@
     }                                       \
     ;
 
-#define DRIVER_FIELD_AS_CONFIG_SERIALIZER_TABLE_ITEM(name, parameter, type, size, offset) CEREAL_NVP(parameter),
+#define DRIVER_FIELD_AS_CONFIG_SERIALIZER_TABLE_ITEM(name, parameter, type, size, offset) ar & BOOST_SERIALIZATION_NVP(parameter);
 #define DRIVER_FIELD_AS_OFFSET_TABLE_ITEM(name, parameter, type, size, offset) nit_##name##_##parameter##_offset = offset,
 #define DRIVER_FIELD_AS_CONFIG_TABLE_ITEM(name, parameter, type, size, offset) type parameter;
 #define DRIVER_FIELD_AS_NAMES_TABLE_ITEM(name, parameter, type, size, offset) #name,

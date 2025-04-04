@@ -94,6 +94,10 @@ int nit_control_unit_core_config_load_from_file(nit_control_unit_core_state_t *s
 {
     auto retval = config_file_load_from_file(state, path);
 
+    if (retval < 0) {
+        return retval;
+    }
+
     nit_control_unit_core_bias_v_set(state, state->config.bias_v);
     nit_control_unit_core_black_level_set(state, state->config.black_level);
     nit_control_unit_core_bpc_en_set(state, state->config.bpc_en);

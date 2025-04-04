@@ -85,10 +85,10 @@ public:
 
 	void save_all()
 	{
-		nit_arm_core_config_save_to_file(&nit_arm_core_driver, "nit_arm_core_config.json");
-		nit_control_unit_core_config_save_to_file(&nit_control_unit_core_driver, "nit_control_unit_core_config.json");
-		nit_mb_core_config_save_to_file(&nit_mb_core_driver, "nit_mb_core_config.json");
-		nit_process_core_config_save_to_file(&nit_process_core_driver, "nit_process_core_config.json");
+		nit_arm_core_config_save_to_file(&nit_arm_core_driver, "nit_arm_core_config.xml");
+		nit_control_unit_core_config_save_to_file(&nit_control_unit_core_driver, "nit_control_unit_core_config.xml");
+		nit_mb_core_config_save_to_file(&nit_mb_core_driver, "nit_mb_core_config.xml");
+		nit_process_core_config_save_to_file(&nit_process_core_driver, "nit_process_core_config.xml");
 	}
 
 	// constexpr volatile int* get_process_variables_shm_ptr() { return process_variables_shm_ptr; }

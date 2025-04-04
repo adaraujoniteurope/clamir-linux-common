@@ -28,6 +28,13 @@ DRIVER_DECLARE_CONFIG_SERIALIZER_BEGIN(arm_core)
 NIT_ARM_CORE_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_SERIALIZER_TABLE_ITEM)
 DRIVER_DECLARE_CONFIG_SERIALIZER_END(arm_core)
 
+// template <class archiver> void serialize(archiver &ar, const unsigned int version) const {
+//     ar & boost::serialization::make_nvp("led_r", led_r);
+//     ar & boost::serialization::make_nvp("led_g", led_g);
+//     ar & boost::serialization::make_nvp("led_b", led_b);
+//     ar & boost::serialization::make_nvp("soft_reset", soft_reset);
+// }
+
 DRIVER_DECLARE_CONFIG_DESERIALIZER_BEGIN(arm_core)
 NIT_ARM_CORE_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_SERIALIZER_TABLE_ITEM)
 DRIVER_DECLARE_CONFIG_DESERIALIZER_END(arm_core)

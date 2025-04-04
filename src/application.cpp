@@ -218,7 +218,7 @@ int application::initialize(int argc, char *argv[])
 
     {
         auto save_path = configuration_path;
-        save_path += "/nit_arm_core_config.json";
+        save_path += "/nit_arm_core_config.xml";
 
         std::cout << "loading configuration from: " << save_path << std::endl;
 
@@ -235,7 +235,7 @@ int application::initialize(int argc, char *argv[])
 
     {
         auto save_path = configuration_path;
-        save_path += "/nit_control_unit_core_config.json";
+        save_path += "/nit_control_unit_core_config.xml";
 
         std::cout << "loading configuration from: " << save_path << std::endl;
 
@@ -252,7 +252,7 @@ int application::initialize(int argc, char *argv[])
 
     {
         auto save_path = configuration_path;
-        save_path += "/nit_mb_core_config.json";
+        save_path += "/nit_mb_core_config.xml";
 
         std::cout << "loading configuration from: " << save_path << std::endl;
 
@@ -277,7 +277,7 @@ int application::initialize(int argc, char *argv[])
 
     {
         auto save_path = configuration_path;
-        save_path += "/nit_process_core_config.json";
+        save_path += "/nit_process_core_config.xml";
 
         std::cout << "loading configuration from: " << save_path << std::endl;
 
@@ -294,7 +294,7 @@ int application::initialize(int argc, char *argv[])
 
     {
         auto save_path = configuration_path;
-        save_path += "/nit_scc_core_config.json";
+        save_path += "/nit_scc_core_config.xml";
 
         std::cout << "loading configuration from: " << save_path << std::endl;
 

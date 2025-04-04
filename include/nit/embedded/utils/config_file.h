@@ -4,18 +4,19 @@
 
 #include <fstream>
 #include <filesystem>
+#include <exception>
+#include <iostream>
 
-#include <cereal/types/unordered_map.hpp>
-#include <cereal/types/memory.hpp>
-#include <cereal/archives/json.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
 template<class state_type>
 int config_file_save_to_file(state_type* state, const char *path)
 {   
     try {
         std::ofstream os(path, std::ios::binary);
-        cereal::JSONOutputArchive archive( os );
-        archive(state->config);
+        boost::archive::xml_oarchive archive( os );
+        archive <<  boost::make_nvp("config", state->config);
     } catch (std::exception & ex)
     {
         std::cout << ex.what() << std::endl;
@@ -34,8 +35,8 @@ int config_file_load_from_file(state_type* state, const char *path)
     
     try {
         std::ifstream is(path, std::ios::binary);
-        cereal::JSONInputArchive archive( is );
-        archive(state->config);
+        boost::archive::xml_iarchive archive( is );
+        archive >> boost::make_nvp("config", state->config);
     } catch (std::exception & ex)
     {
         std::cout << ex.what() << std::endl;

@@ -107,6 +107,10 @@ int nit_arm_core_config_load_from_file(nit_arm_core_state_t *state, const char *
 {
     auto retval = config_file_load_from_file(state, path);
 
+    if (retval < 0) {
+        return retval;
+    }
+
     nit_arm_core_led_r_set(state, state->config.led_r);
     nit_arm_core_led_g_set(state, state->config.led_g);
     nit_arm_core_led_b_set(state, state->config.led_b);

@@ -1,4 +1,11 @@
 cmake_minimum_required(VERSION 3.22)
+
+if(CMAKE_VERSION VERSION_GREATER "3.30.0") 
+    cmake_policy(SET CMP0167 NEW)
+else()
+    cmake_policy(SET CMP0167 OLD)
+endif()
+
 project(clamir-linux-daemon LANGUAGES C CXX)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -11,7 +18,7 @@ option(NIT_CLAMIR_HOST_MOCKUP "Enable Host Mockup" true)
 
 include(FindPkgConfig)
 if(!${PKG_CONFIG_FOUND})
-  MESSAGE(FATAL_ERROR "pkg-config required. Please install it")
+  MESSAGE(FATAL_ERROR "pkg-config required. Please inll it")
   return ("Error - pkg-config not found")
 endif()
 
@@ -21,23 +28,12 @@ message(STATUS "CMAKE_SYSTEM_INCLUDE_PATH: ${CMAKE_SYSTEM_INCLUDE_PATH}")
 
 include(FetchContent)
 
-set(SKIP_PORTABILITY_TEST YES CACHE INTERNAL "Turn of CEREAL Compatibility Tests")
+set(SKIP_PORTABILITY_TEST YES CACHE INTERNAL "Turn off CEREAL Compatibility Tests")
+set(SKIP_PERFORMANCE_COMPARISON YES CACHE INTERNAL "Turn off CEREAL Performance Tests")
+set(BUILD_DOC NO CACHE INTERNAL "Turn off CEREAL Build Documentation")
+set(BUILD_SANDBOX NO CACHE INTERNAL "Turn off CEREAL Sandbox Build")
 
-FetchContent_Declare(
-      cereal
-      GIT_REPOSITORY https://github.com/USCiLab/cereal
-      GIT_TAG v1.3.0)
-
-FetchContent_GetProperties(cereal)
-
-if (NOT cereal_POPULATED)
-    FetchContent_Populate(cereal)
-    add_subdirectory(
-    ${cereal_SOURCE_DIR}
-    ${cereal_BINARY_DIR}
-    EXCLUDE_FROM_ALL)
-    add_library(cereal::cereal ALIAS cereal )
-endif ()
+find_package(Boost REQUIRED COMPONENTS system serialization)
 
 FetchContent_Declare(
   Eigen
@@ -69,8 +65,8 @@ target_link_libraries(${PROJECT_NAME}-obj
         # PNET::PNET
         ${GSTREAMER_LIBRARIES}
         m
-        # ${Boost_LIBRARIES}
-        cereal
+        ${Boost_LIBRARIES}
+        # cereal
         Eigen3::Eigen
 )
 
@@ -111,7 +107,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}-obj)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
-file(GLOB_RECURSE ${PROJECT_NAME}_CONF_SOURCES ${CMAKE_SOURCE_DIR}/share/*.json)
+file(GLOB_RECURSE ${PROJECT_NAME}_CONF_SOURCES ${CMAKE_SOURCE_DIR}/share/*)
 
 install(FILES ${CMAKE_SOURCE_DIR}/share/${PROJECT_NAME}.service DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
 

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!DOCTYPE boost_serialization>
+<boost_serialization signature="serialization::archive" version="20">
+<config class_id="0" tracking_level="0" version="0">
+	<version_id>0</version_id>
+	<enable_mom>0</enable_mom>
+	<enable_roi>0</enable_roi>
+	<enable_pwm>0</enable_pwm>
+	<enable_irq>0</enable_irq>
+	<change_op_mode>1</change_op_mode>
+	<irq_microblaze>0</irq_microblaze>
+	<digital_in_0>0</digital_in_0>
+	<digital_in_1>0</digital_in_1>
+	<digital_out_0>0</digital_out_0>
+	<digital_out_1>0</digital_out_1>
+	<digital_out_conf>0</digital_out_conf>
+	<digital_in_2>0</digital_in_2>
+	<digital_in_3>0</digital_in_3>
+	<digital_out_2>0</digital_out_2>
+	<digital_out_3>0</digital_out_3>
+	<threshold>1182</threshold>
+	<intensity_min>0</intensity_min>
+	<intensity_max>0</intensity_max>
+	<mom_00>0</mom_00>
+	<mom_01>0</mom_01>
+	<mom_10>0</mom_10>
+	<mom_11>0</mom_11>
+	<mom_02>0</mom_02>
+	<mom_20>0</mom_20>
+	<start_track_mom_t>40</start_track_mom_t>
+	<track_nbr>0</track_nbr>
+	<mode>2</mode>
+	<time_track_low>200000000</time_track_low>
+	<time_track_high>0</time_track_high>
+	<frame_max>0</frame_max>
+	<reference_track>3</reference_track>
+	<end_of_track>30</end_of_track>
+	<pwm_limit_max>1117</pwm_limit_max>
+	<pwm>0</pwm>
+	<power>0</power>
+	<pwm_limit_min>372</pwm_limit_min>
+	<x1>15</x1>
+	<y1>15</y1>
+	<x2>50</x2>
+	<y2>50</y2>
+	<round>0</round>
+</config>
+</boost_serialization>
+

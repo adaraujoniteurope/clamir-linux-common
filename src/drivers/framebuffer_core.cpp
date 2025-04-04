@@ -195,6 +195,8 @@ int nit_framebuffer_core_config_load_from_file(nit_framebuffer_core_state_t* sta
     if (retval < 0) {
         return retval;
     }
+
+    return retval;
 }
 
 int nit_framebuffer_core_state_assert(nit_framebuffer_core_state_t* state)
