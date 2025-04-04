@@ -5,7 +5,7 @@
 
 rm -rf /home/arthur/Work/Software/clamir-linux-daemon/build-cmaketools
 
-. /home/arthur/Tools/Xilinx/Petalinux/2024.2/SDK/environment-setup-cortexa9t2hf-neon-xilinx-linux-gnueabi
+. /home/arthur/Work/Petalinux/clamir-petalinux-v2024.2-sdk/environment-setup-cortexa9t2hf-neon-xilinx-linux-gnueabi
 
 cmake -G Ninja -B /home/arthur/Work/Software/clamir-linux-daemon/build-cmaketools -S . "-DCMAKE_C_COMPILER_WORKS=TRUE" "-DCMAKE_CXX_COMPILER_WORKS=TRUE" "-DNIT_CLAMIR_ENABLE_TESTING=No" "-DNIT_CLAMIR_ENABLE_PROFINET=No",  "-DCMAKE_BUILD_TYPE=Debug"
 cmake --build /home/arthur/Work/Software/clamir-linux-daemon/build-cmaketools -j$(nproc)

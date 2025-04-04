@@ -101,7 +101,7 @@ public:
 
 private:
 
-	double calculate_width(int metadatos[12]);
+	int sensor_calibrate();
 
 	void legacy_control_function(volatile int *virtual_metadata_shm, volatile int *real_metadata_shm, volatile int *proc_var_shm, volatile int *gen_core_shm, volatile int *arm_core_shm, volatile int *control_unit_shm);
 
@@ -117,6 +117,18 @@ private:
 
 	static std::shared_ptr<application> instance;
 
+	application_config config_default = {
+		.version_major = "0",
+		.version_minor = "2",
+		.version_patch = "0",
+		.serial_number = "0",
+		.tcp_command_host_server_host = "0.0.0.0",
+		.tcp_command_host_server_port = 4097,
+		.tcp_image_stream_host_server_host = "0.0.0.0",
+		.tcp_image_stream_host_server_port = 4096,
+		.sensor_update_interval_us = 50000,
+		.global_timer_update_interval_us = 1000,
+	};
 	application_config config;
 
 	struct sigaction m_sigint_handler;

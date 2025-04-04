@@ -25,6 +25,7 @@ typedef struct scc_core_private_state_struct
     volatile int16_t* framebuffer_shm;
 
     volatile uint32_t* ctrl_shm;
+    volatile uint32_t* ctrl_stub_shm;
 
     volatile int16_t* scale_shm;
     volatile int16_t* offset_shm;
@@ -50,6 +51,10 @@ void scc_core_cleanup_stub(nit_scc_core_state_t* state)
 
     if (priv->ctrl_shm != NULL) {
         free((void*) priv->ctrl_shm);
+    }
+
+    if (priv->ctrl_stub_shm != NULL) {
+        free((void*) priv->ctrl_stub_shm);
     }
 
     if (priv->offset_shm != NULL) {
@@ -86,6 +91,10 @@ void nit_scc_core_cleanup(nit_scc_core_state_t* state)
 
     if (priv->ctrl_shm != NULL) {
         memory_map_close((void*) priv->ctrl_shm, NIT_SCC_CORE_CTRL_BASE_SIZE);
+    }
+
+    if (priv->ctrl_stub_shm != NULL) {
+        memory_map_close((void*) priv->ctrl_stub_shm, NIT_SCC_CORE_CTRL_BASE_SIZE);
     }
 
     if (priv->offset_shm != NULL) {
@@ -151,6 +160,13 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
     priv->ctrl_shm = (volatile uint32_t*) memory_map_open(NULL, NIT_SCC_CORE_CTRL_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->dev_fd, NIT_SCC_CORE_CTRL_BASE_ADDRESS);
 
     if (priv->ctrl_shm == NULL) {
+        nit_scc_core_cleanup(state);
+        return -1;
+    }
+
+    priv->ctrl_stub_shm = (volatile uint32_t*) memory_map_open(NULL, NIT_SCC_CORE_CTRL_STUB_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->dev_fd, NIT_SCC_CORE_CTRL_STUB_BASE_ADDRESS);
+
+    if (priv->ctrl_stub_shm == NULL) {
         nit_scc_core_cleanup(state);
         return -1;
     }
@@ -411,6 +427,146 @@ int scc_core_config_load_from_file(nit_scc_core_state_t* state, const char* path
     return config_file_load_from_file(state, path);
 }
 
+int nit_scc_core_testing_disable_set(nit_scc_core_state_t* state, uint16_t value)
+{
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_testing_disable_offset, value);
+
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_testing_disable_offset) = value;
+
+    return retval;
+}
+
+int nit_scc_core_testing_disable_get(nit_scc_core_state_t* state, uint16_t* value)
+{
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_testing_disable_offset);
+
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_testing_disable_offset, *value);
+    return retval;
+}
+
+int nit_scc_core_testing_addr_set(nit_scc_core_state_t* state, uint16_t value)
+{
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_testing_addr_offset, value);
+
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_testing_addr_offset) = value;
+
+    return retval;
+}
+
+int nit_scc_core_testing_addr_get(nit_scc_core_state_t* state, uint16_t* value)
+{
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_testing_addr_offset);
+
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_testing_addr_offset, *value);
+    return retval;
+}
+
+int nit_scc_core_testing_wren_set(nit_scc_core_state_t* state, uint16_t value)
+{
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_testing_wren_offset, value);
+
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_testing_wren_offset) = value;
+
+    return retval;
+}
+
+int nit_scc_core_testing_wren_get(nit_scc_core_state_t* state, uint16_t* value)
+{
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_testing_wren_offset);
+
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_testing_wren_offset, *value);
+    return retval;
+}
+
+int nit_scc_core_testing_data_set(nit_scc_core_state_t* state, uint16_t value)
+{
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_testing_data_offset, value);
+
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_testing_data_offset) = value;
+
+    return retval;
+}
+
+int nit_scc_core_testing_data_get(nit_scc_core_state_t* state, uint16_t* value)
+{
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) != 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return retval;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_testing_data_offset);
+
+    print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_testing_data_offset, *value);
+    return retval;
+}
+
 int nit_scc_core_opmode_set(nit_scc_core_state_t* state, uint16_t value)
 {
     print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_opmode_offset, value);
@@ -424,7 +580,7 @@ int nit_scc_core_opmode_set(nit_scc_core_state_t* state, uint16_t value)
     }
 
     auto priv = (scc_core_private_state_t*) state->priv;
-    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_opmode_offset) = value;
+    *((uint32_t*)((uint8_t*)priv->ctrl_stub_shm) + nit_scc_core_opmode_offset) = value;
 
     return retval;
 }
@@ -440,7 +596,7 @@ int nit_scc_core_opmode_get(nit_scc_core_state_t* state, uint16_t* value)
     }
 
     auto priv = (scc_core_private_state_t*) state->priv;
-    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_opmode_offset);
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_stub_shm) + nit_scc_core_opmode_offset);
 
     print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_opmode_offset, *value);
     return retval;
@@ -457,7 +613,7 @@ int nit_scc_core_process_bypass_get(nit_scc_core_state_t* state, uint16_t* value
     }
 
     auto priv = (scc_core_private_state_t*) state->priv;
-    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_process_bypass_offset);
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_stub_shm) + nit_scc_core_process_bypass_offset);
 
     print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_process_bypass_offset, *value);
     return retval;
@@ -476,7 +632,7 @@ int nit_scc_core_process_bypass_set(nit_scc_core_state_t* state, uint16_t value)
     }
 
     auto priv = (scc_core_private_state_t*) state->priv;
-    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_process_bypass_offset) = value;
+    *((uint32_t*)((uint8_t*)priv->ctrl_stub_shm) + nit_scc_core_process_bypass_offset) = value;
 
     return retval;
 }
@@ -492,7 +648,7 @@ int nit_scc_core_calibration_bypass_get(nit_scc_core_state_t* state, uint16_t* v
     }
 
     auto priv = (scc_core_private_state_t*) state->priv;
-    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_calibration_bypass_offset);
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_stub_shm) + nit_scc_core_calibration_bypass_offset);
 
     print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_calibration_bypass_offset, *value);
     return retval;
@@ -511,7 +667,7 @@ int nit_scc_core_calibration_bypass_set(nit_scc_core_state_t* state, uint16_t va
     }
 
     auto priv = (scc_core_private_state_t*) state->priv;
-    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_calibration_bypass_offset) = value;
+    *((uint32_t*)((uint8_t*)priv->ctrl_stub_shm) + nit_scc_core_calibration_bypass_offset) = value;
 
     return retval;
 }
@@ -527,7 +683,7 @@ int nit_scc_core_width_get(nit_scc_core_state_t* state, uint16_t* value)
     }
 
     auto priv = (scc_core_private_state_t*) state->priv;
-    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_width_offset);
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_stub_shm) + nit_scc_core_width_offset);
 
     print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_width_offset, *value);
     return retval;
@@ -546,7 +702,7 @@ int nit_scc_core_width_set(nit_scc_core_state_t* state, uint16_t value)
     }
 
     auto priv = (scc_core_private_state_t*) state->priv;
-    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_width_offset) = value;
+    *((uint32_t*)((uint8_t*)priv->ctrl_stub_shm) + nit_scc_core_width_offset) = value;
 
     return retval;
 }
@@ -562,7 +718,7 @@ int nit_scc_core_height_get(nit_scc_core_state_t* state, uint16_t* value)
     }
 
     auto priv = (scc_core_private_state_t*) state->priv;
-    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_height_offset);
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_stub_shm) + nit_scc_core_height_offset);
 
     print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_height_offset, *value);
     return retval;
@@ -581,7 +737,7 @@ int nit_scc_core_height_set(nit_scc_core_state_t* state, uint16_t value)
     }
 
     auto priv = (scc_core_private_state_t*) state->priv;
-    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_height_offset) = value;
+    *((uint32_t*)((uint8_t*)priv->ctrl_stub_shm) + nit_scc_core_height_offset) = value;
 
     return retval;
 }
@@ -599,7 +755,7 @@ int nit_scc_core_calibration_mode_set(nit_scc_core_state_t* state, uint16_t valu
     }
 
     auto priv = (scc_core_private_state_t*) state->priv;
-    *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_calibration_mode_offset) = value;
+    *((uint32_t*)((uint8_t*)priv->ctrl_stub_shm) + nit_scc_core_calibration_mode_offset) = value;
 
     return retval;
 }
@@ -615,7 +771,7 @@ int nit_scc_core_calibration_mode_get(nit_scc_core_state_t* state, uint16_t* val
     }
 
     auto priv = (scc_core_private_state_t*) state->priv;
-    *value = *((uint32_t*)((uint8_t*)priv->ctrl_shm) + nit_scc_core_calibration_mode_offset);
+    *value = *((uint32_t*)((uint8_t*)priv->ctrl_stub_shm) + nit_scc_core_calibration_mode_offset);
 
     print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_calibration_mode_offset, *value);
     return retval;
@@ -798,7 +954,6 @@ int nit_scc_core_stub_eval_calibrate(nit_scc_core_state_t* state) {
 
 int nit_scc_core_stub_eval_process_eval(nit_scc_core_state_t* state, volatile int16_t* target, volatile int16_t* source, volatile int16_t* scale, volatile int16_t* offset)
 {
-    
     for (size_t row = 0; row < state->config.height; row++) {
         for (size_t col = 0; col < state->config.width; col++) {
             size_t index = row * state->config.width + col;

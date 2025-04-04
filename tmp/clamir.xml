@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!DOCTYPE boost_serialization>
+<boost_serialization signature="serialization::archive" version="20">
+<config class_id="0" tracking_level="0" version="0">
+	<version_major>0</version_major>
+	<version_minor>2</version_minor>
+	<version_patch>0</version_patch>
+	<serial_number>0</serial_number>
+	<tcp_command_host_server_host>0.0.0.0</tcp_command_host_server_host>
+	<tcp_command_host_server_port>4097</tcp_command_host_server_port>
+	<tcp_image_stream_host_server_host>0.0.0.0</tcp_image_stream_host_server_host>
+	<tcp_image_stream_host_server_port>4097</tcp_image_stream_host_server_port>
+	<sensor_update_interval_ms>50000</sensor_update_interval_ms>
+	<global_timer_update_interval_ms>1000</global_timer_update_interval_ms>
+</config>
+</boost_serialization>
+

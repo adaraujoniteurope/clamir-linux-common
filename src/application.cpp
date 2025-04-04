@@ -48,6 +48,9 @@
 
 #include <nit/embedded/math/algorithm.hpp>
 
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+
 using namespace math::control;
 using namespace utils::time;
 using namespace utils::numeric;
@@ -60,6 +63,72 @@ namespace std
     {
         return a.get_id() == b.get_id();
     }
+}
+
+int application::sensor_calibrate()
+{
+    nit_control_unit_core_offset_en_set(&nit_control_unit_core_driver, 1);
+    nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
+
+    /**
+     * 1. enter calibration
+     */
+    nit_scc_core_calibration_bypass_set(&nit_scc_core_driver, 1);
+    nit_scc_core_opmode_set(&nit_scc_core_driver, NIT_SCC_CORE_OPMODE_CALIBRATE);
+
+    /**
+     * 1. set start acquiring min
+     * 2. close shutter
+     * 3. wait for 250 ms
+     */
+    nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MIN);
+
+    if (host_mockup) {
+        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_CLOSED);
+    }
+
+    nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+
+    /**
+     * 1. set start acquiring max
+     * 2. open shutter
+     * 3. wait for 250 ms
+     */
+    nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MAX);
+
+    if (host_mockup) {
+        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_OPEN);
+    }
+
+    nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+
+    /**
+     * 1. disable acquiring max
+     * 2. wait for calibration to complete
+     * 3. enable scc_core processing
+     */
+    nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_UPDATING);
+    nit_scc_core_calibration_mode_wait_idle(&nit_scc_core_driver);
+
+    nit_scc_core_opmode_set(&nit_scc_core_driver, NIT_SCC_CORE_OPMODE_PROCESS);
+
+    if (host_mockup) {
+        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_PATTERN_BALL);
+    }
+
+    if (!nit_scc_core_driver.config.calibration_bypass)
+    {
+        nit_scc_core_calibration_bypass_set(&nit_scc_core_driver, 0);
+    }
+
+    /**
+     * older offset core processing disable offset update
+     */
+    nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 0);
+
+    return 0;
 }
 
 int application::initialize(int argc, char *argv[])
@@ -80,6 +149,30 @@ int application::initialize(int argc, char *argv[])
         std::filesystem::create_directory(configuration_path);
     } catch (std::exception& ex) {
         std::cout << ex.what() << std::endl;
+    }
+
+    auto app_config_path = std::string(CONFIGURATION_DIRECTORY) + "/clamir.xml";
+
+    if (!std::filesystem::exists(app_config_path))
+    {
+        try {
+            std::ofstream ofs(app_config_path);
+            boost::archive::xml_oarchive xoa(ofs);
+            xoa & boost::make_nvp("config", this->config_default);
+        } catch (std::exception& ex) {
+            std::cout << ex.what()<< std::endl;
+            return -1;
+        }
+    }
+
+    try {
+        std::ifstream ifs(app_config_path);
+        boost::archive::xml_iarchive xia(ifs);
+        xia & boost::make_nvp("config", this->config);
+    } catch(std::exception& ex)
+    {
+        std::cout << ex.what() << std::endl;
+        return -1;
     }
 
     {
@@ -316,7 +409,7 @@ application::application()
     : m_shutdown(false), m_command_server_router({{1, std::bind(&application::default_handler, this, std::placeholders::_1, std::placeholders::_2)}})
 {
     if (application::host_mockup) {
-        m_timer = std::make_shared<linux_generic_timer>(1000000UL, m_shutdown);
+        m_timer = std::make_shared<linux_generic_timer>(this->config.global_timer_update_interval_us, m_shutdown);
     } else {
         m_timer = std::make_shared<uio_timer>(m_shutdown);
     }
@@ -403,48 +496,35 @@ void application::run()
         nit_pwm_core_pwm_set(&nit_mb_core_driver, pwm_value);
     };
 
-    // image_read += [this](auto self, auto image_buffer_ptr, auto image_size, auto image_metadata_buffer_ptr, auto metadata_size)
-    // {
-    //     double m00 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 0, 0);
-    //     double m01 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 0, 1);
-    //     double m10 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 1, 0);
-    //     double m11 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 1, 1);
-    //     double m02 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 0, 2);
-    //     double m20 = math::algorithm::moments::moments((int16_t *)image_buffer_ptr, 64, 64, 2, 0);
-    //     double width = math::algorithm::moments::width_2d<double>(m00, m01, m10, m11, m02, m20);
-    //     m_controller.feedback_set(width);
-    // };
-
     std::thread system_timer_thread = std::thread(m_timer->get_worker());
 
     auto legacy_command_server_worker = std::thread(tcp_server::create(4097, std::bind(&application::command_processor_legacy, this, std::placeholders::_1), shutdown));
     auto legacy_image_server_worker = std::thread(tcp_server::create(4096, std::bind(&application::image_writer_legacy, this, std::placeholders::_1), shutdown));
 
     m_server_threads.push_back(std::move(system_timer_thread));
+    
     m_server_threads.push_back(std::move(legacy_command_server_worker));
     m_server_threads.push_back(std::move(legacy_image_server_worker));
 
     m_server_threads.push_back(std::move(std::thread([this]() -> void {
         nit_process_core_run(&nit_process_core_driver, m_timer, m_shutdown);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     })));
 
-    m_server_threads.push_back(std::move(std::thread([this]() -> void {
-        nit_framebuffer_core_run(&nit_framebuffer_core_driver, m_timer, m_shutdown);
-    })));
+    std::shared_ptr<linux_generic_timer> image_timer = nullptr;
+
+    if (host_mockup) {
+        image_timer = std::make_shared<linux_generic_timer>(this->config.global_timer_update_interval_us * 1000.0, m_shutdown);
+        std::thread image_timer_thread = std::thread(image_timer->get_worker());
+        m_server_threads.push_back(std::move(image_timer_thread));
+        m_server_threads.push_back(std::move(std::thread([this]() -> void {
+            nit_framebuffer_core_run(&nit_framebuffer_core_driver, m_timer, m_shutdown);
+        })));
+    }
+
+    sensor_calibrate();
 
     while (!shutdown.load())
     {
-        /**
-         * Corrected Bug:
-         * When a signal like SIGTERM or SIGING it thrown during sleep, this function throws and kills
-         * the main thread leading to a undefined state.
-         *
-         * When wrapping in a thread, the thread dies causing a return that's why it was working before.
-         * but not here.
-         *
-         * Catching the exception, avoids this faulty behavior.
-         */
         try
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));

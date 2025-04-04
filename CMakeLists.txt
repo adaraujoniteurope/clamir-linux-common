@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.22)
 
+message(STATUS "CMAKE_VERSION: ${CMAKE_VERSION}")
+
 if(CMAKE_VERSION VERSION_GREATER "3.30.0") 
     cmake_policy(SET CMP0167 NEW)
 else()
-    cmake_policy(SET CMP0167 OLD)
 endif()
 
 project(clamir-linux-daemon LANGUAGES C CXX)
@@ -11,10 +12,10 @@ project(clamir-linux-daemon LANGUAGES C CXX)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 
-option(NIT_CLAMIR_ENABLE_TESTING "Enable Testing" NO)
-option(NIT_CLAMIR_ENABLE_DOCS "Enable Documentation" NO)
-option(NIT_CLAMIR_ENABLE_PROFINET "Enable Profinet Extensio" NO)
-option(NIT_CLAMIR_HOST_MOCKUP "Enable Host Mockup" true)
+option(NIT_CLAMIR_ENABLE_TESTING "Enable Testing" OFF)
+option(NIT_CLAMIR_ENABLE_DOCS "Enable Documentation" OFF)
+option(NIT_CLAMIR_ENABLE_PROFINET "Enable Profinet Extensio" OFF)
+option(NIT_CLAMIR_HOST_MOCKUP "Enable Host Mockup" OFF)
 
 include(FindPkgConfig)
 if(!${PKG_CONFIG_FOUND})
@@ -74,7 +75,17 @@ target_include_directories(${PROJECT_NAME}-obj PUBLIC ${OSAL_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME}-obj PUBLIC ${PNET_INCLUDE_DIR})
 
 target_compile_options(${PROJECT_NAME}-obj PUBLIC -Wall -Wdeprecated -Wdeprecated-declarations -g -O0)
-target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DNIT_CLAMIR_HOST_MOCKUP -DNIT_CLAMIR_DEBUGGING)
+
+
+if (NIT_CLAMIR_HOST_MOCKUP)
+    message(STATUS "NIT_CLAMIR_HOST_MOCKUP: ${NIT_CLAMIR_HOST_MOCKUP}")
+    target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DNIT_CLAMIR_HOST_MOCKUP)
+endif()
+
+if (NIT_CLAMIR_DEBUGGING)
+    message(STATUS "NIT_CLAMIR_DEBUGGING: ${NIT_CLAMIR_DEBUGGING}")
+    target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DNIT_CLAMIR_DEBUGGING)
+endif()
 
 target_include_directories(${PROJECT_NAME}-obj PUBLIC ${BOOST_INCLUDE_DIRS})
 
