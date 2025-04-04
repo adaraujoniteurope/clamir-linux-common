@@ -3,8 +3,8 @@
 <boost_serialization signature="serialization::archive" version="20">
 <config class_id="0" tracking_level="0" version="0">
 	<led_r>0</led_r>
-	<led_g>0</led_g>
-	<led_b>8209</led_b>
+	<led_g>1</led_g>
+	<led_b>0</led_b>
 	<soft_reset>0</soft_reset>
 </config>
 </boost_serialization>

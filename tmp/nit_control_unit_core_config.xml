@@ -2,10 +2,10 @@
 <!DOCTYPE boost_serialization>
 <boost_serialization signature="serialization::archive" version="20">
 <config class_id="0" tracking_level="0" version="0">
-	<int_time>600</int_time>
-	<bias_v>13652</bias_v>
+	<int_time>200</int_time>
+	<bias_v>10922</bias_v>
 	<offset_en>0</offset_en>
-	<offset_update>1</offset_update>
+	<offset_update>0</offset_update>
 	<shutter>0</shutter>
 	<bpc_en>0</bpc_en>
 	<bpc_mem_write>0</bpc_mem_write>
