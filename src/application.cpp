@@ -399,7 +399,6 @@ int application::initialize(int argc, char *argv[])
                 return -1;
             }
         }
-
     }
 
     return 0;
@@ -521,7 +520,7 @@ void application::run()
         })));
     }
 
-    sensor_calibrate();
+    // sensor_calibrate();
 
     while (!shutdown.load())
     {

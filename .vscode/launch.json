@@ -5,14 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) Attach to GDB Server at 192.168.1.177:2000",
+            "name": "(gdb) Attach to GDB Server at 10.42.0.122:2000",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build-cmaketools/clamir-linux-daemon",
+            "program": "${workspaceFolder}/build-target/clamir-linux-daemon",
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
             "cwd": ".",
-            "miDebuggerServerAddress": "192.168.1.177:2000",
+            "miDebuggerServerAddress": "10.42.0.122:2000",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

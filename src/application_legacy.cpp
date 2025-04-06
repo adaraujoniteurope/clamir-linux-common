@@ -6,6 +6,7 @@
 #include <csignal>
 #include <atomic>
 #include <cmath>
+#include <string>
 
 #include <future>
 
@@ -46,6 +47,7 @@
 #include <nit/embedded/math/algorithm.hpp>
 
 #include <nit/embedded/vision/frame_generator.hpp>
+#include <nit/embedded/drivers/scc_core.h>
 
 int send_response(int fd, packet& req)
 {
@@ -351,62 +353,7 @@ int command_target_scc_core_calibrate_read(std::shared_ptr<application> app, com
 
 int command_target_scc_core_calibrate_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
-    nit_control_unit_core_offset_en_set(&nit_control_unit_core_driver, 1);
-    nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
-
-    /**
-     * 1. enter calibration
-     */
-    nit_scc_core_opmode_set(&nit_scc_core_driver, NIT_SCC_CORE_OPMODE_CALIBRATE);
-
-    /**
-     * 1. set start acquiring min
-     * 2. close shutter
-     * 3. wait for 250 ms
-     */
-    nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MIN);
-
-    if (app->host_mockup) {
-        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_CLOSED);
-    }
-
-    nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-
-    /**
-     * 1. set start acquiring max
-     * 2. open shutter
-     * 3. wait for 250 ms
-     */
-    nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MAX);
-
-    if (app->host_mockup) {
-        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_OPEN);
-    }
-
-    nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-
-    /**
-     * 1. disable acquiring max
-     * 2. wait for calibration to complete
-     * 3. enable scc_core processing
-     */
-    nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_UPDATING);
-    nit_scc_core_calibration_mode_wait_idle(&nit_scc_core_driver);
-
-    nit_scc_core_opmode_set(&nit_scc_core_driver, NIT_SCC_CORE_OPMODE_PROCESS);
-
-    if (app->host_mockup) {
-        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_PATTERN_BALL);
-    }
-
-    /**
-     * older offset core processing disable offset update
-     */
-    nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 0);
-
-    return 0;
+    nit_scc_core_calibrate(&nit_scc_core_driver);
 }
 
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, background_remove)
@@ -764,7 +711,7 @@ void application::image_writer_legacy(int socket_fd)
 
     int retval = 0;
 
-    uint8_t* image_shm_ptr = (uint8_t*)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
+    volatile short* image_shm_ptr = (volatile short*)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
     volatile int* virtual_metadata_shm_ptr = nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
 
     metadata* ptr = (metadata*)virtual_metadata_shm_ptr;
@@ -776,17 +723,19 @@ void application::image_writer_legacy(int socket_fd)
     while (!m_shutdown)
     {
 
-        std::this_thread::sleep_for(std::chrono::microseconds(std::chrono::microseconds(50)));
+        std::this_thread::sleep_for(std::chrono::microseconds(std::chrono::microseconds(100)));
 
         if ((last_frame_index - ptr->frame_number) == 0)
         {
             continue;
         }
 
-        // nit_scc_core_stub_eval(&nit_scc_core_driver);
+        if (host_mockup) {
+            nit_scc_core_driver.config.process_bypass = true;
+        }
 
-        memcpy(m_image_buffer, image_shm_ptr, sizeof(m_image_buffer));
-        memcpy(m_metadata_buffer, image_shm_ptr + sizeof(m_image_buffer), sizeof(m_metadata_buffer));
+        memcpy(m_image_buffer, (void*)image_shm_ptr, sizeof(m_image_buffer));
+        memcpy(m_metadata_buffer, (void*)image_shm_ptr + sizeof(m_image_buffer), sizeof(m_metadata_buffer));
 
         {
             /** because of speed we ignore driver access assertions */

@@ -25,23 +25,23 @@
 #define NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(nit_scc_core_state_t, name, parameter, type, size, offset)
 
 #define NIT_SCC_CORE_SCALE_DEFAULT_BASE_ADDRESS 0x00000000
-#define NIT_SCC_CORE_SCALE_DEFAULT_BASE_SIZE 0x00002000
+#define NIT_SCC_CORE_SCALE_DEFAULT_BASE_SIZE 0x00004000
 
 #define NIT_SCC_CORE_OFFSET_DEFAULT_BASE_ADDRESS 0x00000000
-#define NIT_SCC_CORE_OFFSET_DEFAULT_BASE_SIZE 0x00002000
+#define NIT_SCC_CORE_OFFSET_DEFAULT_BASE_SIZE 0x00004000
 
 #if !NIT_CLAMIR_HOST_MOCKUP
-#define NIT_SCC_CORE_CTRL_BASE_ADDRESS 0x4A000000
+#define NIT_SCC_CORE_CTRL_BASE_ADDRESS 0x40002000
 #define NIT_SCC_CORE_CTRL_BASE_SIZE 0x00002000
 
 #define NIT_SCC_CORE_CTRL_STUB_BASE_ADDRESS 0x00000000
 #define NIT_SCC_CORE_CTRL_STUB_BASE_SIZE 0x00002000
 
-#define NIT_SCC_CORE_SCALE_BASE_ADDRESS 0x46000000
-#define NIT_SCC_CORE_SCALE_BASE_SIZE 0x00008000
+#define NIT_SCC_CORE_SCALE_BASE_ADDRESS 0x48000000
+#define NIT_SCC_CORE_SCALE_BASE_SIZE 0x00004000
 
-#define NIT_SCC_CORE_OFFSET_BASE_ADDRESS 0x48000000
-#define NIT_SCC_CORE_OFFSET_BASE_SIZE 0x00008000
+#define NIT_SCC_CORE_OFFSET_BASE_ADDRESS 0x4A000000
+#define NIT_SCC_CORE_OFFSET_BASE_SIZE 0x00004000
 
 #define NIT_SCC_CORE_MIN_BASE_ADDRESS 0x00000000
 #define NIT_SCC_CORE_MIN_BASE_SIZE 0x00002000
@@ -121,8 +121,13 @@
     int nit_scc_core_config_save_to_file(nit_scc_core_state_t *state, const char *path);
     int nit_scc_core_config_load_from_file(nit_scc_core_state_t *state, const char *path);
 
+    int* nit_scc_core_get_scale_memory_map(nit_scc_core_state_t *state);
+    int* nit_scc_core_get_offset_memory_map(nit_scc_core_state_t *state);
+
     int nit_scc_core_calibration_mode_wait_idle(nit_scc_core_state_t* state);
 
+    int nit_scc_core_calibrate(nit_scc_core_state_t* state);
+    
     /**
      * this function is a stub to implement the core
      * functionality by evaluating in the image capture

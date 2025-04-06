@@ -27,14 +27,14 @@ typedef struct scc_core_private_state_struct
     volatile uint32_t* ctrl_shm;
     volatile uint32_t* ctrl_stub_shm;
 
-    volatile int16_t* scale_shm;
-    volatile int16_t* offset_shm;
+    volatile int32_t* scale_shm;
+    volatile int32_t* offset_shm;
 
     int scale_default_fd;
-    volatile int16_t* scale_default;
+    volatile int32_t* scale_default;
 
     int offset_default_fd;
-    volatile int16_t* offset_default;
+    volatile int32_t* offset_default;
 
     volatile int16_t* min_shm;
     volatile int16_t* max_shm;
@@ -164,6 +164,10 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
         return -1;
     }
 
+    /**
+     * startup core
+     */
+
     priv->ctrl_stub_shm = (volatile uint32_t*) memory_map_open(NULL, NIT_SCC_CORE_CTRL_STUB_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->dev_fd, NIT_SCC_CORE_CTRL_STUB_BASE_ADDRESS);
 
     if (priv->ctrl_stub_shm == NULL) {
@@ -171,14 +175,14 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
         return -1;
     }
 
-     priv->offset_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_OFFSET_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->dev_fd, NIT_SCC_CORE_OFFSET_BASE_ADDRESS);
+     priv->offset_shm = (volatile int32_t*)memory_map_open(NULL, NIT_SCC_CORE_OFFSET_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->dev_fd, NIT_SCC_CORE_OFFSET_BASE_ADDRESS);
 
     if (priv->offset_shm == NULL) {
          nit_scc_core_cleanup(state);
          return -1;
     }
 
-    priv->scale_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_SCALE_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->dev_fd, NIT_SCC_CORE_SCALE_BASE_ADDRESS);
+    priv->scale_shm = (volatile int32_t*)memory_map_open(NULL, NIT_SCC_CORE_SCALE_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->dev_fd, NIT_SCC_CORE_SCALE_BASE_ADDRESS);
 
     if (priv->scale_shm == NULL) {
         nit_scc_core_cleanup(state);
@@ -196,7 +200,7 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
         return -1;
     }
 
-    priv->scale_default = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_SCALE_DEFAULT_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->scale_default_fd, NIT_SCC_CORE_SCALE_DEFAULT_BASE_ADDRESS);
+    priv->scale_default = (volatile int32_t*)mmap(NULL, NIT_SCC_CORE_SCALE_DEFAULT_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->scale_default_fd, NIT_SCC_CORE_SCALE_DEFAULT_BASE_ADDRESS);
 
     if (priv->scale_default == NULL) {
         nit_scc_core_cleanup(state);
@@ -207,14 +211,14 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
     if (std::filesystem::is_empty(state->config.scale_default_file_path)) {
         
         int16_t* buffer = nullptr;
-        buffer = (int16_t*) malloc(sizeof(int16_t) * state->config.width * state->config.height);
+        buffer = (int16_t*) malloc(sizeof(int32_t) * state->config.width * state->config.height);
 
         if (buffer == nullptr) {
             print_debug("%s: failed to allocate memory for the default scale matrix.", __func__);
             exit(1);
         }
 
-        memset(buffer, 0, state->config.width * state->config.height);
+        memset(buffer, 0, state->config.width * state->config.height * sizeof(int32_t));
 
         for (int row = 0; row < state->config.height; row++)
             for (int col = 0; col < state->config.width; col++)
@@ -223,7 +227,7 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
                 buffer[index] = INT16_MAX >> 1;
             }
         
-        if (write(priv->scale_default_fd, buffer, sizeof(int16_t) * state->config.width * state->config.height) < 0)
+        if (write(priv->scale_default_fd, buffer, sizeof(int32_t) * state->config.width * state->config.height) < 0)
         {
             print_debug("%s: failed to write default values to scale matrix.", __func__);
         }
@@ -238,12 +242,14 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
             {
                 int index = row * state->config.width + col;
                 if (priv->scale_default[index] != (INT16_MAX >> 1)) {
-                    print_debug("%s: failed to write on scale file default coefficient at row: %d col: %d", __func__, row, col);
+                    print_debug("%s: failed to write on scale file default coefficient at row: %d col: %d\n", __func__, row, col);
                 }
             }
     }
 
-    memcpy((void*)priv->scale_shm, (void*) priv->scale_default, state->config.width * state->config.height * sizeof(int16_t));
+    memcpy((void*)priv->scale_shm, (void*) priv->scale_default, state->config.width * state->config.height * sizeof(int32_t));
+
+    priv->scale_shm[0] = 32763;
 
     if (state->config.offset_default_file_path.empty()) {
         state->config.offset_default_file_path = "scc_core_offset_default.dat";
@@ -256,7 +262,7 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
         return -1;
     }
 
-    priv->offset_default = (volatile int16_t*)mmap(NULL, NIT_SCC_CORE_OFFSET_DEFAULT_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->offset_default_fd, NIT_SCC_CORE_OFFSET_DEFAULT_BASE_ADDRESS);
+    priv->offset_default = (volatile int32_t*)mmap(NULL, NIT_SCC_CORE_OFFSET_DEFAULT_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, priv->offset_default_fd, NIT_SCC_CORE_OFFSET_DEFAULT_BASE_ADDRESS);
 
     if (priv->offset_default == NULL) {
         nit_scc_core_cleanup(state);
@@ -265,9 +271,9 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
 
     if (std::filesystem::is_empty(state->config.offset_default_file_path)) {
 
-        int16_t* buffer = nullptr;
+        int32_t* buffer = nullptr;
 
-        buffer = (int16_t*) malloc(sizeof(int16_t) * state->config.width * state->config.height);
+        buffer = (int32_t*) malloc(sizeof(int32_t) * state->config.width * state->config.height);
 
         if (buffer == nullptr) {
             print_debug("%s: failed to allocate memory for the default offset matrix.", __func__);
@@ -276,7 +282,7 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
 
         memset(buffer, 0, state->config.width * state->config.height);
         
-        if (write(priv->offset_default_fd, buffer, sizeof(int16_t) * state->config.width * state->config.height) < 0)
+        if (write(priv->offset_default_fd, buffer, sizeof(int32_t) * state->config.width * state->config.height) < 0)
         {
             print_debug("%s: failed to write default values to offset matrix.", __func__);
         }
@@ -296,7 +302,7 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
             }
     }
 
-    memcpy((void*)priv->offset_shm, (void*) priv->offset_default, state->config.width * state->config.height * sizeof(int16_t));
+    memcpy((void*)priv->offset_shm, (void*) priv->offset_default, state->config.width * state->config.height * sizeof(int32_t));
 
     priv->max_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MAX_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, -1, NIT_SCC_CORE_MAX_BASE_ADDRESS);    
 
@@ -427,7 +433,7 @@ int scc_core_config_load_from_file(nit_scc_core_state_t* state, const char* path
     return config_file_load_from_file(state, path);
 }
 
-int nit_scc_core_testing_disable_set(nit_scc_core_state_t* state, uint16_t value)
+int nit_scc_core_testing_disable_set(nit_scc_core_state_t* state, uint32_t value)
 {
     print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_testing_disable_offset, value);
 
@@ -445,7 +451,7 @@ int nit_scc_core_testing_disable_set(nit_scc_core_state_t* state, uint16_t value
     return retval;
 }
 
-int nit_scc_core_testing_disable_get(nit_scc_core_state_t* state, uint16_t* value)
+int nit_scc_core_testing_disable_get(nit_scc_core_state_t* state, uint32_t* value)
 {
     int retval = 0;
 
@@ -462,7 +468,7 @@ int nit_scc_core_testing_disable_get(nit_scc_core_state_t* state, uint16_t* valu
     return retval;
 }
 
-int nit_scc_core_testing_addr_set(nit_scc_core_state_t* state, uint16_t value)
+int nit_scc_core_testing_addr_set(nit_scc_core_state_t* state, uint32_t value)
 {
     print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_testing_addr_offset, value);
 
@@ -480,7 +486,7 @@ int nit_scc_core_testing_addr_set(nit_scc_core_state_t* state, uint16_t value)
     return retval;
 }
 
-int nit_scc_core_testing_addr_get(nit_scc_core_state_t* state, uint16_t* value)
+int nit_scc_core_testing_addr_get(nit_scc_core_state_t* state, uint32_t* value)
 {
     int retval = 0;
 
@@ -497,7 +503,7 @@ int nit_scc_core_testing_addr_get(nit_scc_core_state_t* state, uint16_t* value)
     return retval;
 }
 
-int nit_scc_core_testing_wren_set(nit_scc_core_state_t* state, uint16_t value)
+int nit_scc_core_testing_wren_set(nit_scc_core_state_t* state, uint32_t value)
 {
     print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_testing_wren_offset, value);
 
@@ -515,7 +521,7 @@ int nit_scc_core_testing_wren_set(nit_scc_core_state_t* state, uint16_t value)
     return retval;
 }
 
-int nit_scc_core_testing_wren_get(nit_scc_core_state_t* state, uint16_t* value)
+int nit_scc_core_testing_wren_get(nit_scc_core_state_t* state, uint32_t* value)
 {
     int retval = 0;
 
@@ -532,7 +538,7 @@ int nit_scc_core_testing_wren_get(nit_scc_core_state_t* state, uint16_t* value)
     return retval;
 }
 
-int nit_scc_core_testing_data_set(nit_scc_core_state_t* state, uint16_t value)
+int nit_scc_core_testing_data_set(nit_scc_core_state_t* state, uint32_t value)
 {
     print_debug("%s: (0x%04x): %d\n", __func__, nit_scc_core_testing_data_offset, value);
 
@@ -550,7 +556,7 @@ int nit_scc_core_testing_data_set(nit_scc_core_state_t* state, uint16_t value)
     return retval;
 }
 
-int nit_scc_core_testing_data_get(nit_scc_core_state_t* state, uint16_t* value)
+int nit_scc_core_testing_data_get(nit_scc_core_state_t* state, uint32_t* value)
 {
     int retval = 0;
 
@@ -952,7 +958,7 @@ int nit_scc_core_stub_eval_calibrate(nit_scc_core_state_t* state) {
 
 }
 
-int nit_scc_core_stub_eval_process_eval(nit_scc_core_state_t* state, volatile int16_t* target, volatile int16_t* source, volatile int16_t* scale, volatile int16_t* offset)
+int nit_scc_core_stub_eval_process_eval(nit_scc_core_state_t* state, volatile int16_t* target, volatile int16_t* source, volatile int32_t* scale, volatile int32_t* offset)
 {
     for (size_t row = 0; row < state->config.height; row++) {
         for (size_t col = 0; col < state->config.width; col++) {
@@ -968,7 +974,6 @@ int nit_scc_core_stub_eval_process(nit_scc_core_state_t* state)
 {
 
     int retval = 0;
-    static int processing_override = false;
 
     if ((retval = nit_scc_core_assert(state)) != 0)
     {
@@ -983,10 +988,6 @@ int nit_scc_core_stub_eval_process(nit_scc_core_state_t* state)
         return -1;
     }
 
-    if (processing_override == true) {
-        return 0;
-    }
-
     if (state->config.calibration_bypass)
     {
         nit_scc_core_stub_eval_process_eval(state, priv->framebuffer_shm, priv->framebuffer_shm, priv->scale_default, priv->offset_default);
@@ -997,7 +998,12 @@ int nit_scc_core_stub_eval_process(nit_scc_core_state_t* state)
     return retval;
 }
 
+#include <mutex>
+
+std::mutex eval_mutex;
+
 int nit_scc_core_stub_eval(nit_scc_core_state_t* state) {
+    std::unique_lock lk(eval_mutex);
 
     int retval = 0;
 
@@ -1062,4 +1068,94 @@ int nit_scc_core_calibration_mode_wait_idle(nit_scc_core_state_t* state)
     print_debug("calibration code is idle\n");
 
     return retval;
+}
+
+int* nit_scc_core_get_scale_memory_map(nit_scc_core_state_t *state)
+{
+    print_debug("%s\n", __func__);
+
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) < 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return nullptr;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+
+    return (int*) priv->scale_shm;
+}
+
+int* nit_scc_core_get_offset_memory_map(nit_scc_core_state_t *state)
+{
+    
+    print_debug("%s\n", __func__);
+
+    int retval = 0;
+
+    if ((retval = nit_scc_core_assert(state)) < 0)
+    {
+        print_debug("%s: %s %d\n", __func__, "failed", retval);
+        return nullptr;
+    }
+
+    auto priv = (scc_core_private_state_t*) state->priv;
+
+    return (int*) priv->offset_shm;
+
+}
+
+int nit_scc_core_calibrate(nit_scc_core_state_t* state)
+{
+    
+    nit_control_unit_core_offset_en_set(&nit_control_unit_core_driver, 1);
+    nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
+
+    /**
+     * 1. enter calibration
+     */
+    nit_scc_core_opmode_set(&nit_scc_core_driver, NIT_SCC_CORE_OPMODE_CALIBRATE);
+
+    /**
+     * 1. set start acquiring min
+     * 2. close shutter
+     * 3. wait for 250 ms
+     */
+    nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MIN);
+
+    nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);
+
+    std::cout << "Acquiring minimum...." << std::endl;
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+
+    /**
+     * 1. set start acquiring max
+     * 2. open shutter
+     * 3. wait for 250 ms
+     */
+    nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MAX);
+
+    nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 0);
+    std::cout << "Acquiring maximum...." << std::endl;
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+
+    /**
+     * 1. disable acquiring max
+     * 2. wait for calibration to complete
+     * 3. enable scc_core processing
+     */
+    nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_UPDATING);
+    nit_scc_core_calibration_mode_wait_idle(&nit_scc_core_driver);
+
+    nit_scc_core_opmode_set(&nit_scc_core_driver, NIT_SCC_CORE_OPMODE_PROCESS);
+
+    /**
+     * older offset core processing disable offset update
+     */
+    nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 0);
+
+    return 0;
 }
