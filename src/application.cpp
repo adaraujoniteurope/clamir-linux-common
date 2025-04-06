@@ -468,10 +468,22 @@ void application::image_writer(int socket_fd)
     }
 }
 
+#include <nit/embedded/drivers/arm_core.hpp>
+
 void application::command_processor(int socket_fd)
 {
-    while (!m_shutdown)
+    // auto server = http::server::create();
+    // auto router = http::router::create();
+    // server.append(router);
+    // routes::get(router, "/arm/led_r", std::bind(&nit::embedded::drivers::arm_core::led_r_get, &this->arm_core_driver));
+    // server.listen(8080. "0.0.0.0");
+
+    nit::embedded::drivers::arm_core_config config;
+    nit::embedded::drivers::arm_core::create(config, nullptr);
+
+    while(!m_shutdown)
     {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
 

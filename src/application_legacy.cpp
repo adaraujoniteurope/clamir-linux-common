@@ -132,15 +132,9 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, sincronization)
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, sincronization)
 
-// DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, save_embedded_conf)
-
 int command_target_nit_control_unit_core_save_embedded_conf_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    // nit_control_unit_core_save_embedded_conf_set((nit_control_unit_core_state_t *)route.pdata, req.value);
-    // uint16_t value = req.value;
-    // nit_control_unit_core_save_embedded_conf_get((nit_control_unit_core_state_t *)route.pdata, &value);
-    // req = setvalue);
     app->save_all();
     return 0;
 }
@@ -160,9 +154,6 @@ int command_target_nit_control_unit_core_arm_sw_version_read(std::shared_ptr<app
     send_response(socket_fd, req);
     return 0;
 }
-
-// DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_enable)
-// DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_enable)
 
 int command_target_nit_control_unit_core_drift_enable_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
@@ -188,9 +179,6 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core
 
 DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_level)
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, drift_level)
-
-// DEFINE_COMMAND_TARGET_WRITE_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, fpga_version)
-// DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_control_unit_core, nit_control_unit_core, uint16_t, fpga_version)
 
 int command_target_nit_control_unit_core_magic_id_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
