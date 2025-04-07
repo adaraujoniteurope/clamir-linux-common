@@ -34,6 +34,8 @@
 
 #include <nit/embedded/application_config.hpp>
 
+#include <boost/signals2.hpp>
+
 #define DRIVER_CALLBACK_INDEX_TABLE_ITEM(name, parameter, type, size, offset) nit_##name##_##parameter##_command_descriptor_offset,
 
 typedef enum command_descriptor_index_enum
@@ -83,6 +85,25 @@ public:
 	int initialize(int argc, char *argv[]);
 	void run();
 
+	// template<typename type = uint16_t, size_t width = 64, size_t height = 64, typename metadata_type = metadata_process>
+	// struct __attribute__((packed)) frame
+	// {
+	// 	metadata_type metadata;
+	// 	type frame[height][width];
+	// };
+
+	// void on_image_ready(std::shared_ptr<int16_t> image, metadata_process process_metadata)
+	// {
+	// 	for(auto client : clients)
+	// 	{
+	// 		auto _ = std::async(std::launch::async, [client](){
+	// 			std::unique_lock<std::mutex> lk(client.mutex);
+	// 			write(client, &process_metadata, sizeof(metadata_process));
+	// 			write(client, image, sizeof(image));
+	// 		});
+	// 	}
+	// }
+
 	void save_all()
 	{
 		std::string CONFIGURATION_DIRECTORY = ".";
@@ -100,21 +121,15 @@ public:
 		nit_process_core_config_save_to_file(&nit_process_core_driver, (CONFIGURATION_DIRECTORY + "/nit_process_core_config.xml").c_str());
 	}
 
-	// constexpr volatile int* get_process_variables_shm_ptr() { return process_variables_shm_ptr; }
-
-	// math::control::src_pad<double> controller0_input;
-	// pwm_core_sink_pad controller0_output;
-
-	math::control::pid_controller<double> m_controller;
+	int sensor_calibrate();
+	application_config& config_get() { return config; }
 
 private:
-
-	int sensor_calibrate();
 
 	void legacy_control_function(volatile int *virtual_metadata_shm, volatile int *real_metadata_shm, volatile int *proc_var_shm, volatile int *gen_core_shm, volatile int *arm_core_shm, volatile int *control_unit_shm);
 
 	void image_writer(int socket_fd);
-	void image_writer_legacy(int socket_fd);
+	void image_processor_legacy(int socket_fd);
 
 	void command_processor_legacy(int socket_fd);
 	void command_processor(int socket_fd);

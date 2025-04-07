@@ -49,6 +49,8 @@
 #include <nit/embedded/vision/frame_generator.hpp>
 #include <nit/embedded/drivers/scc_core.h>
 
+#include <boost/signals2.hpp>
+
 int send_response(int fd, packet& req)
 {
     std::cout << "response:" << req << std::endl;
@@ -351,6 +353,11 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t
 
 int command_target_nit_process_core_background_remove_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
+
+    if(!app->config_get().sensor_calibation_disable)
+    {
+        app->sensor_calibrate();
+    }
 
     nit_control_unit_core_offset_en_set(&nit_control_unit_core_driver, 1);
     nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
@@ -676,7 +683,7 @@ void application::command_processor_legacy(int socket_fd)
     close(socket_fd);
 }
 
-struct __attribute__((packed)) metadata
+struct __attribute__((packed)) metadata_process
 {
     int power;
     int m00;
@@ -695,26 +702,49 @@ struct __attribute__((packed)) metadata
     int t2;
 };
 
-void application::image_writer_legacy(int socket_fd)
+struct __attribute__((packed)) metadata_frame
+{
+    int power;
+    int m00;
+    int m01;
+    int m10;
+    int m11;
+    int m02;
+    int m20;
+    // int width;
+    int track_number;
+    int frame_max;
+    int frame_number;
+    int timestamp;
+    int io_status;
+    // int t1;
+    // int t2;
+};
+
+void application::image_processor_legacy(int socket_fd)
 {
 
     int retval = 0;
 
     volatile short* image_shm_ptr = (volatile short*)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
-    volatile int* virtual_metadata_shm_ptr = nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
+    volatile int* process_metadata_shm = nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
 
-    metadata* ptr = (metadata*)virtual_metadata_shm_ptr;
-    int last_frame_index = ptr->frame_number;
+    metadata_frame frame_metadata = *(metadata_frame*)(((uint8_t*)image_shm_ptr) + 4096*sizeof(uint16_t));
+    metadata_process process_metadata = *(metadata_process*)process_metadata_shm;
+
+    int last_frame_index = process_metadata.frame_number;
 
     int missing_frames_counter = 0;
-    int first_frame = ptr->frame_number;
+    int first_frame = process_metadata.frame_number;
 
     while (!m_shutdown)
     {
-
         std::this_thread::sleep_for(std::chrono::microseconds(std::chrono::microseconds(50)));
 
-        if ((last_frame_index - ptr->frame_number) == 0)
+        frame_metadata = *(metadata_frame*)(((uint8_t*)image_shm_ptr) + 4096*sizeof(uint16_t));
+        process_metadata = *(metadata_process*)process_metadata_shm;
+
+        if ((last_frame_index - frame_metadata.frame_number) == 0)
         {
             continue;
         }
@@ -724,26 +754,25 @@ void application::image_writer_legacy(int socket_fd)
         }
 
         memcpy(m_image_buffer, (void*)image_shm_ptr, sizeof(m_image_buffer));
-        memcpy(m_metadata_buffer, (void*)((uint8_t*)image_shm_ptr + sizeof(m_image_buffer)), sizeof(m_metadata_buffer));
 
         {
             /** because of speed we ignore driver access assertions */
             auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp1_offset);
-            ((uint32_t*)virtual_metadata_shm_ptr)[13] = nit_control_unit_core_temp_to_degc(voltage);
+            process_metadata.t1 = nit_control_unit_core_temp_to_degc(voltage);
         }
 
         {
             /** because of speed we ignore driver access assertions */
             auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp2_offset);
-            ((uint32_t*)virtual_metadata_shm_ptr)[14] = nit_control_unit_core_temp_to_degc(voltage);
+            process_metadata.t2 = nit_control_unit_core_temp_to_degc(voltage);
         }
 
-        if ((ptr->frame_number - last_frame_index) > 1)
-        {
-            printf("missed frame %d -> %d\n", last_frame_index, ptr->frame_number);
+        if ((process_metadata.frame_number - last_frame_index) > 1)
+        {        
+            printf("missed frame %d -> %d\n", last_frame_index, process_metadata.frame_number);
         }
 
-        if ((retval = write(socket_fd, (void*)virtual_metadata_shm_ptr, 60)) < 0)
+        if ((retval = write(socket_fd, (void*)&process_metadata, sizeof(process_metadata))) < 0)
         {
             std::cout << "Failed to write at socket when writing metadata packet with error:" << strerror(retval) << std::endl;
             break;
@@ -755,9 +784,9 @@ void application::image_writer_legacy(int socket_fd)
             break;
         }
 
-        last_frame_index = ptr->frame_number;
+        last_frame_index = frame_metadata.frame_number;
     }
 
     printf("missed frames: %d\n", missing_frames_counter);
-    printf("total frames: %d\n", ptr->frame_number - first_frame);
+    printf("total frames: %d\n", process_metadata.frame_number - first_frame);
 }

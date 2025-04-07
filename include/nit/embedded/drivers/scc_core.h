@@ -90,21 +90,27 @@
     DRIVER_DECLARE_OFFSET_TABLE_END(scc_core)
 
     DRIVER_DECLARE_CONFIG_BEGIN(scc_core)
-    std::string scale_default_file_path;
-    std::string offset_default_file_path;
+    std::string frame_scale_default_file_path;
+    std::string frame_offset_default_file_path;
+    int32_t frame_pixel_scale_default_value = 16384;
+    int32_t frame_pixel_offset_default_value = 0;
     NIT_SCC_CORE_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_TABLE_ITEM)
     NIT_SCC_CORE_STUB_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_TABLE_ITEM)
 
     DRIVER_DECLARE_CONFIG_SERIALIZER_BEGIN(scc_core)
-    boost::serialization::make_nvp("scale_default_file_path", scale_default_file_path),
-    boost::serialization::make_nvp("offset_default_file_path", offset_default_file_path),
+    boost::serialization::make_nvp("scale_default_file_path", frame_scale_default_file_path),
+    boost::serialization::make_nvp("offset_default_file_path", frame_offset_default_file_path),
+    boost::serialization::make_nvp("frame_pixel_scale_default_value", frame_pixel_scale_default_value),
+    boost::serialization::make_nvp("frame_pixel_offset_default_value", frame_pixel_offset_default_value),
     NIT_SCC_CORE_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_SERIALIZER_TABLE_ITEM)
     NIT_SCC_CORE_STUB_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_SERIALIZER_TABLE_ITEM)
     DRIVER_DECLARE_CONFIG_SERIALIZER_END(scc_core)
     
     DRIVER_DECLARE_CONFIG_DESERIALIZER_BEGIN(scc_core)
-    boost::serialization::make_nvp("scale_default_file_path", scale_default_file_path),
-    boost::serialization::make_nvp("offset_default_file_path", offset_default_file_path),
+    boost::serialization::make_nvp("scale_default_file_path", frame_scale_default_file_path),
+    boost::serialization::make_nvp("offset_default_file_path", frame_offset_default_file_path),
+    boost::serialization::make_nvp("frame_pixel_scale_default_value", frame_pixel_scale_default_value),
+    boost::serialization::make_nvp("frame_pixel_offset_default_value", frame_pixel_offset_default_value),
     NIT_SCC_CORE_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_SERIALIZER_TABLE_ITEM)
     NIT_SCC_CORE_STUB_FIELD_TABLE(DRIVER_FIELD_AS_CONFIG_SERIALIZER_TABLE_ITEM)
     DRIVER_DECLARE_CONFIG_DESERIALIZER_END(scc_core)

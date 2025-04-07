@@ -80,16 +80,11 @@ int application::sensor_calibrate()
      */
     nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MIN);
 
+    nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);
     if (host_mockup) {
-        /**
-         * in the case we want to use the FPGA to do the procedure instead of software
-         * 1. Design Rationale: it's not necessary to use the FPGA for calibrating the
-         *      in the case we don't use a real sensor.
-         */
         nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_CLOSED);
     }
 
-    nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
     nit_scc_core_stub_eval_calibrate_acquire_min(&nit_scc_core_driver);
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
@@ -102,14 +97,8 @@ int application::sensor_calibrate()
     nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MAX);
 
     if (host_mockup) {
-        /**
-         * in the case we want to use the FPGA to do the procedure instead of software
-         * 1. Design Rationale: it's not necessary to use the FPGA for calibrating the
-         *      in the case we don't use a real sensor.
-         */
         nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_OPEN);
     }
-
     nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 0);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
@@ -508,16 +497,16 @@ void application::run()
 
     std::atomic_bool system_timer_shutdown = false;
     
-    m_controller.output_changed += [](double value)
-    {
-        uint32_t pwm_value = value * 1000.0;
-        nit_pwm_core_pwm_set(&nit_mb_core_driver, pwm_value);
-    };
+    // m_controller.output_changed += [](double value)
+    // {
+    //     uint32_t pwm_value = value * 1000.0;
+    //     nit_pwm_core_pwm_set(&nit_mb_core_driver, pwm_value);
+    // };
 
     std::thread system_timer_thread = std::thread(m_timer->get_worker());
 
     auto legacy_command_server_worker = std::thread(tcp_server::create(4097, std::bind(&application::command_processor_legacy, this, std::placeholders::_1), shutdown));
-    auto legacy_image_server_worker = std::thread(tcp_server::create(4096, std::bind(&application::image_writer_legacy, this, std::placeholders::_1), shutdown));
+    auto legacy_image_server_worker = std::thread(tcp_server::create(4096, std::bind(&application::image_processor_legacy, this, std::placeholders::_1), shutdown));
 
     m_server_threads.push_back(std::move(system_timer_thread));
     
@@ -538,8 +527,6 @@ void application::run()
             nit_framebuffer_core_run(&nit_framebuffer_core_driver, m_timer, m_shutdown);
         })));
     }
-
-    sensor_calibrate();
 
     while (!shutdown.load())
     {

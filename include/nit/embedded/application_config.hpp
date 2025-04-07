@@ -22,6 +22,8 @@ struct application_config
 
 	int sensor_update_interval_us;
 	int global_timer_update_interval_us;
+
+	bool sensor_calibation_disable = true;
 };
 
 namespace boost::serialization
@@ -39,6 +41,7 @@ namespace boost::serialization
 		ar & boost::make_nvp("tcp_image_stream_host_server_port", obj.tcp_command_host_server_port);
 		ar & boost::make_nvp("sensor_update_interval_ms", obj.sensor_update_interval_us);
 		ar & boost::make_nvp("global_timer_update_interval_ms", obj.global_timer_update_interval_us);
+		ar & boost::make_nvp("sensor_calibation_disable", obj.sensor_calibation_disable);
 	}
 }
 
