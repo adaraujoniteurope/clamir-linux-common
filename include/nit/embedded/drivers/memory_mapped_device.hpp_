@@ -12,25 +12,6 @@
 
 #include <boost/serialization/nvp.hpp>
 
-#define MEMORY_MAPPED_DRIVER_DECLARE_GETTER(name, type, offset) \
-type name##_get() \
-{ \
-    std::unique_lock<std::mutex> lk(m_mutex); \
-    return *((type*)(m_priv+offset)); \
-} \
-
-#define MEMORY_MAPPED_DRIVER_DECLARE_SETTER(name, type, offset) \
-void name##_set(const type& value) \
-{ \
-    std::unique_lock<std::mutex> lk(m_mutex); \
-    *((type*)(m_priv+offset)) = value; \
-}
-
-
-#define MEMORY_MAPPED_DRIVER_DECLARE_ACCESSORS(name, type, offset) \
-MEMORY_MAPPED_DRIVER_DECLARE_GETTER(name,type,offset) \
-MEMORY_MAPPED_DRIVER_DECLARE_SETTER(name,type,offset)
-
 namespace nit::embedded::drivers
 {
 
@@ -75,11 +56,12 @@ namespace nit::embedded::drivers
         static const bool value = true;
     };
 
-    template<class instance, typename config_type = config_base>
+    template<class instance>
     class memory_mapped_device : std::enable_shared_from_this<instance>
     {
         protected:
         memory_mapped_device() {}
+        memory_mapped_device(size_t offset, size_t size, std::string path = "/dev/mem", std::shared_ptr<memory_mapped_device> base = nullptr) {}
 
         public:
 
@@ -91,17 +73,24 @@ namespace nit::embedded::drivers
         virtual int open() {
             std::unique_lock<std::mutex> lk(m_mutex);
 
-            auto _config = static_cast<config_base>(m_config);
-
-            if ((this->m_fd = ::open(_config.path.c_str(), O_RDWR | O_SYNC)) < 0) {
-                throw std::runtime_error(std::format("failed to open memory device at {}", this->m_config.path));
+            if(m_base != nullptr)
+            {
+                m_priv = (volatile uint8_t*) m_base->priv();
+                m_is_open = true;
+                return 0;
             }
 
-            if ((m_priv = (volatile uint8_t*) mmap(NULL, this->m_config.size, PROT_READ | PROT_WRITE, MAP_SHARED, this->m_fd, this->m_config.offset)) == (uint8_t*) -1) {
-                throw std::runtime_error(std::format("failed to open memory map at {} with size {} at {}", this->m_config.offset, this->m_config.size, this->m_config.path));
+            if ((m_fd = ::open(m_path.c_str(), O_RDWR | O_SYNC)) < 0) {
+                throw std::runtime_error(std::format("failed to open memory device at {}", m_path));
+            }
+
+            if ((m_priv = (volatile uint8_t*) mmap(NULL, m_size, PROT_READ | PROT_WRITE, MAP_SHARED, m_fd, m_offset)) == (uint8_t*) -1) {
+                throw std::runtime_error(std::format("failed to open memory map at {} with size {} at {}", m_offset, m_size, m_path));
             }
 
             this->m_is_open = true;
+
+            return 0;
         }
 
         virtual int close() {
@@ -109,7 +98,7 @@ namespace nit::embedded::drivers
             std::unique_lock<std::mutex> lk(m_mutex);
 
             if (m_priv != nullptr && m_priv != (uint8_t*) -1) {
-                munmap((void*)m_priv, m_config.size);
+                munmap((void*)m_priv, m_size);
             }
 
             if (m_fd >= 0) {
@@ -128,10 +117,8 @@ namespace nit::embedded::drivers
             return (void*) m_priv;
         }
 
-        virtual const config_type& config()
-        {
-            return m_config;
-        }
+        const size_t& offset() { return m_offset; }
+        const size_t& size() { return m_size; }
 
         template<typename type>
         type& read(size_t offset)
@@ -142,8 +129,8 @@ namespace nit::embedded::drivers
                 throw std::runtime_error("driver is not open!");
             }
 
-            if (offset > this->m_config.offset) {
-                throw std::runtime_error(std::format("given offset {} is bigger than device address range plus variable size {}", offset, this->m_config.offset + sizeof(type)));
+            if (offset > m_offset) {
+                throw std::runtime_error(std::format("given offset {} is bigger than device address range plus variable size {}", offset, m_offset + sizeof(type)));
             }
 
             return *((type*)(m_priv + offset));
@@ -171,7 +158,11 @@ namespace nit::embedded::drivers
 
         std::mutex m_mutex;
         std::shared_ptr<memory_mapped_device> m_base;
-        config_type m_config;
+
+        size_t m_offset;
+        size_t m_size;
+        std::string m_path;
+
         bool m_is_open = false;
         int m_fd = -1;
         volatile uint8_t* m_priv = nullptr;

@@ -249,8 +249,6 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
 
     memcpy((void*)priv->scale_shm, (void*) priv->scale_default, state->config.width * state->config.height * sizeof(int32_t));
 
-    priv->scale_shm[0] = 32763;
-
     if (state->config.offset_default_file_path.empty()) {
         state->config.offset_default_file_path = "scc_core_offset_default.dat";
     }
@@ -304,14 +302,14 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
 
     memcpy((void*)priv->offset_shm, (void*) priv->offset_default, state->config.width * state->config.height * sizeof(int32_t));
 
-    priv->max_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MAX_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, -1, NIT_SCC_CORE_MAX_BASE_ADDRESS);    
+    priv->max_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MAX_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, NIT_SCC_CORE_MAX_BASE_ADDRESS);    
 
     if (priv->max_shm == NULL) {
         nit_scc_core_cleanup(state);
         return -1;
     }
 
-    priv->min_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MIN_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, -1, NIT_SCC_CORE_MIN_BASE_ADDRESS);
+    priv->min_shm = (volatile int16_t*)memory_map_open(NULL, NIT_SCC_CORE_MIN_BASE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, NIT_SCC_CORE_MIN_BASE_ADDRESS);
 
     if (priv->min_shm == NULL) {
         nit_scc_core_cleanup(state);

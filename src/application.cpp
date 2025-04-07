@@ -70,47 +70,56 @@ int application::sensor_calibrate()
     nit_control_unit_core_offset_en_set(&nit_control_unit_core_driver, 1);
     nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
 
-    /**
-     * 1. enter calibration
-     */
     nit_scc_core_calibration_bypass_set(&nit_scc_core_driver, 1);
     nit_scc_core_opmode_set(&nit_scc_core_driver, NIT_SCC_CORE_OPMODE_CALIBRATE);
 
     /**
-     * 1. set start acquiring min
-     * 2. close shutter
-     * 3. wait for 250 ms
+     * in the case we want to use the FPGA to do the procedure instead of software
+     * 1. Design Rationale: it's not necessary to use the FPGA for calibrating the
+     *      sensor and improves complexity of the design.
      */
     nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MIN);
 
     if (host_mockup) {
+        /**
+         * in the case we want to use the FPGA to do the procedure instead of software
+         * 1. Design Rationale: it's not necessary to use the FPGA for calibrating the
+         *      in the case we don't use a real sensor.
+         */
         nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_CLOSED);
     }
 
     nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+    nit_scc_core_stub_eval_calibrate_acquire_min(&nit_scc_core_driver);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
     /**
-     * 1. set start acquiring max
-     * 2. open shutter
-     * 3. wait for 250 ms
+     * in the case we want to use the FPGA to do the procedure instead of software
+     * 1. Design Rationale: it's not necessary to use the FPGA for calibrating the
+     *      sensor and improves complexity of the design.
      */
     nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MAX);
 
     if (host_mockup) {
+        /**
+         * in the case we want to use the FPGA to do the procedure instead of software
+         * 1. Design Rationale: it's not necessary to use the FPGA for calibrating the
+         *      in the case we don't use a real sensor.
+         */
         nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_OPEN);
     }
 
     nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
-    /**
-     * 1. disable acquiring max
-     * 2. wait for calibration to complete
-     * 3. enable scc_core processing
-     */
-    nit_scc_core_calibration_mode_set(&nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_UPDATING);
-    nit_scc_core_calibration_mode_wait_idle(&nit_scc_core_driver);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+    nit_scc_core_stub_eval_calibrate_acquire_max(&nit_scc_core_driver);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    // nit_scc_core_stub_eval_calibrate_update(&nit_scc_core_driver);
+    
+    // in the case we use FPGA for calibrating the sensor...
+    // nit_scc_core_calibration_mode_wait_idle(&nit_scc_core_driver);
 
     nit_scc_core_opmode_set(&nit_scc_core_driver, NIT_SCC_CORE_OPMODE_PROCESS);
 
@@ -468,8 +477,6 @@ void application::image_writer(int socket_fd)
     }
 }
 
-#include <nit/embedded/drivers/arm_core.hpp>
-
 void application::command_processor(int socket_fd)
 {
     // auto server = http::server::create();
@@ -478,8 +485,8 @@ void application::command_processor(int socket_fd)
     // routes::get(router, "/arm/led_r", std::bind(&nit::embedded::drivers::arm_core::led_r_get, &this->arm_core_driver));
     // server.listen(8080. "0.0.0.0");
 
-    nit::embedded::drivers::arm_core_config config;
-    nit::embedded::drivers::arm_core::create(config, nullptr);
+    // auto master = nit::embedded::drivers::master_core::create(0x420000000, 0x00002000);
+    // auto derived = nit::embedded::drivers::arm_core::create(0x420000000, 0x00002000, master);
 
     while(!m_shutdown)
     {
@@ -532,7 +539,7 @@ void application::run()
         })));
     }
 
-    // sensor_calibrate();
+    sensor_calibrate();
 
     while (!shutdown.load())
     {

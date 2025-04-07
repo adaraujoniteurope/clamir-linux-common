@@ -134,6 +134,10 @@
      * poll.
      */
     int nit_scc_core_stub_eval(nit_scc_core_state_t *state);
+
+    int nit_scc_core_stub_eval_calibrate_acquire_max(nit_scc_core_state_t* state);
+    int nit_scc_core_stub_eval_calibrate_acquire_min(nit_scc_core_state_t* state);
+    int nit_scc_core_stub_eval_calibrate_update(nit_scc_core_state_t* state);
     
     NIT_SCC_CORE_FIELD_TABLE(NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION)
     NIT_SCC_CORE_STUB_FIELD_TABLE(NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION)

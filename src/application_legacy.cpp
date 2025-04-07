@@ -336,12 +336,14 @@ int command_target_scc_core_calibrate_read(std::shared_ptr<application> app, com
     std::cout << __func__ << std::endl;
     uint32_t value = req.value;
     req.value = value;
-    send_response(socket_fd, req); return 0;
+    send_response(socket_fd, req);
+    return 0;
 }
 
 int command_target_scc_core_calibrate_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     nit_scc_core_calibrate(&nit_scc_core_driver);
+    return 0;
 }
 
 DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t, background_remove)
@@ -582,7 +584,6 @@ void application::command_processor_legacy(int socket_fd)
     auto app = application::get_instance();
 
     unsigned char data[4096];
-    unsigned char* ptr = data;
 
     int length = 0;
     int client_retries = 0;
@@ -711,7 +712,7 @@ void application::image_writer_legacy(int socket_fd)
     while (!m_shutdown)
     {
 
-        std::this_thread::sleep_for(std::chrono::microseconds(std::chrono::microseconds(100)));
+        std::this_thread::sleep_for(std::chrono::microseconds(std::chrono::microseconds(50)));
 
         if ((last_frame_index - ptr->frame_number) == 0)
         {
@@ -723,7 +724,7 @@ void application::image_writer_legacy(int socket_fd)
         }
 
         memcpy(m_image_buffer, (void*)image_shm_ptr, sizeof(m_image_buffer));
-        memcpy(m_metadata_buffer, (void*)image_shm_ptr + sizeof(m_image_buffer), sizeof(m_metadata_buffer));
+        memcpy(m_metadata_buffer, (void*)((uint8_t*)image_shm_ptr + sizeof(m_image_buffer)), sizeof(m_metadata_buffer));
 
         {
             /** because of speed we ignore driver access assertions */

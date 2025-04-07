@@ -85,7 +85,15 @@ public:
 
 	void save_all()
 	{
-		auto CONFIGURATION_DIRECTORY = std::string(std::getenv("CONFIGURATION_DIRECTORY"));
+		std::string CONFIGURATION_DIRECTORY = ".";
+		
+		try {
+			CONFIGURATION_DIRECTORY = std::string(std::getenv("CONFIGURATION_DIRECTORY"));
+		} catch (std::exception& ex)
+		{
+			std::cout << ex.what() << std::endl;
+		}
+
 		nit_arm_core_config_save_to_file(&nit_arm_core_driver, (CONFIGURATION_DIRECTORY + "/nit_arm_core_config.xml").c_str());
 		nit_control_unit_core_config_save_to_file(&nit_control_unit_core_driver, (CONFIGURATION_DIRECTORY + "/nit_control_unit_core_config.xml").c_str());
 		nit_mb_core_config_save_to_file(&nit_mb_core_driver, (CONFIGURATION_DIRECTORY + "/nit_mb_core_config.xml").c_str());
