@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/utils/clamir-scc-util-import/build",
+  "command": "/usr/bin/c++  -I/home/arthur/Work/Software/clamir-linux-daemon/utils/clamir-scc-util-import/include -g -o CMakeFiles/clamir-scc-util-import.dir/src/clamir-scc-util-import.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/utils/clamir-scc-util-import/src/clamir-scc-util-import.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/utils/clamir-scc-util-import/src/clamir-scc-util-import.cpp",
+  "output": "CMakeFiles/clamir-scc-util-import.dir/src/clamir-scc-util-import.cpp.o"
+}
+]

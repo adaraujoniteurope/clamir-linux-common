@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/home/arthur/Work/Software/clamir-linux-daemon/utils/clamir-scc-util-generate-scale-default/build/cmake_install.cmake"
-	],
-	"Parallel" : false
-}

@@ -1,0 +1,8 @@
+#!/usr/bin/env cling -I 
+
+#include <nit/clamir/utils/scc-util-import.h>
+
+int main(int argc, char* argv[])
+{
+    return nit::clamir::utils::scc::import::main(argc,argv);
+}

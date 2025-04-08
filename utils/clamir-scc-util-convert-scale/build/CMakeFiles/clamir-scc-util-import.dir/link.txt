@@ -1,0 +1,1 @@
+/usr/bin/c++ -g -Wl,--dependency-file=CMakeFiles/clamir-scc-util-import.dir/link.d "CMakeFiles/clamir-scc-util-import.dir/src/clamir-scc-util-import.cpp.o" -o clamir-scc-util-import

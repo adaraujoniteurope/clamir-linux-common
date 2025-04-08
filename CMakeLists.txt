@@ -16,6 +16,7 @@ option(NIT_CLAMIR_ENABLE_TESTING "Enable Testing" OFF)
 option(NIT_CLAMIR_ENABLE_DOCS "Enable Documentation" OFF)
 option(NIT_CLAMIR_ENABLE_PROFINET "Enable Profinet Extensio" OFF)
 option(NIT_CLAMIR_HOST_MOCKUP "Enable Host Mockup" OFF)
+option(NIT_CLAMIR_BUILD_UTILS "Enable Host Mockup" ON)
 
 include(FindPkgConfig)
 if(!${PKG_CONFIG_FOUND})
@@ -142,4 +143,9 @@ if(NIT_CLAMIR_ENABLE_TESTING)
     
     include(GoogleTest)
     add_subdirectory(test)
+endif()
+
+
+if(NIT_CLAMIR_BUILD_UTILS)
+    add_subdirectory(utils/clamir-scc-util-convert-scale)
 endif()

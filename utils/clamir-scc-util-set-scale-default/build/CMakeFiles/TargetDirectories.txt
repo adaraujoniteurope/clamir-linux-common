@@ -1,3 +1,0 @@
-/home/arthur/Work/Software/clamir-linux-daemon/utils/clamir-scc-util-set-scale-default/build/CMakeFiles/clamir-scc-util-set-scale-default.dir
-/home/arthur/Work/Software/clamir-linux-daemon/utils/clamir-scc-util-set-scale-default/build/CMakeFiles/edit_cache.dir
-/home/arthur/Work/Software/clamir-linux-daemon/utils/clamir-scc-util-set-scale-default/build/CMakeFiles/rebuild_cache.dir
