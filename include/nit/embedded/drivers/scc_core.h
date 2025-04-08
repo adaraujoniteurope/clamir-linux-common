@@ -127,6 +127,9 @@
     int nit_scc_core_config_save_to_file(nit_scc_core_state_t *state, const char *path);
     int nit_scc_core_config_load_from_file(nit_scc_core_state_t *state, const char *path);
 
+    int nit_scc_core_config_update_pull(nit_scc_core_state_t* state);
+    int nit_scc_core_config_update_commit(nit_scc_core_state_t* state);
+
     int* nit_scc_core_get_scale_memory_map(nit_scc_core_state_t *state);
     int* nit_scc_core_get_offset_memory_map(nit_scc_core_state_t *state);
 
@@ -144,6 +147,14 @@
     int nit_scc_core_stub_eval_calibrate_acquire_max(nit_scc_core_state_t* state);
     int nit_scc_core_stub_eval_calibrate_acquire_min(nit_scc_core_state_t* state);
     int nit_scc_core_stub_eval_calibrate_update(nit_scc_core_state_t* state);
+
+    int scc_core_scale_default_initialize(nit_scc_core_state_t* state);
+    int scc_core_scale_default_load(nit_scc_core_state_t* state);
+    int scc_core_scale_default_apply(nit_scc_core_state_t* state);
+
+    int scc_core_offset_default_initialize(nit_scc_core_state_t* state);
+    int scc_core_offset_default_load(nit_scc_core_state_t* state);
+    int scc_core_offset_default_apply(nit_scc_core_state_t* state);
     
     NIT_SCC_CORE_FIELD_TABLE(NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION)
     NIT_SCC_CORE_STUB_FIELD_TABLE(NIT_SCC_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION)

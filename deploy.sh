@@ -4,6 +4,7 @@
 # ssh -t root@$1 'systemctl stop clamir-linux-daemon'
 
 echo "Copying clamir-linux-daemon"
+ssh -t root@$1 'mkdir -p /usr/local/bin'
 scp build-target/clamir-linux-daemon root@$1:/usr/local/bin
 
 # echo "Copying clamir-linux-daemon.service"

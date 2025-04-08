@@ -31,13 +31,13 @@ typedef struct scc_core_private_state_struct
     volatile int32_t* offset_shm;
 
     int frame_scale_default_fd;
-    volatile int32_t* frame_scale_default;
+    std::vector<int32_t> frame_scale_default;
 
     int frame_offset_default_fd;
-    volatile int32_t* frame_offset_default;
+    std::vector<int32_t> frame_offset_default;
 
-    volatile int16_t* frame_min;
-    volatile int16_t* frame_max;
+    std::vector<int16_t> frame_min;
+    std::vector<int16_t> frame_max;
 
 
 } scc_core_private_state_t;
@@ -64,15 +64,6 @@ void scc_core_cleanup_stub(nit_scc_core_state_t* state)
     if (priv->scale_shm != NULL) {
         free((void*)priv->scale_shm);
     }
-
-    if (priv->frame_max != NULL) {
-        free((void*)priv->frame_max);
-    }
-
-    if (priv->frame_min != NULL) {
-        free((void*)priv->frame_min);
-    }
-
 }
 
 void nit_scc_core_cleanup(nit_scc_core_state_t* state)
@@ -103,14 +94,6 @@ void nit_scc_core_cleanup(nit_scc_core_state_t* state)
 
     if (priv->scale_shm != NULL) {
         memory_map_close((void*)priv->scale_shm, NIT_SCC_CORE_SCALE_BASE_SIZE);
-    }
-
-    if (priv->frame_max != NULL) {
-        memory_map_close((void*)priv->frame_max, NIT_SCC_CORE_MAX_BASE_SIZE);
-    }
-
-    if (priv->frame_min != NULL) {
-        memory_map_close((void*)priv->frame_min, NIT_SCC_CORE_MIN_BASE_SIZE);
     }
 
     return;
@@ -151,7 +134,7 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
     state->config.width = 64;
     state->config.height = 64;
 
-    priv->dev_fd = open("/dev/mem", O_CREAT | O_RDWR | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    priv->dev_fd = open("/dev/mem", O_RDWR | O_SYNC);
 
     if (NIT_SCC_CORE_CTRL_BASE_SIZE < sizeof(nit_scc_core_config_t)) {
         return -1;
@@ -188,20 +171,17 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
         return -1;
     }
 
-    size_t frame_size = sizeof(int16_t) * state->config.width * state->config.height;
-
-    priv->frame_max = (decltype(priv->frame_max))malloc(frame_size);
-    priv->frame_min = (decltype(priv->frame_min))malloc(frame_size);
-
-    priv->frame_scale_default = (decltype(priv->frame_scale_default))malloc(frame_size);
-    priv->frame_offset_default = (decltype(priv->frame_offset_default))malloc(frame_size);
+    // size_t frame_size = sizeof(int16_t) * state->config.width * state->config.height;
 
     if (state->config.frame_scale_default_file_path.empty())
     {
         state->config.frame_scale_default_file_path = "scc_core_scale_default.dat";
     }
 
-
+    if (state->config.frame_offset_default_file_path.empty())
+    {
+        state->config.frame_offset_default_file_path = "scc_core_offset_default.dat";
+    }
 
     size_t scale_size = sizeof(int32_t) * state->config.width * state->config.height;
 
@@ -209,46 +189,23 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
     {
         if (std::filesystem::file_size(state->config.frame_scale_default_file_path) != scale_size)
         {
+            std::cout << "removing invalid SCC scale table size at path: " << state->config.frame_offset_default_file_path << std::endl;
             std::filesystem::remove(state->config.frame_scale_default_file_path);
-        } else {
-            return 0;
-        }
-    }
 
-    // scc_core_scale_default_initialize(state);
-    {
-        auto fd = ::open(state->config.frame_scale_default_file_path.c_str(), O_CREAT | O_RDWR);
-
-        if (fd < 0) {
-            print_debug("Failed to open default scale path at %s", state->config.frame_scale_default_file_path.c_str());
-            return -1;
-        }
-    
-        for (size_t rows = 0; rows < state->config.height; rows++) {
-            for (size_t cols = 0; cols < state->config.width; cols++) {
-                ::write(fd, &state->config.frame_pixel_scale_default_value, sizeof(int32_t));
+            std::cout << "initializing default scc core scale table at path: " << state->config.frame_offset_default_file_path << std::endl;
+            if (scc_core_scale_default_initialize(state) < 0) {
+                std::cout << "failed to initialize default scale at path: " << state->config.frame_offset_default_file_path << std::endl;
+                return -1;
             }
         }
-    
-        ::close(fd);
-    }
+    } else {
 
-    // scc_core_scale_default_load(state);
-    {
-        auto fd = ::open(state->config.frame_scale_default_file_path.c_str(), O_CREAT | O_RDWR);
+        std::cout << "initializing default scc core scale table at path: " << state->config.frame_offset_default_file_path << std::endl;
 
-        if (fd < 0) {
-            print_debug("Failed to open default scale path at %s", state->config.frame_scale_default_file_path.c_str());
+        if (scc_core_scale_default_initialize(state) < 0) {
+            std::cout << "failed to initialize default scale at path: " << state->config.frame_offset_default_file_path << std::endl;
             return -1;
         }
-
-        for (size_t rows = 0; rows < state->config.height; rows++) {
-            for (size_t cols = 0; cols < state->config.width; cols++) {
-                ::read(fd, &priv->frame_scale_default, sizeof(int32_t));
-            }
-        }
-    
-        ::close(fd);
     }
 
     size_t offset_size = sizeof(int32_t) * state->config.width * state->config.height;
@@ -257,49 +214,159 @@ int nit_scc_core_open(nit_scc_core_state_t* state, nit_framebuffer_core_state_t*
     {
         if (std::filesystem::file_size(state->config.frame_offset_default_file_path) != offset_size)
         {
+            std::cout << "removing invalid SCC offset table size at path: " << state->config.frame_offset_default_file_path << std::endl;
             std::filesystem::remove(state->config.frame_offset_default_file_path);
-        } else {
-            return 0;
+
+            std::cout << "initializing default scc core offset table at path: " << state->config.frame_offset_default_file_path << std::endl;
+            if (scc_core_offset_default_initialize(state) < 0) {
+                std::cout << "failed to initialize default offset at path: " << state->config.frame_offset_default_file_path << std::endl;
+                return -1;
+            }
+        }
+    } else {
+
+        std::cout << "initializing default scc core offset table at path: " << state->config.frame_offset_default_file_path << std::endl;
+        
+        if (scc_core_offset_default_initialize(state) < 0) {
+            std::cout << "failed to initialize default offset at path: " << state->config.frame_offset_default_file_path << std::endl;
+            return -1;
         }
     }
 
-    // scc_core_offset_default_initialize(state);
-    {
-        auto fd = ::open(state->config.frame_offset_default_file_path.c_str(), O_CREAT | O_RDWR);
 
-        if (fd < 0) {
-            print_debug("Failed to open default offset path at %s", state->config.frame_offset_default_file_path.c_str());
-            return -1;
-        }
-    
-        for (size_t rows = 0; rows < state->config.height; rows++) {
-            for (size_t cols = 0; cols < state->config.width; cols++) {
-                ::write(fd, &state->config.frame_pixel_offset_default_value, sizeof(int32_t));
-            }
-        }
-    
-        ::close(fd);
+    if (scc_core_scale_default_load(state) < 0) {
+        std::cout << "failed to load defailt scale from file: " << std::filesystem::absolute(state->config.frame_scale_default_file_path) << std::endl;
     }
 
-    // scc_core_offset_default_load(state);
-    {
-        auto fd = ::open(state->config.frame_offset_default_file_path.c_str(), O_CREAT | O_RDWR);
+    if (scc_core_offset_default_load(state) < 0) {
+        std::cout << "failed to load defailt scale from file: " << std::filesystem::absolute(state->config.frame_scale_default_file_path) << std::endl;
+    }
 
-        if (fd < 0) {
-            print_debug("Failed to open default offset path at %s", state->config.frame_offset_default_file_path.c_str());
-            return -1;
-        }
+    if (scc_core_scale_default_apply(state) < 0) {
+        std::cout << "failed to apply defailt scale" << std::endl;
+    }
 
-        for (size_t rows = 0; rows < state->config.height; rows++) {
-            for (size_t cols = 0; cols < state->config.width; cols++) {
-                ::read(fd, &priv->frame_offset_default, sizeof(int32_t));
-            }
-        }
-    
-        ::close(fd);
+    if (scc_core_offset_default_apply(state) < 0) {
+        std::cout << "failed to apply defailt scale" << std::endl;
     }
 
     state->is_open = true;
+
+    return 0;
+}
+
+int scc_core_scale_default_load(nit_scc_core_state_t* state)
+{
+    scc_core_private_state_t* priv = (scc_core_private_state_t*)state->priv;
+    auto fd = ::open(state->config.frame_scale_default_file_path.c_str(), O_CREAT | O_RDWR);
+
+    if (fd < 0) {
+        print_debug("Failed to open default scale path at %s", state->config.frame_scale_default_file_path.c_str());
+        return -1;
+    }
+
+    for (size_t rows = 0; rows < state->config.height; rows++) {
+        for (size_t cols = 0; cols < state->config.width; cols++) {
+            int32_t value;
+            ::read(fd, &value, sizeof(int32_t));
+            priv->frame_scale_default.push_back(value);
+        }
+    }
+
+    ::close(fd);
+
+    return 0;
+}
+
+int scc_core_scale_default_apply(nit_scc_core_state_t* state)
+{
+    scc_core_private_state_t* priv = (scc_core_private_state_t*)state->priv;
+    for (size_t rows = 0; rows < state->config.height; rows++) {
+        for (size_t cols = 0; cols < state->config.width; cols++) {
+            size_t index = state->config.width * rows + cols;
+            auto value = priv->frame_scale_default[index];
+            priv->scale_shm[index] = value;
+        }
+    }
+    return 0;
+}
+
+int scc_core_offset_default_initialize(nit_scc_core_state_t* state)
+{
+    auto fd = ::open(state->config.frame_offset_default_file_path.c_str(), O_CREAT | O_RDWR);
+
+    if (fd < 0) {
+        print_debug("Failed to open default offset path at %s", state->config.frame_offset_default_file_path.c_str());
+        return -1;
+    }
+
+    for (size_t rows = 0; rows < state->config.height; rows++) {
+        for (size_t cols = 0; cols < state->config.width; cols++) {
+            ::write(fd, &state->config.frame_pixel_offset_default_value, sizeof(int32_t));
+        }
+    }
+
+    ::close(fd);
+
+    return 0;
+}
+
+int scc_core_offset_default_load(nit_scc_core_state_t* state)
+{
+    scc_core_private_state_t* priv = (scc_core_private_state_t*)state->priv;
+    auto fd = ::open(state->config.frame_offset_default_file_path.c_str(), O_CREAT | O_RDWR);
+
+    if (fd < 0) {
+        print_debug("Failed to open default offset path at %s", state->config.frame_offset_default_file_path.c_str());
+        return -1;
+    }
+
+    for (size_t rows = 0; rows < state->config.height; rows++) {
+        for (size_t cols = 0; cols < state->config.width; cols++) {
+            int32_t value = 0;
+            ::read(fd, &value, sizeof(int32_t));
+            priv->frame_offset_default.push_back(value);
+        }
+    }
+
+    ::close(fd);
+
+    return 0;
+}
+
+
+int scc_core_scale_default_initialize(nit_scc_core_state_t* state)
+{
+    // scc_core_private_state_t* priv = (scc_core_private_state_t*)state->priv;
+
+    auto fd = ::open(state->config.frame_scale_default_file_path.c_str(), O_CREAT | O_RDWR);
+
+    if (fd < 0) {
+        print_debug("Failed to open default scale path at %s", state->config.frame_scale_default_file_path.c_str());
+        return -1;
+    }
+
+    for (size_t rows = 0; rows < state->config.height; rows++) {
+        for (size_t cols = 0; cols < state->config.width; cols++) {
+            ::write(fd, &state->config.frame_pixel_scale_default_value, sizeof(int32_t));
+        }
+    }
+
+    ::close(fd);
+    return 0;
+}
+
+int scc_core_offset_default_apply(nit_scc_core_state_t* state)
+{
+
+    scc_core_private_state_t* priv = (scc_core_private_state_t*)state->priv;
+
+    for (size_t rows = 0; rows < state->config.height; rows++) {
+        for (size_t cols = 0; cols < state->config.width; cols++) {
+            size_t index = state->config.width * rows + cols;
+            priv->offset_shm[index] = priv->frame_offset_default[index];
+        }
+    }
 
     return 0;
 }
@@ -367,20 +434,29 @@ int nit_scc_core_reset(nit_scc_core_state_t* state)
 
 int nit_scc_core_config_save_to_file(nit_scc_core_state_t* state, const char* path)
 {
+    return config_file_save_to_file(state, path);
+}
 
+int nit_scc_core_config_update_pull(nit_scc_core_state_t* state)
+{
     nit_scc_core_calibration_bypass_get(state, &state->config.calibration_bypass);
     nit_scc_core_width_get(state, &state->config.width);
     nit_scc_core_height_get(state, &state->config.width);
-    return config_file_save_to_file(state, path);
+    return 0;
 }
 
 int nit_scc_core_config_load_from_file(nit_scc_core_state_t* state, const char* path)
 {
     auto retval = config_file_load_from_file(state, path);
+    return retval;
+}
+
+int nit_scc_core_config_update_commit(nit_scc_core_state_t* state)
+{
     nit_scc_core_calibration_bypass_set(state, state->config.calibration_bypass);
     nit_scc_core_width_set(state, state->config.width);
     nit_scc_core_height_set(state, state->config.width);
-    return retval;
+    return 0;
 }
 
 int nit_scc_core_assert(nit_scc_core_state_t* state)
@@ -779,7 +855,7 @@ int nit_scc_core_stub_eval_calibrate_acquire_min(nit_scc_core_state_t* state) {
     auto priv = (scc_core_private_state_t*)state->priv;
     auto frame = nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
 
-    memcpy((void*)priv->frame_min, (void*)frame, sizeof(int16_t) * 4096);
+    priv->frame_min = std::vector(frame, frame + sizeof(uint16_t) * 4096);
 
     return retval;
 }
@@ -799,7 +875,8 @@ int nit_scc_core_stub_eval_calibrate_acquire_max(nit_scc_core_state_t* state) {
     auto priv = (scc_core_private_state_t*)state->priv;
     auto frame = nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
 
-    memcpy((void*)priv->frame_max, (void*)frame, sizeof(int16_t) * 4096);
+    // memcpy((void*)priv->frame_max, (void*)frame, sizeof(int16_t) * 4096);
+    priv->frame_max = std::vector(frame, frame + sizeof(uint16_t) * 4096);
 
     return retval;
 }
@@ -971,7 +1048,7 @@ int nit_scc_core_stub_eval_process(nit_scc_core_state_t* state)
 
     if (state->config.calibration_bypass)
     {
-        nit_scc_core_stub_eval_process_eval(state, priv->framebuffer_shm, priv->framebuffer_shm, priv->frame_scale_default, priv->frame_offset_default);
+        // nit_scc_core_stub_eval_process_eval(state, priv->framebuffer_shm, priv->framebuffer_shm, priv->frame_scale_default, priv->frame_offset_default);
     }
     else {
         nit_scc_core_stub_eval_process_eval(state, priv->framebuffer_shm, priv->framebuffer_shm, priv->scale_shm, priv->offset_shm);

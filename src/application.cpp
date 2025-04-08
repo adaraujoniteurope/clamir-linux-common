@@ -225,6 +225,28 @@ int application::initialize(int argc, char *argv[])
     }
 
     {
+        auto save_path = configuration_path;
+        save_path += "/nit_scc_core_config.xml";
+
+        std::cout << "loading configuration from: " << save_path << std::endl;
+
+        if (nit_scc_core_config_load_from_file(&nit_scc_core_driver, save_path.c_str()) < 0)
+        {
+            if (nit_scc_core_config_save_to_file(&nit_scc_core_driver, save_path.c_str()) < 0)
+            {
+                std::cout << "loading configuration failed!" << std::endl;
+                return -1;
+            }
+        }
+
+        if (nit_scc_core_config_load_from_file(&nit_scc_core_driver, save_path.c_str()) < 0)
+        {
+            std::cout << "loading configuration failed!" << std::endl;
+            return -1;
+        }
+    }
+
+    {
         int retval = nit_scc_core_open(&nit_scc_core_driver, &nit_framebuffer_core_driver);
         if (retval < 0)
         {
@@ -381,22 +403,6 @@ int application::initialize(int argc, char *argv[])
             }
         }
 
-    }
-
-    {
-        auto save_path = configuration_path;
-        save_path += "/nit_scc_core_config.xml";
-
-        std::cout << "loading configuration from: " << save_path << std::endl;
-
-        if (nit_scc_core_config_load_from_file(&nit_scc_core_driver, save_path.c_str()) < 0)
-        {
-            if (nit_scc_core_config_save_to_file(&nit_scc_core_driver, save_path.c_str()) < 0)
-            {
-                std::cout << "loading configuration failed!" << std::endl;
-                return -1;
-            }
-        }
     }
 
     return 0;

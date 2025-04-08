@@ -24,6 +24,7 @@
 #include <nit/embedded/drivers/control_unit_core.h>
 #include <nit/embedded/drivers/bpc_table_core.h>
 #include <nit/embedded/drivers/framebuffer_core.h>
+#include <nit/embedded/drivers/scc_core.h>
 
 #include <nit/embedded/networking/tcp/server.hpp>
 #include <nit/embedded/signals/event_emitter.hpp>
@@ -85,40 +86,23 @@ public:
 	int initialize(int argc, char *argv[]);
 	void run();
 
-	// template<typename type = uint16_t, size_t width = 64, size_t height = 64, typename metadata_type = metadata_process>
-	// struct __attribute__((packed)) frame
-	// {
-	// 	metadata_type metadata;
-	// 	type frame[height][width];
-	// };
-
-	// void on_image_ready(std::shared_ptr<int16_t> image, metadata_process process_metadata)
-	// {
-	// 	for(auto client : clients)
-	// 	{
-	// 		auto _ = std::async(std::launch::async, [client](){
-	// 			std::unique_lock<std::mutex> lk(client.mutex);
-	// 			write(client, &process_metadata, sizeof(metadata_process));
-	// 			write(client, image, sizeof(image));
-	// 		});
-	// 	}
-	// }
-
 	void save_all()
 	{
 		std::string CONFIGURATION_DIRECTORY = ".";
-		
-		try {
-			CONFIGURATION_DIRECTORY = std::string(std::getenv("CONFIGURATION_DIRECTORY"));
-		} catch (std::exception& ex)
+
+		if (std::getenv("CONFIGURATION_DIRECTORY") != nullptr)
 		{
-			std::cout << ex.what() << std::endl;
+			CONFIGURATION_DIRECTORY = std::string(std::getenv("CONFIGURATION_DIRECTORY"));
 		}
 
 		nit_arm_core_config_save_to_file(&nit_arm_core_driver, (CONFIGURATION_DIRECTORY + "/nit_arm_core_config.xml").c_str());
 		nit_control_unit_core_config_save_to_file(&nit_control_unit_core_driver, (CONFIGURATION_DIRECTORY + "/nit_control_unit_core_config.xml").c_str());
 		nit_mb_core_config_save_to_file(&nit_mb_core_driver, (CONFIGURATION_DIRECTORY + "/nit_mb_core_config.xml").c_str());
 		nit_process_core_config_save_to_file(&nit_process_core_driver, (CONFIGURATION_DIRECTORY + "/nit_process_core_config.xml").c_str());
+
+		nit_scc_core_config_update_pull(&nit_scc_core_driver);
+		nit_scc_core_config_save_to_file(&nit_scc_core_driver, (CONFIGURATION_DIRECTORY + "/nit_scc_core_config.xml").c_str());
+
 	}
 
 	int sensor_calibrate();
