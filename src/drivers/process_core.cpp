@@ -8,8 +8,11 @@
 #include <nit/embedded/drivers/bpc_table_core.h>
 #include <nit/embedded/drivers/framebuffer_core.h>
 #include <nit/embedded/drivers/process_core.h>
+#include <nit/embedded/drivers/pwm_core.hpp>
+
 #include <nit/embedded/utils/memory_map.hpp>
 
+#include <thread>
 #include <pthread.h>
 #include <semaphore.h>
 #include <fcntl.h>
@@ -726,9 +729,6 @@ int nit_process_core_config_load_from_file(nit_process_core_state_t* state, cons
 
     return 0;
 }
-
-#include <nit/embedded/drivers/pwm_core.hpp>
-#include <thread>
 
 int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils::waitable> timer, std::atomic_bool& shutdown)
 {
