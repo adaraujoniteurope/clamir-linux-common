@@ -734,18 +734,24 @@ int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils:
 {
     auto priv = nit_process_core_process_data_ptr_get(state);
 
-
     auto led_controller = nit::embedded::drivers::led_core::create(0x40001000, 4096, "/dev/mem");
-    led_controller->open();
-    led_controller->frequency_set(200000);
 
-    led_controller->led_r_set(1);
-    led_controller->led_g_set(1);
+    led_controller->open();
+    led_controller->frequency_all_set(200000);
+
+    led_controller->led_r_set(0);
+    led_controller->led_g_set(0);
+    led_controller->led_b_set(0);
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    led_controller->led_r_set(0);
+    led_controller->led_g_set(0);
     led_controller->led_b_set(1);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    led_controller->led_r_set(1);
+    led_controller->led_r_set(0);
     led_controller->led_g_set(1);
     led_controller->led_b_set(0);
 
@@ -753,18 +759,12 @@ int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils:
 
     led_controller->led_r_set(1);
     led_controller->led_g_set(0);
-    led_controller->led_b_set(1);
+    led_controller->led_b_set(0);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    led_controller->led_r_set(0);
-    led_controller->led_g_set(1);
-    led_controller->led_b_set(1);
-
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-
-    led_controller->led_r_set(0);
-    led_controller->led_g_set(0);
+    led_controller->led_r_set(1);
+    led_controller->led_g_set(0.9);
     led_controller->led_b_set(0);
 
     priv->estadoAutomata = 0;
@@ -1350,9 +1350,9 @@ int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils:
             // priv->arm_core_shm[LED_R] = 0;
             // priv->arm_core_shm[LED_G] = 1;
             // priv->arm_core_shm[LED_B] = 1;
-            led_controller->led_r_set(0);
-            led_controller->led_g_set(1);
-            led_controller->led_b_set(1);
+            led_controller->led_r_set(1);
+            led_controller->led_g_set(0);
+            led_controller->led_b_set(0);
         }
         else
         {
@@ -1363,18 +1363,18 @@ int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils:
                 // priv->arm_core_shm[LED_R] = 0;
                 // priv->arm_core_shm[LED_G] = 0;
                 // priv->arm_core_shm[LED_B] = 1;
-                led_controller->led_r_set(0);
-                led_controller->led_g_set(0);
-                led_controller->led_b_set(1);
+                led_controller->led_r_set(1);
+                led_controller->led_g_set(1);
+                led_controller->led_b_set(0);
 
                 break;
             case IDLE: // VERDE
                 // priv->arm_core_shm[LED_R] = 1;
                 // priv->arm_core_shm[LED_G] = 0;
                 // priv->arm_core_shm[LED_B] = 1;
-                led_controller->led_r_set(1);
-                led_controller->led_g_set(0);
-                led_controller->led_b_set(1);
+                led_controller->led_r_set(0);
+                led_controller->led_g_set(1);
+                led_controller->led_b_set(0);
 
                 break;
 
@@ -1382,18 +1382,18 @@ int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils:
                 // priv->arm_core_shm[LED_R] = 0;
                 // priv->arm_core_shm[LED_G] = 1;
                 // priv->arm_core_shm[LED_B] = 0;
-                led_controller->led_r_set(0);
-                led_controller->led_g_set(1);
-                led_controller->led_b_set(0);
+                led_controller->led_r_set(1);
+                led_controller->led_g_set(0);
+                led_controller->led_b_set(1);
                 break;
 
             case CONTROL: // AZUL
                 // priv->arm_core_shm[LED_R] = 1;
                 // priv->arm_core_shm[LED_G] = 1;
                 // priv->arm_core_shm[LED_B] = 0;
-                led_controller->led_r_set(1);
-                led_controller->led_g_set(1);
-                led_controller->led_b_set(0);
+                led_controller->led_r_set(0);
+                led_controller->led_g_set(0);
+                led_controller->led_b_set(1);
                 break;
             default:
                 break;

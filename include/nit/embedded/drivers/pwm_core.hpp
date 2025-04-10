@@ -18,25 +18,6 @@ namespace nit::embedded::drivers
     {
         return duty * frequency_to_prescaler_value<S_AXI_FREQ_HZ>(frequency);
     }
-    
-    class pwm_core_config : public config_base
-    {
-        uint16_t led_r_default_frequency = 20000;
-        double led_r_default_duty = 0.5;
-
-        template<typename archiver>
-        void serialize(const archiver& ar, const int version)
-        {
-            ar & boost::serialization::make_nvp("led_r_default_frequency", led_r_default_frequency);
-            ar & boost::serialization::make_nvp("led_r_default_duty", led_r_default_frequency);
-        }
-    };
-
-    template<>
-    struct is_memory_mapeed_config_type<pwm_core_config>
-    {
-        static const bool value = true;
-    };
 
     class master_core : public memory_mapped_device<master_core>
     {
@@ -100,6 +81,34 @@ namespace nit::embedded::drivers
         double duty;
     };
 
+    struct led_core_config : public config_base
+    {
+        size_t base_address = 0x40001000;
+        size_t size = 4096;
+        
+        uint16_t led_r_frequency = 20000;
+        double led_r_duty = 0.5;
+
+        uint16_t led_g_frequency = 20000;
+        double led_g_duty = 0.5;
+
+        uint16_t led_b_frequency = 20000;
+        double led_b_duty = 0.5;
+
+        template<typename archiver>
+        void serialize(const archiver& ar, const int version)
+        {
+            ar & boost::serialization::make_nvp("led_r_frequency", led_r_frequency);
+            ar & boost::serialization::make_nvp("led_r_duty", led_r_duty);
+            
+            ar & boost::serialization::make_nvp("led_g_frequency", led_g_frequency);
+            ar & boost::serialization::make_nvp("led_g_duty", led_g_duty);
+
+            ar & boost::serialization::make_nvp("led_b_frequency", led_b_frequency);
+            ar & boost::serialization::make_nvp("led_b_duty", led_b_duty);
+        }
+    };
+
 
     class led_core : public memory_mapped_device<led_core>
     {
@@ -109,17 +118,55 @@ namespace nit::embedded::drivers
         {
         }
 
-        void frequency_set(unsigned int frequency = 20.000)
+        led_core(led_core_config& config) : memory_mapped_device<led_core>(config.offset, config.size, config.path, nullptr)
+        {
+            config_ = config;
+            
+            write<uint16_t>(1, frequency_to_prescaler_value(config_.led_g_frequency));
+            write<uint16_t>(5, frequency_to_prescaler_value(config_.led_g_frequency));
+            write<uint16_t>(3, frequency_to_prescaler_value(config_.led_b_frequency));
+            
+            write<uint16_t>(0, duty_to_prescaler_value(config_.led_r_duty, config_.led_r_frequency));
+            write<uint16_t>(4, duty_to_prescaler_value(config_.led_g_duty, config_.led_g_frequency));
+            write<uint16_t>(2, duty_to_prescaler_value(config_.led_b_duty, config_.led_b_frequency));
+        }
+
+        void frequency_all_set(unsigned int frequency = 20.000)
         {
             write<uint16_t>(1, frequency_to_prescaler_value(frequency));
-            write<uint16_t>(3, frequency_to_prescaler_value(frequency));
             write<uint16_t>(5, frequency_to_prescaler_value(frequency));
+            write<uint16_t>(3, frequency_to_prescaler_value(frequency));
             frequency_ = frequency;
         }
 
-        unsigned int frequency_get()
+        void led_r_frequency_set(int frequency)
         {
-            return read<uint16_t>(0);
+            write<uint16_t>(1, frequency_to_prescaler_value(frequency));
+        }
+
+        int led_r_frequency_get()
+        {
+            return read<uint16_t>(1);
+        }
+
+        void led_g_frequency_set(int frequency)
+        {
+            write<uint16_t>(3, frequency_to_prescaler_value(frequency));
+        }
+
+        int led_g_frequency_get()
+        {
+            return read<uint16_t>(3);
+        }
+
+        void led_b_frequency_set(int frequency)
+        {
+            write<uint16_t>(5, frequency_to_prescaler_value(frequency));
+        }
+
+        int led_b_frequency_get()
+        {
+            return read<uint16_t>(5);
         }
 
         void led_r_set(double duty = 1.0)
@@ -132,7 +179,7 @@ namespace nit::embedded::drivers
                 duty = 0.0;
             }
 
-            write<uint16_t>(0, duty_to_prescaler_value(duty, frequency_));
+            write<uint16_t>(0, duty_to_prescaler_value(1.0-duty, frequency_));
         }
 
         void led_g_set(double duty = 1.0)
@@ -146,7 +193,7 @@ namespace nit::embedded::drivers
                 duty = 0.0;
             }
 
-            write<uint16_t>(2, duty_to_prescaler_value(duty, frequency_));
+            write<uint16_t>(4, duty_to_prescaler_value(1.0-duty, frequency_));
         }
 
         void led_b_set(double duty = 1.0)
@@ -160,7 +207,7 @@ namespace nit::embedded::drivers
                 duty = 0.0;
             }
 
-            write<uint16_t>(4, duty_to_prescaler_value(duty, frequency_));
+            write<uint16_t>(2, duty_to_prescaler_value(1.0-duty, frequency_));
         }
 
         double led_r_get()
@@ -170,26 +217,17 @@ namespace nit::embedded::drivers
 
         double led_g_get()
         {
-            return read<uint16_t>(2);
+            return read<uint16_t>(4);
         }
 
         double led_b_get()
         {
-            return read<uint16_t>(4);
-        }
-
-        void save_config(std::string path)
-        {
-
-        }
-
-        void load_config(std::string path)
-        {
-
+            return read<uint16_t>(2);
         }
 
         private:
         unsigned int frequency_;
+        led_core_config config_;
     };
 }
 
