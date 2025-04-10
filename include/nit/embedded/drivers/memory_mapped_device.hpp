@@ -61,7 +61,9 @@ namespace nit::embedded::drivers
     {
         protected:
         memory_mapped_device() {}
-        memory_mapped_device(size_t offset, size_t size, std::string path = "/dev/mem", std::shared_ptr<memory_mapped_device> base = nullptr) {}
+        memory_mapped_device(size_t offset, size_t size, std::string path = "/dev/mem", std::shared_ptr<memory_mapped_device> base = nullptr)
+            : m_path(path), m_offset(offset), m_size(size)
+        {}
 
         public:
 
@@ -83,6 +85,10 @@ namespace nit::embedded::drivers
             if ((m_fd = ::open(m_path.c_str(), O_RDWR | O_SYNC)) < 0) {
                 throw std::runtime_error(std::format("failed to open memory device at {}", m_path));
             }
+
+            unsigned int pagesize = (unsigned)sysconf(_SC_PAGESIZE);
+
+            m_size = pagesize*(m_size/pagesize);
 
             if ((m_priv = (volatile uint8_t*) mmap(NULL, m_size, PROT_READ | PROT_WRITE, MAP_SHARED, m_fd, m_offset)) == (uint8_t*) -1) {
                 throw std::runtime_error(std::format("failed to open memory map at {} with size {} at {}", m_offset, m_size, m_path));
@@ -110,7 +116,7 @@ namespace nit::embedded::drivers
             return 0;
         }
 
-        virtual bool is_open() { std::unique_lock<std::mutex> lk(m_mutex); return this->m_is_open; }
+        virtual bool is_open() { return m_is_open; }
 
         virtual void* priv() {
             std::unique_lock<std::mutex> lk(m_mutex);
@@ -133,7 +139,7 @@ namespace nit::embedded::drivers
                 throw std::runtime_error(std::format("given offset {} is bigger than device address range plus variable size {}", offset, m_offset + sizeof(type)));
             }
 
-            return *((type*)(m_priv + offset));
+            return ((type*)m_priv)[offset];
         }
 
         template<typename type>
@@ -145,7 +151,7 @@ namespace nit::embedded::drivers
                 throw std::runtime_error("driver is not open!");
             }
 
-            *((type*)(m_priv + offset)) = value;
+            ((type*)m_priv)[offset] = value;
         }
 
         template<typename...args_types>
