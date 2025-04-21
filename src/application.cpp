@@ -411,11 +411,12 @@ int application::initialize(int argc, char *argv[])
 application::application()
     : m_shutdown(false), m_command_server_router({{1, std::bind(&application::default_handler, this, std::placeholders::_1, std::placeholders::_2)}})
 {
-    if (application::host_mockup) {
-        m_timer = std::make_shared<linux_generic_timer>(this->config.global_timer_update_interval_us, m_shutdown);
-    } else {
-        m_timer = std::make_shared<uio_timer>(m_shutdown);
-    }
+    m_timer = std::make_shared<linux_generic_timer>(this->config.global_timer_update_interval_us, m_shutdown);
+    // if (application::host_mockup) {
+        
+    // } else {
+    //     m_timer = std::make_shared<uio_timer>(m_shutdown);
+    // }
 }
 
 int application::default_handler(const unsigned char *buffer, int)
@@ -512,7 +513,7 @@ void application::run()
     std::thread system_timer_thread = std::thread(m_timer->get_worker());
 
     auto legacy_command_server_worker = std::thread(tcp_server::create(4097, std::bind(&application::command_processor_legacy, this, std::placeholders::_1), shutdown));
-    auto legacy_image_server_worker = std::thread(tcp_server::create(4096, std::bind(&application::image_processor_legacy, this, std::placeholders::_1), shutdown));
+    auto legacy_image_server_worker = std::thread(tcp_server::create(4096, std::bind(&application::image_writer_legacy, this, std::placeholders::_1), shutdown));
 
     m_server_threads.push_back(std::move(system_timer_thread));
     

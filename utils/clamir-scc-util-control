@@ -1,0 +1,54 @@
+"""
+An App to show the current time.
+"""
+
+from datetime import datetime
+
+from textual.app import App, ComposeResult
+from textual.widgets import Input, Button, Digits, Footer, Header
+from textual.containers import VerticalGroup, HorizontalScroll
+
+class ValueSelector(VerticalGroup):
+
+    def __init__(self, *children, name = None, id = None, classes = None, disabled = False, markup = True):
+        super().__init__(*children, name=name, id=id, classes=classes, disabled=disabled, markup=markup)
+
+    def compose(self):
+        yield Digits(self.name, id="title")
+        yield Button("+", id="plus")
+        yield Digits("16384", id="value")
+        yield Button("-", id="minus")
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Event handler called when a button is pressed."""
+        digits = self.query(selector="#value").first()
+
+        if event.button.id == "plus":
+            digits.update(str(int(digits.value) + 1024))
+        elif event.button.id == "minus":
+            digits.update(str(int(digits.value) - 1024))
+
+    
+    
+# class MainControlGroup(HorizontalScroll):
+#         def compose(self):
+#             yield ValueSelector(name = "Scale")
+#             yield ValueSelector(name = "Offset")
+
+class ClamirScaleControlCoreController(App):
+    CSS = """
+    Screen { align: center middle; }
+    Button { width: auto; }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield HorizontalScroll(ValueSelector(name = "Scale"), ValueSelector(name = "Offset"))
+
+    def on_ready(self) -> None:
+        pass
+        
+
+
+if __name__ == "__main__":
+    app = ClamirScaleControlCoreController()
+    app.run()

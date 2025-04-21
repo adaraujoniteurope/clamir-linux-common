@@ -721,7 +721,7 @@ struct __attribute__((packed)) metadata_frame
     // int t2;
 };
 
-void application::image_processor_legacy(int socket_fd)
+void application::image_writer_legacy(int socket_fd)
 {
 
     int retval = 0;
@@ -737,6 +737,9 @@ void application::image_processor_legacy(int socket_fd)
     int missing_frames_counter = 0;
     int first_frame = process_metadata.frame_number;
 
+    int buffer[15];
+    memset(buffer, 0, sizeof(buffer));
+
     while (!m_shutdown)
     {
         std::this_thread::sleep_for(std::chrono::microseconds(std::chrono::microseconds(50)));
@@ -744,13 +747,9 @@ void application::image_processor_legacy(int socket_fd)
         frame_metadata = *(metadata_frame*)(((uint8_t*)image_shm_ptr) + 4096*sizeof(uint16_t));
         process_metadata = *(metadata_process*)process_metadata_shm;
 
-        if ((last_frame_index - frame_metadata.frame_number) == 0)
+        if ((frame_metadata.frame_number - last_frame_index) == 0)
         {
             continue;
-        }
-
-        if (host_mockup) {
-            nit_scc_core_driver.config.process_bypass = true;
         }
 
         memcpy(m_image_buffer, (void*)image_shm_ptr, sizeof(m_image_buffer));
