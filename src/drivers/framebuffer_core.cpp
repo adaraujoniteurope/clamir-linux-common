@@ -242,12 +242,15 @@ int* nit_framebuffer_core_metadata(nit_framebuffer_core_state_t* state)
     return (int*)nit_framebuffer_core_private_state_get(state)->metadata;
 }
 
+#include <thread>
+
 
 int nit_framebuffer_core_run(nit_framebuffer_core_state_t* state, std::shared_ptr<utils::waitable> timer, std::atomic_bool& shutdown)
 {
 
     while(!shutdown) {
-        timer->wait();
+        // timer->wait();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
         nit_framebuffer_core_loop(state);
     }
 

@@ -450,7 +450,9 @@ void application::image_writer(int socket_fd)
     while (!m_shutdown)
     {
 
-        m_timer->wait();
+        // m_timer->wait();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
         std::unique_lock<std::mutex> lk(socket_mutex);
 
@@ -502,7 +504,7 @@ void application::run()
                 { shutdown.store(true); });
     std::signal(SIGPIPE, SIG_IGN);
 
-    std::atomic_bool system_timer_shutdown = false;
+    // std::atomic_bool system_timer_shutdown = false;
     
     // m_controller.output_changed += [](double value)
     // {
@@ -510,12 +512,12 @@ void application::run()
     //     nit_pwm_core_pwm_set(&nit_mb_core_driver, pwm_value);
     // };
 
-    std::thread system_timer_thread = std::thread(m_timer->get_worker());
+    // std::thread system_timer_thread = std::thread(m_timer->get_worker());
 
     auto legacy_command_server_worker = std::thread(tcp_server::create(4097, std::bind(&application::command_processor_legacy, this, std::placeholders::_1), shutdown));
     auto legacy_image_server_worker = std::thread(tcp_server::create(4096, std::bind(&application::image_writer_legacy, this, std::placeholders::_1), shutdown));
 
-    m_server_threads.push_back(std::move(system_timer_thread));
+    // m_server_threads.push_back(std::move(system_timer_thread));
     
     m_server_threads.push_back(std::move(legacy_command_server_worker));
     m_server_threads.push_back(std::move(legacy_image_server_worker));
@@ -526,14 +528,14 @@ void application::run()
 
     std::shared_ptr<linux_generic_timer> image_timer = nullptr;
 
-    if (host_mockup) {
-        image_timer = std::make_shared<linux_generic_timer>(this->config.global_timer_update_interval_us * 1000.0, m_shutdown);
-        std::thread image_timer_thread = std::thread(image_timer->get_worker());
-        m_server_threads.push_back(std::move(image_timer_thread));
-        m_server_threads.push_back(std::move(std::thread([this]() -> void {
-            nit_framebuffer_core_run(&nit_framebuffer_core_driver, m_timer, m_shutdown);
-        })));
-    }
+    // if (host_mockup) {
+    //     image_timer = std::make_shared<linux_generic_timer>(this->config.global_timer_update_interval_us * 1000.0, m_shutdown);
+    //     std::thread image_timer_thread = std::thread(image_timer->get_worker());
+    //     m_server_threads.push_back(std::move(image_timer_thread));
+    //     m_server_threads.push_back(std::move(std::thread([this]() -> void {
+    //         nit_framebuffer_core_run(&nit_framebuffer_core_driver, m_timer, m_shutdown);
+    //     })));
+    // }
 
     while (!shutdown.load())
     {

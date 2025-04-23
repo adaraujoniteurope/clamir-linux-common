@@ -51,6 +51,9 @@
 
 #include <boost/signals2.hpp>
 
+#include <sys/fcntl.h>
+#include <sys/mman.h>
+
 int send_response(int fd, packet& req)
 {
     std::cout << "response:" << req << std::endl;
@@ -721,71 +724,97 @@ struct __attribute__((packed)) metadata_frame
     // int t2;
 };
 
+struct __attribute__((packed)) mm_image_writer_ctrl
+{
+    int fifo_head;
+    int intr;
+};
+
 void application::image_writer_legacy(int socket_fd)
 {
 
     int retval = 0;
+    const auto FIFO_LENGTH = 6;
 
-    volatile short* image_shm_ptr = (volatile short*)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
-    volatile int* process_metadata_shm = nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
+    uint8_t* img_ptr = (uint8_t*)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
+    uint8_t* pmeta_ptr = (uint8_t*)nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
 
-    metadata_frame frame_metadata = *(metadata_frame*)(((uint8_t*)image_shm_ptr) + 4096*sizeof(uint16_t));
-    metadata_process process_metadata = *(metadata_process*)process_metadata_shm;
+    int fifo_ctrl_fd = open("/dev/mem", O_RDWR | O_SYNC);
+    int* mm_image_writer_ptr = (int*) mmap(NULL, _SC_PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fifo_ctrl_fd, 0x40003000);
 
-    int last_frame_index = process_metadata.frame_number;
+    auto frame = [&](int tail) -> uint8_t* {
+        return img_ptr + (tail * 0x2100);
+    };
 
-    int missing_frames_counter = 0;
-    int first_frame = process_metadata.frame_number;
+    auto frame_metadata = [&](int tail) -> metadata_frame* {
+        return (metadata_frame*)((img_ptr + 0x2000 + tail * 0x2100));
+    };
 
-    int buffer[15];
-    memset(buffer, 0, sizeof(buffer));
+    auto process_metadata = [&] -> metadata_process* {
+        return (metadata_process*) pmeta_ptr;
+    };
+
+    auto cleanup = [&](){
+        munmap(mm_image_writer_ptr, _SC_PAGE_SIZE);
+        close(fifo_ctrl_fd);
+    };
+
+    auto available = [](int head, int tail) -> bool {
+        auto next_tail = 0;
+
+        if (tail < (FIFO_LENGTH-1)) {
+            next_tail = tail + 1;
+        } else {
+            next_tail = 0;
+        }
+
+        return (head < next_tail) || next_tail < head;
+
+    };
+
+    auto head = [&]() -> int {
+        return *mm_image_writer_ptr;
+    };
+
+    auto fifo_tail = 0;
+    auto fifo_head = 1;
+
+    auto frame_idx_last = 0;
 
     while (!m_shutdown)
     {
-        std::this_thread::sleep_for(std::chrono::microseconds(std::chrono::microseconds(50)));
+        std::this_thread::yield();
 
-        frame_metadata = *(metadata_frame*)(((uint8_t*)image_shm_ptr) + 4096*sizeof(uint16_t));
-        process_metadata = *(metadata_process*)process_metadata_shm;
+        auto fifo_head = head();
 
-        if ((frame_metadata.frame_number - last_frame_index) == 0)
-        {
-            continue;
+        while (available(head(), fifo_tail)) {
+
+            auto _frame_metadata = *frame_metadata(fifo_tail);
+
+            if (_frame_metadata.frame_number - frame_idx_last > 1) {
+                printf("missing frame %d -> %d (%d)\r\n", frame_idx_last, _frame_metadata.frame_number, _frame_metadata.frame_number - frame_idx_last);
+            }
+
+            frame_idx_last = _frame_metadata.frame_number;
+
+            auto metadata = *process_metadata();
+            if (write(socket_fd, &metadata, 60) < 0) {
+                cleanup();
+                return;
+            }
+
+            if (write(socket_fd, frame(fifo_tail), 8192) < 0) {
+                cleanup();
+                return;
+            }
+
+            if (fifo_tail < (FIFO_LENGTH-1)) {
+                fifo_tail++;
+            } else {
+                fifo_tail=0;
+            }
+
+            std::this_thread::yield();
         }
-
-        memcpy(m_image_buffer, (void*)image_shm_ptr, sizeof(m_image_buffer));
-
-        {
-            /** because of speed we ignore driver access assertions */
-            auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp1_offset);
-            process_metadata.t1 = nit_control_unit_core_temp_to_degc(voltage);
-        }
-
-        {
-            /** because of speed we ignore driver access assertions */
-            auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp2_offset);
-            process_metadata.t2 = nit_control_unit_core_temp_to_degc(voltage);
-        }
-
-        if ((process_metadata.frame_number - last_frame_index) > 1)
-        {        
-            printf("missed frame %d -> %d\n", last_frame_index, process_metadata.frame_number);
-        }
-
-        if ((retval = write(socket_fd, (void*)&process_metadata, sizeof(process_metadata))) < 0)
-        {
-            std::cout << "Failed to write at socket when writing metadata packet with error:" << strerror(retval) << std::endl;
-            break;
-        }
-
-        if ((retval = write(socket_fd, m_image_buffer, sizeof(m_image_buffer))) < 0)
-        {
-            std::cout << "Failed to write at socket when writing frame packet with error:" << strerror(retval) << std::endl;
-            break;
-        }
-
-        last_frame_index = frame_metadata.frame_number;
     }
-
-    printf("missed frames: %d\n", missing_frames_counter);
-    printf("total frames: %d\n", process_metadata.frame_number - first_frame);
 }

@@ -818,6 +818,14 @@ int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils:
     priv->last_laser_status = 0;
     priv->delay_laser_on = 0;
     priv->cont_preheating = 0;
+
+    int fifo_ctrl_fd = open("/dev/mem", O_RDWR | O_SYNC);
+    auto* fifo_ctrl_ptr = (int*) mmap(NULL, _SC_PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fifo_ctrl_fd, 0x40003000);
+
+    auto frame_metadata = [&]() -> int* {
+        return (int*)(((uint8_t*)priv->real_metadata_shm) + (*fifo_ctrl_ptr * 0x2100));
+    };
+
     while (!shutdown)
     {
         priv->ki = priv->proc_var_shm[KI];
@@ -886,9 +894,10 @@ int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils:
             }
         }
 
-        timer->wait();
+        // timer->wait();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
         // read(fd_int, (int *)&pending, sizeof(int)); // Se bloquea hasta que sucede una interrupcion de uio0
-        memcpy(priv->metadatos, (void*)priv->real_metadata_shm, 48);
+        memcpy(priv->metadatos, (void*)frame_metadata(), 48);
 
         // Laser status
         if (priv->laser_external)
