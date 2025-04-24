@@ -1,3 +1,0 @@
-/home/arthur/Work/Software/clamir-linux-daemon/utils/clamir-scc-util-import/build/CMakeFiles/clamir-scc-util-import.dir
-/home/arthur/Work/Software/clamir-linux-daemon/utils/clamir-scc-util-import/build/CMakeFiles/edit_cache.dir
-/home/arthur/Work/Software/clamir-linux-daemon/utils/clamir-scc-util-import/build/CMakeFiles/rebuild_cache.dir

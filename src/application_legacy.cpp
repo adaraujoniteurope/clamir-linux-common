@@ -742,6 +742,9 @@ void application::image_writer_legacy(int socket_fd)
     int fifo_ctrl_fd = open("/dev/mem", O_RDWR | O_SYNC);
     int* mm_image_writer_ptr = (int*) mmap(NULL, _SC_PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fifo_ctrl_fd, 0x40003000);
 
+    // int memory_writer_fd = open("/dev/uio1", O_RDWR | O_SYNC);
+    // int* mm_image_writer_ptr = (int*) mmap(NULL, _SC_PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, memory_writer_fd, 0);
+
     auto frame = [&](int tail) -> uint8_t* {
         return img_ptr + (tail * 0x2100);
     };

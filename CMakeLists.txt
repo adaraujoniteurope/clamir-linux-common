@@ -146,6 +146,6 @@ if(NIT_CLAMIR_ENABLE_TESTING)
 endif()
 
 
-if(NIT_CLAMIR_BUILD_UTILS)
-    add_subdirectory(utils/clamir-scc-util-convert-scale)
-endif()
+# if(NIT_CLAMIR_BUILD_UTILS)
+#     add_subdirectory(utils/clamir-scc-util-convert-scale)
+# endif()
