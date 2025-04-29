@@ -361,31 +361,19 @@ int command_target_nit_process_core_background_remove_write(std::shared_ptr<appl
     {
         app->sensor_calibrate();
     }
-
-    nit_control_unit_core_offset_en_set(&nit_control_unit_core_driver, 1);
-    nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
     
     nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);
 
-    if (app->host_mockup) {
-        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_CLOSED);
-    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    nit_control_unit_core_offset_en_set(&nit_control_unit_core_driver, 1);
+    nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
     nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 0);
 
-    if (app->host_mockup) {
-        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_OPEN);
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
     nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 0);
-
-    if (app->host_mockup) {
-        nit_framebuffer_core_operating_mode_set(&nit_framebuffer_core_driver, NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_PATTERN_BALL);
-    }
 
     return 0;
 }
