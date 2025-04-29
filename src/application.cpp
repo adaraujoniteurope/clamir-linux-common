@@ -411,6 +411,15 @@ int application::initialize(int argc, char *argv[])
         std::cout << e.what() << std::endl;
     }
 
+    /**
+     * load serial number from BPC file
+     * (old behaviour)
+     */
+     const char * bpcc_path = "/mnt/mmc/sys/bpcc.sys";
+    if (std::filesystem::exists(bpcc_path)) {
+        std::fstream fs(bpcc_path);
+        fs >> config.serial_number;
+    }
 
     return 0;
 }
