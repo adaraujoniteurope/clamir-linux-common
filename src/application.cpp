@@ -405,6 +405,13 @@ int application::initialize(int argc, char *argv[])
 
     }
 
+    try {
+        nit_bpc_table_core_bpc_table_load(&nit_bpc_table_core_driver, "/mnt/mmc/sys/bpcc.sys");
+    } catch (std::exception& e) {
+        std::cout << e.what() << std::endl;
+    }
+
+
     return 0;
 }
 

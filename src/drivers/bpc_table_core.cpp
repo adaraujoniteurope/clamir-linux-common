@@ -142,7 +142,34 @@ int nit_bpc_table_core_bpc_table_write(nit_bpc_table_core_state_t* state, const 
     return 0;
 }
 
-int nit_bpc_table_core_bpc_table_read(nit_bpc_table_core_state_t* state, const unsigned char* buffer, size_t size)
+#include <format>
+
+int nit_bpc_table_core_bpc_table_load(nit_bpc_table_core_state_t* state, const char* path)
 {
+
+	int index = 0;
+    volatile int *shm = (volatile int*) state->priv;
+
+    if (!std::filesystem::exists(path)) {
+        throw std::runtime_error(std::format("failed to load bpc table from %s", path));
+    }
+
+    std::fstream fs(path);
+    std::string serial_number;
+    fs >> serial_number;
+
+    int x, y;
+
+    while(!fs.eof()) {
+        fs >> x >> y;
+        shm[index] = (y << 8) | (x);
+        index++;
+    }
+    
+	return 0;
+}
+
+
+int nit_bpc_table_core_bpc_table_read(nit_bpc_table_core_state_t* state, const unsigned char* buffer, size_t size) {
     return 0;
 }

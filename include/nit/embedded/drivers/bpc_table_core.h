@@ -39,6 +39,8 @@ int nit_bpc_table_core_config_load_from_file(nit_bpc_table_core_state_t* state, 
 int nit_bpc_table_core_bpc_table_write(nit_bpc_table_core_state_t* state, const unsigned char* buffer, size_t size);
 int nit_bpc_table_core_bpc_table_read(nit_bpc_table_core_state_t* state, const unsigned char* buffer, size_t size);
 
+int nit_bpc_table_core_bpc_table_load(nit_bpc_table_core_state_t* state, const char* path);
+
 extern nit_bpc_table_core_state_t nit_bpc_table_core_driver;
 
 #endif
