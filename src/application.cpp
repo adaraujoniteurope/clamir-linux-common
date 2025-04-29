@@ -325,7 +325,7 @@ int application::initialize(int argc, char *argv[])
     nit_gen_core_change_op_mode_set(&nit_mb_core_driver, 1);
 
     // control_unit_bpc_en_set: NIT_CONTROL_UNIT_BPC_EN_OFFSET                         (0x00000005): 1
-    nit_control_unit_core_bpc_en_set(&nit_control_unit_core_driver, 0);
+    nit_control_unit_core_bpc_en_set(&nit_control_unit_core_driver, 1);
 
     nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
 

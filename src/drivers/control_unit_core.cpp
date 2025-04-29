@@ -156,7 +156,7 @@ int nit_control_unit_core_bias_v_set(nit_control_unit_core_state_t *state, uint1
         return retval;
     }
 
-    unsafe_set(state, nit_control_unit_core_bias_v_offset, value);
+    unsafe_set<typeof(*state), uint32_t>(state, nit_control_unit_core_bias_v_offset, value);
     return retval;
 }
 
@@ -187,7 +187,7 @@ int nit_control_unit_core_black_level_set(nit_control_unit_core_state_t *state, 
         return retval;
     }
 
-    unsafe_set(state, nit_control_unit_core_black_level_offset, value);
+    unsafe_set<typeof(*state), uint32_t>(state, nit_control_unit_core_black_level_offset, value);
     return retval;
 }
 
@@ -218,7 +218,7 @@ int nit_control_unit_core_bpc_en_set(nit_control_unit_core_state_t *state, uint1
         return retval;
     }
 
-    unsafe_set(state, nit_control_unit_core_bpc_en_offset, value);
+    unsafe_set<typeof(*state), uint32_t>(state, nit_control_unit_core_bpc_en_offset, value);
     return retval;
 }
 
@@ -234,7 +234,7 @@ int nit_control_unit_core_drift_enable_set(nit_control_unit_core_state_t *state,
         return retval;
     }
 
-    unsafe_set(state, nit_control_unit_core_drift_enable_offset, value);
+    unsafe_set<typeof(*state), uint32_t>(state, nit_control_unit_core_drift_enable_offset, value);
     return retval;
 }
 
@@ -265,7 +265,7 @@ int nit_control_unit_core_drift_position_set(nit_control_unit_core_state_t *stat
         return retval;
     }
 
-    unsafe_set(state, nit_control_unit_core_drift_position_offset, value);
+    unsafe_set<typeof(*state), uint32_t>(state, nit_control_unit_core_drift_position_offset, value);
     return retval;
 }
 
@@ -297,7 +297,7 @@ int nit_control_unit_core_drift_level_set(nit_control_unit_core_state_t *state, 
         return retval;
     }
 
-    unsafe_set(state, nit_control_unit_core_drift_level_offset, value);
+    unsafe_set<typeof(*state), uint32_t>(state, nit_control_unit_core_drift_level_offset, value);
     return retval;
 }
 
@@ -344,7 +344,7 @@ int nit_control_unit_core_int_time_set(nit_control_unit_core_state_t *state, uin
         return retval;
     }
 
-    unsafe_set(state, nit_control_unit_core_int_time_offset, value);
+    unsafe_set<typeof(*state), uint32_t>(state, nit_control_unit_core_int_time_offset, value);
     return retval;
 }
 
@@ -437,7 +437,7 @@ int nit_control_unit_core_shutter_set(nit_control_unit_core_state_t *state, uint
         return retval;
     }
 
-    unsafe_set(state, nit_control_unit_core_shutter_offset, value);
+    unsafe_set<typeof(*state), uint32_t>(state, nit_control_unit_core_shutter_offset, value);
     return retval;
 }
 
@@ -483,7 +483,7 @@ int nit_control_unit_core_temp1_set(nit_control_unit_core_state_t *state, uint16
         return retval;
     }
 
-    unsafe_set(state, nit_control_unit_core_temp1_offset, value);
+    unsafe_set<typeof(*state), uint32_t>(state, nit_control_unit_core_temp1_offset, value);
     return retval;
 }
 
@@ -514,7 +514,7 @@ int nit_control_unit_core_temp2_set(nit_control_unit_core_state_t *state, uint16
         return retval;
     }
 
-    unsafe_set(state, nit_control_unit_core_temp2_offset, value);
+    unsafe_set<typeof(*state), uint32_t>(state, nit_control_unit_core_temp2_offset, value);
     return retval;
 }
 
