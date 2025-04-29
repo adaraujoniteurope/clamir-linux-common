@@ -155,7 +155,7 @@ int command_target_nit_control_unit_core_arm_sw_version_write(std::shared_ptr<ap
 int command_target_nit_control_unit_core_arm_sw_version_read(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    req.value = 0x0007;
+    req.value = 0x0006;
     send_response(socket_fd, req);
     return 0;
 }
@@ -430,23 +430,27 @@ int command_target_nit_gen_core_serial_number_low_read(std::shared_ptr<applicati
 {
     std::cout << __func__ << std::endl;
 
+    const char* serial_number = NULL;
+    serial_number = app->config_get().serial_number.c_str();
+
+
     req.route_id_set(0x04aa);
-    req.value = 0x3231;
+    req.value = app->config_get().serial_number.c_str()[1] << 8 | app->config_get().serial_number.c_str()[0];
 
     send_response(socket_fd, req);
 
     req.route_id_set(0x04ab);
-    req.value = 0x4541;
+    req.value = app->config_get().serial_number.c_str()[3] << 8 | app->config_get().serial_number.c_str()[2];
 
     send_response(socket_fd, req);
 
     req.route_id_set(0x04ac);
-    req.value = 0x3434;
+    req.value = app->config_get().serial_number.c_str()[5] << 8 | app->config_get().serial_number.c_str()[4];
 
     send_response(socket_fd, req);
 
     req.route_id_set(0x04ad);
-    req.value = 0x0037;
+    req.value = app->config_get().serial_number.c_str()[7] << 8 | app->config_get().serial_number.c_str()[6];
 
     send_response(socket_fd, req);
 

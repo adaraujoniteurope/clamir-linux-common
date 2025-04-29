@@ -128,7 +128,7 @@ private:
 		.version_major = "0",
 		.version_minor = "2",
 		.version_patch = "0",
-		.serial_number = "0",
+		.serial_number = "189J611",
 		.tcp_command_host_server_host = "0.0.0.0",
 		.tcp_command_host_server_port = 4097,
 		.tcp_image_stream_host_server_host = "0.0.0.0",
