@@ -3,7 +3,7 @@
 #export CC=/usr/bin/arm-linux-gnueabihf-gcc
 #export CXX=/usr/bin/arm-linux-gnueabihf-g++
 
-rm -rf build-target
+# rm -rf build-target
 
 . /home/arthur/Work/Petalinux/clamir-petalinux-v2024.2-sdk/environment-setup-cortexa9t2hf-neon-xilinx-linux-gnueabi
 
