@@ -125,9 +125,9 @@ private:
 	static std::shared_ptr<application> instance;
 
 	application_config config_default = {
-		.version_major = "0",
-		.version_minor = "2",
-		.version_patch = "0",
+		.version_major = 6,
+		.version_minor = 0,
+		.version_patch = 5,
 		.serial_number = "189J611",
 		.tcp_command_host_server_host = "0.0.0.0",
 		.tcp_command_host_server_port = 4097,

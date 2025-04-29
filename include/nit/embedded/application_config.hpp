@@ -9,9 +9,9 @@ struct application_config
 
 	std::string config_path;
 
-	std::string version_major;
-	std::string version_minor;
-	std::string version_patch;
+	int version_major;
+	int version_minor;
+	int version_patch;
 	std::string serial_number;
 
 	std::string tcp_command_host_server_host;

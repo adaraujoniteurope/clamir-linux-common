@@ -59,7 +59,7 @@ using namespace utils::numeric;
 
 namespace std
 {
-    bool operator==(const std::thread &a, std::thread &b)
+    bool operator==(const std::thread& a, std::thread& b)
     {
         return a.get_id() == b.get_id();
     }
@@ -106,7 +106,7 @@ int application::sensor_calibrate()
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
     // nit_scc_core_stub_eval_calibrate_update(&nit_scc_core_driver);
-    
+
     // in the case we use FPGA for calibrating the sensor...
     // nit_scc_core_calibration_mode_wait_idle(&nit_scc_core_driver);
 
@@ -129,14 +129,15 @@ int application::sensor_calibrate()
     return 0;
 }
 
-int application::initialize(int argc, char *argv[])
+int application::initialize(int argc, char* argv[])
 {
 
     const char* CONFIGURATION_DIRECTORY = std::getenv("CONFIGURATION_DIRECTORY");
 
     if (CONFIGURATION_DIRECTORY != nullptr) {
         std::cout << "CONFIGURATION_DIRECTORY: " << CONFIGURATION_DIRECTORY << std::endl;
-    } else {
+    }
+    else {
         std::cout << "CONFIGURATION_DIRECTORY environment variable is not set." << std::endl;
         CONFIGURATION_DIRECTORY = std::filesystem::current_path().c_str();
     }
@@ -145,7 +146,8 @@ int application::initialize(int argc, char *argv[])
 
     try {
         std::filesystem::create_directory(configuration_path);
-    } catch (std::exception& ex) {
+    }
+    catch (std::exception& ex) {
         std::cout << ex.what() << std::endl;
     }
 
@@ -156,9 +158,10 @@ int application::initialize(int argc, char *argv[])
         try {
             std::ofstream ofs(app_config_path);
             boost::archive::xml_oarchive xoa(ofs);
-            xoa & boost::make_nvp("config", this->config_default);
-        } catch (std::exception& ex) {
-            std::cout << ex.what()<< std::endl;
+            xoa& boost::make_nvp("config", this->config_default);
+        }
+        catch (std::exception& ex) {
+            std::cout << ex.what() << std::endl;
             return -1;
         }
     }
@@ -166,8 +169,9 @@ int application::initialize(int argc, char *argv[])
     try {
         std::ifstream ifs(app_config_path);
         boost::archive::xml_iarchive xia(ifs);
-        xia & boost::make_nvp("config", this->config);
-    } catch(std::exception& ex)
+        xia& boost::make_nvp("config", this->config);
+    }
+    catch (std::exception& ex)
     {
         std::cout << ex.what() << std::endl;
         return -1;
@@ -258,7 +262,7 @@ int application::initialize(int argc, char *argv[])
      * Configuration Defaults from Previous Releases
      */
 
-    // nit_mb_core_pwm_limit_max_set: NIT_MB_CORE_PWM_LIMIT_MAX_OFFSET                 (0x0000C000): 1117
+     // nit_mb_core_pwm_limit_max_set: NIT_MB_CORE_PWM_LIMIT_MAX_OFFSET                 (0x0000C000): 1117
     nit_pwm_core_pwm_limit_max_set(&nit_mb_core_driver, 1117);
 
     // nit_mb_core_pwm_limit_min_set: NIT_MB_CORE_PWM_LIMIT_MIN_OFFSET                 (0x0000C003): 372
@@ -407,7 +411,8 @@ int application::initialize(int argc, char *argv[])
 
     try {
         nit_bpc_table_core_bpc_table_load(&nit_bpc_table_core_driver, "/mnt/mmc/sys/bpcc.sys");
-    } catch (std::exception& e) {
+    }
+    catch (std::exception& e) {
         std::cout << e.what() << std::endl;
     }
 
@@ -415,7 +420,7 @@ int application::initialize(int argc, char *argv[])
      * load serial number from BPC file
      * (old behaviour)
      */
-     const char * bpcc_path = "/mnt/mmc/sys/bpcc.sys";
+    const char* bpcc_path = "/mnt/mmc/sys/bpcc.sys";
     if (std::filesystem::exists(bpcc_path)) {
         std::fstream fs(bpcc_path);
         fs >> config.serial_number;
@@ -425,12 +430,12 @@ int application::initialize(int argc, char *argv[])
 }
 
 application::application()
-    : m_shutdown(false), m_command_server_router({{1, std::bind(&application::default_handler, this, std::placeholders::_1, std::placeholders::_2)}})
+    : m_shutdown(false), m_command_server_router({ {1, std::bind(&application::default_handler, this, std::placeholders::_1, std::placeholders::_2)} })
 {
     m_timer = std::make_shared<linux_generic_timer>(this->config.global_timer_update_interval_us, m_shutdown);
 }
 
-int application::default_handler(const unsigned char *buffer, int)
+int application::default_handler(const unsigned char* buffer, int)
 {
     return 0;
 }
@@ -453,22 +458,22 @@ void application::run()
 
     // Set up signal handling using standard C++ facilities
     std::signal(SIGINT, [](int)
-                { shutdown.store(true); });
+        { shutdown.store(true); });
     std::signal(SIGTERM, [](int)
-                { shutdown.store(true); });
+        { shutdown.store(true); });
     std::signal(SIGPIPE, SIG_IGN);
 
     auto legacy_command_server_worker = std::thread(tcp_server::create(4097, std::bind(&application::command_processor_legacy, this, std::placeholders::_1), shutdown));
     auto legacy_image_server_worker = std::thread(tcp_server::create(4096, std::bind(&application::image_writer_legacy, this, std::placeholders::_1), shutdown));
 
     // m_server_threads.push_back(std::move(system_timer_thread));
-    
+
     m_server_threads.push_back(std::move(legacy_command_server_worker));
     m_server_threads.push_back(std::move(legacy_image_server_worker));
 
     m_server_threads.push_back(std::move(std::thread([this]() -> void {
         nit_process_core_run(&nit_process_core_driver, m_timer, m_shutdown);
-    })));
+        })));
 
     std::shared_ptr<linux_generic_timer> image_timer = nullptr;
 
@@ -478,12 +483,12 @@ void application::run()
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-        catch (std::exception &)
+        catch (std::exception&)
         {
         }
     }
 
-    for (auto &thread : m_server_threads)
+    for (auto& thread : m_server_threads)
     {
         if (thread.joinable())
         {
