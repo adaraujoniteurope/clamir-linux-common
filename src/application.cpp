@@ -412,11 +412,6 @@ application::application()
     : m_shutdown(false), m_command_server_router({{1, std::bind(&application::default_handler, this, std::placeholders::_1, std::placeholders::_2)}})
 {
     m_timer = std::make_shared<linux_generic_timer>(this->config.global_timer_update_interval_us, m_shutdown);
-    // if (application::host_mockup) {
-        
-    // } else {
-    //     m_timer = std::make_shared<uio_timer>(m_shutdown);
-    // }
 }
 
 int application::default_handler(const unsigned char *buffer, int)
