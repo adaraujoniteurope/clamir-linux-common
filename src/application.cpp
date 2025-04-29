@@ -435,63 +435,6 @@ std::shared_ptr<application> application::get_instance()
     return instance;
 }
 
-void application::image_writer(int socket_fd)
-{
-
-    const uint8_t sync[] = {0x01, 0x00, 0x02, 0x00, 0x03, 0x00};
-    const uint8_t metadata[60] = {0x00};
-    uint8_t buffer[8192] = {0x00};
-
-    uint8_t *image = (uint8_t *)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
-    int image_size = 8192;
-
-    std::mutex socket_mutex;
-
-    while (!m_shutdown)
-    {
-
-        // m_timer->wait();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
-        std::unique_lock<std::mutex> lk(socket_mutex);
-
-        if (write(socket_fd, sync, sizeof(sync)) < 0)
-        {
-            perror("Failed to write at socket when writing sync payload");
-            break;
-        }
-        if (write(socket_fd, metadata, sizeof(metadata)) < 0)
-        {
-            perror("Failed to write at socket when writing metadata payload");
-            break;
-        }
-
-        if (write(socket_fd, image, image_size) < 0)
-        {
-            perror("Failed to write at socket when writing frame payload");
-            break;
-        }
-    }
-}
-
-void application::command_processor(int socket_fd)
-{
-    // auto server = http::server::create();
-    // auto router = http::router::create();
-    // server.append(router);
-    // routes::get(router, "/arm/led_r", std::bind(&nit::embedded::drivers::arm_core::led_r_get, &this->arm_core_driver));
-    // server.listen(8080. "0.0.0.0");
-
-    // auto master = nit::embedded::drivers::master_core::create(0x420000000, 0x00002000);
-    // auto derived = nit::embedded::drivers::arm_core::create(0x420000000, 0x00002000, master);
-
-    while(!m_shutdown)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
-}
-
 void application::run()
 {
 
@@ -503,16 +446,6 @@ void application::run()
     std::signal(SIGTERM, [](int)
                 { shutdown.store(true); });
     std::signal(SIGPIPE, SIG_IGN);
-
-    // std::atomic_bool system_timer_shutdown = false;
-    
-    // m_controller.output_changed += [](double value)
-    // {
-    //     uint32_t pwm_value = value * 1000.0;
-    //     nit_pwm_core_pwm_set(&nit_mb_core_driver, pwm_value);
-    // };
-
-    // std::thread system_timer_thread = std::thread(m_timer->get_worker());
 
     auto legacy_command_server_worker = std::thread(tcp_server::create(4097, std::bind(&application::command_processor_legacy, this, std::placeholders::_1), shutdown));
     auto legacy_image_server_worker = std::thread(tcp_server::create(4096, std::bind(&application::image_writer_legacy, this, std::placeholders::_1), shutdown));
@@ -527,15 +460,6 @@ void application::run()
     })));
 
     std::shared_ptr<linux_generic_timer> image_timer = nullptr;
-
-    // if (host_mockup) {
-    //     image_timer = std::make_shared<linux_generic_timer>(this->config.global_timer_update_interval_us * 1000.0, m_shutdown);
-    //     std::thread image_timer_thread = std::thread(image_timer->get_worker());
-    //     m_server_threads.push_back(std::move(image_timer_thread));
-    //     m_server_threads.push_back(std::move(std::thread([this]() -> void {
-    //         nit_framebuffer_core_run(&nit_framebuffer_core_driver, m_timer, m_shutdown);
-    //     })));
-    // }
 
     while (!shutdown.load())
     {
