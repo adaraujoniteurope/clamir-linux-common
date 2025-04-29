@@ -1263,6 +1263,18 @@ int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils:
         priv->virtual_metadata_shm[11] = priv->metadatos[10];
         priv->virtual_metadata_shm[12] = priv->metadatos[11];
 
+        {
+            /** because of speed we ignore driver access assertions */
+            auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp1_offset);
+            ((uint32_t *)priv->virtual_metadata_shm)[13] = nit_control_unit_core_temp_to_degc(voltage);
+        }
+
+        {
+            /** because of speed we ignore driver access assertions */
+            auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp2_offset);
+            ((uint32_t *)priv->virtual_metadata_shm)[14] = nit_control_unit_core_temp_to_degc(voltage);
+        }
+
         // memcpy((void*)&priv->virtual_metadata_shm[0], &priv->metadatos, 28);    // Power, MOM00, MOM01, MOM10, MOM11, MOM02, MOM20
         // priv->virtual_metadata_shm[7] = priv->resultado;                         // Width
         // memcpy((void*)&priv->virtual_metadata_shm[8], &priv->metadatos[7], 20); // Track Nmbr, Frame Max, Frame Number, Timestamp, IO Status
