@@ -155,7 +155,7 @@ int command_target_nit_control_unit_core_arm_sw_version_write(std::shared_ptr<ap
 int command_target_nit_control_unit_core_arm_sw_version_read(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
     std::cout << __func__ << std::endl;
-    req.value = 0x0006;
+    req.value = 0x0007;
     send_response(socket_fd, req);
     return 0;
 }
