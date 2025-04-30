@@ -243,17 +243,6 @@ struct nit_process_core_private_state
     int pending = 0;
     int enable = 1;
 
-    // Habilita interrupciones
-
-    // int fd_int = open("/dev/uio0", O_RDWR);
-    // if (fd_int < 0)
-    // 	printf("No se puede abrir el descriptor de uio0 para copntrol\n");
-
-    // int fdMetadatos;
-    // fdMetadatos = open("/dev/mem", O_RDWR | O_SYNC);
-    // volatile int *metaPtr = real_metadata_shm;
-    // metaPtr = (volatile int *)memory_map_open(NULL, 64, PROT_READ | PROT_WRITE, MAP_SHARED, fdMetadatos, BRAM_IMG_METADATOS);
-
     int metadatos[12];
     double W = 0;
     double width_aux = 0;
@@ -271,7 +260,7 @@ struct nit_process_core_private_state
     uint16_t automeasure_flag, autoshutter_config;
     uint32_t autoshutter_time_target;
     float autoshutter_temp_target;
-    int resultado = 0;
+    int laser_region_width = 0;
     int cont = 0;
     int z = 0;
     int circ_buffer_size = 1;
@@ -287,6 +276,9 @@ struct nit_process_core_private_state
     int last_laser_status = 0;
     int delay_laser_on = 0;
     int cont_preheating = 0;
+
+    uint32_t temperature_t1;
+    uint32_t temperature_t2;
 
     volatile int* proc_var_shm;
     volatile int* virtual_metadata_shm;
@@ -805,7 +797,7 @@ int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils:
 
     priv->cnt_aux_alarm = priv->proc_var_shm[ALARM_TIME];
 
-    priv->resultado = 0;
+    priv->laser_region_width = 0;
     priv->cont = 0;
     priv->z = 0;
     priv->circ_buffer_size = 1;
@@ -1225,7 +1217,7 @@ int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils:
             break;
         }
 
-        priv->resultado = (((int)(100 * priv->width_ref) << 16)) | ((int)(priv->W * 100));
+        priv->laser_region_width = (((int)(100 * priv->width_ref) << 16)) | ((int)(priv->W * 100));
 
         if (priv->potencia_t0 > priv->limPotenciaMax)
         {
@@ -1247,37 +1239,33 @@ int nit_process_core_run(nit_process_core_state_t* state, std::shared_ptr<utils:
         priv->mb_core_shm[PWM] = (unsigned int)priv->duty;
         priv->last_laser_status = priv->laser_status;
 
-        priv->virtual_metadata_shm[0] = priv->metadatos[0];
-        priv->virtual_metadata_shm[1] = priv->metadatos[1];
-        priv->virtual_metadata_shm[2] = priv->metadatos[2];
-        priv->virtual_metadata_shm[3] = priv->metadatos[3];
-        priv->virtual_metadata_shm[4] = priv->metadatos[4];
-        priv->virtual_metadata_shm[5] = priv->metadatos[5];
-        priv->virtual_metadata_shm[6] = priv->metadatos[6];
+        // priv->virtual_metadata_shm[0] = priv->metadatos[0];
+        // priv->virtual_metadata_shm[1] = priv->metadatos[1];
+        // priv->virtual_metadata_shm[2] = priv->metadatos[2];
+        // priv->virtual_metadata_shm[3] = priv->metadatos[3];
+        // priv->virtual_metadata_shm[4] = priv->metadatos[4];
+        // priv->virtual_metadata_shm[5] = priv->metadatos[5];
+        // priv->virtual_metadata_shm[6] = priv->metadatos[6];
 
-        priv->virtual_metadata_shm[7] = priv->resultado;
+        // priv->virtual_metadata_shm[7] = priv->laser_region_width;
 
-        priv->virtual_metadata_shm[8] = priv->metadatos[7];
-        priv->virtual_metadata_shm[9] = priv->metadatos[8];
-        priv->virtual_metadata_shm[10] = priv->metadatos[9];
-        priv->virtual_metadata_shm[11] = priv->metadatos[10];
-        priv->virtual_metadata_shm[12] = priv->metadatos[11];
+        // priv->virtual_metadata_shm[8] = priv->metadatos[7];
+        // priv->virtual_metadata_shm[9] = priv->metadatos[8];
+        // priv->virtual_metadata_shm[10] = priv->metadatos[9];
+        // priv->virtual_metadata_shm[11] = priv->metadatos[10];
+        // priv->virtual_metadata_shm[12] = priv->metadatos[11];
 
         {
             /** because of speed we ignore driver access assertions */
             auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp1_offset);
-            ((uint32_t *)priv->virtual_metadata_shm)[13] = nit_control_unit_core_temp_to_degc(voltage);
+            priv->temperature_t1 = nit_control_unit_core_temp_to_degc(voltage);
         }
 
         {
             /** because of speed we ignore driver access assertions */
             auto voltage = unsafe_get<nit_control_unit_core_state_t, uint16_t>(&nit_control_unit_core_driver, nit_control_unit_core_temp2_offset);
-            ((uint32_t *)priv->virtual_metadata_shm)[14] = nit_control_unit_core_temp_to_degc(voltage);
+            priv->temperature_t2 = nit_control_unit_core_temp_to_degc(voltage);
         }
-
-        // memcpy((void*)&priv->virtual_metadata_shm[0], &priv->metadatos, 28);    // Power, MOM00, MOM01, MOM10, MOM11, MOM02, MOM20
-        // priv->virtual_metadata_shm[7] = priv->resultado;                         // Width
-        // memcpy((void*)&priv->virtual_metadata_shm[8], &priv->metadatos[7], 20); // Track Nmbr, Frame Max, Frame Number, Timestamp, IO Status
 
         // gestion de la alarma
 
@@ -1509,4 +1497,22 @@ double nit_process_core_calculate_width(int metadatos[12])
 
     W = sqrt(8 * (u20 + u02 - sqrt((4 * u11 * u11) + ((u20 - u02) * (u20 - u02))))); // Aqui se ha calculado el ancho
     return W;
+}
+
+int& nit_process_core_laser_region_width_get(nit_process_core_state_t* state)
+{
+    auto priv = (nit_process_core_private_state*) state->priv;
+    return priv->laser_region_width;
+}
+
+int& nit_process_core_temperature_t1_get(nit_process_core_state_t* state)
+{
+    auto priv = (nit_process_core_private_state*) state->priv;
+    return (int&) priv->temperature_t1;
+}
+
+int& nit_process_core_temperature_t2_get(nit_process_core_state_t* state)
+{
+    auto priv = (nit_process_core_private_state*) state->priv;
+    return (int&) priv->temperature_t2;
 }

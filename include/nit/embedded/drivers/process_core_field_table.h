@@ -34,6 +34,6 @@
     _(process_core, delay_laser_on, uint32_t, sizeof(uint32_t), 29)        \
     _(process_core, preheating_ena, uint32_t, sizeof(uint32_t), 30)        \
     _(process_core, preheating_time, uint32_t, sizeof(uint32_t), 31)       \
-    _(process_core, preheating_power, uint32_t, sizeof(uint32_t), 32)
+    _(process_core, preheating_power, uint32_t, sizeof(uint32_t), 32) \
 
 #endif

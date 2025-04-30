@@ -236,9 +236,6 @@ int command_target_nit_mom_core_time_track_low_read(std::shared_ptr<application>
     uint32_t high = 0;
     uint32_t low = 0;
 
-    // high = unsafe_get<nit_mb_core_state_t, uint32_t>(&nit_mb_core_driver, nit_mom_core_time_track_high_offset);
-    // high = unsafe_get<nit_mb_core_state_t, uint32_t>(&nit_mb_core_driver, nit_mom_core_time_track_low_offset);
-
     if (nit_mom_core_time_track_high_get(&nit_mb_core_driver, &high) < 0)
     {
         return -1;
@@ -357,11 +354,11 @@ DEFINE_COMMAND_TARGET_READ_CALLBACK(nit_process_core, nit_process_core, uint32_t
 int command_target_nit_process_core_background_remove_write(std::shared_ptr<application> app, command_processor_route& route, packet& req, int socket_fd)
 {
 
-    if(!app->config_get().sensor_calibation_disable)
+    if (!app->config_get().sensor_calibation_disable)
     {
         app->sensor_calibrate();
     }
-    
+
     nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -561,7 +558,7 @@ std::map<uint16_t, command_processor_route> application::command_processor_route
     {0x040C, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_mom_core_time_track_low_read, .write = command_target_nit_mom_core_time_track_low_write}},
     {0x040E, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_arm_core_soft_reset_read, .write = command_target_nit_arm_core_soft_reset_write}},
     {0x040F, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_mom_core_threshold_read, .write = command_target_nit_mom_core_threshold_write}},
-    
+
     {0x0410, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_roi_core_round_read, .write = command_target_nit_roi_core_round_write}},
     {0x0411, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_gen_core_enable_roi_read, .write = command_target_nit_gen_core_enable_roi_write}},
     {0x0412, {.pdata = (void*)&nit_mb_core_driver, .read = command_target_nit_roi_core_x1_read, .write = command_target_nit_roi_core_x1_write}},
@@ -732,49 +729,50 @@ void application::image_writer_legacy(int socket_fd)
     uint8_t* pmeta_ptr = (uint8_t*)nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
 
     int fifo_ctrl_fd = open("/dev/mem", O_RDWR | O_SYNC);
-    int* mm_image_writer_ptr = (int*) mmap(NULL, _SC_PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fifo_ctrl_fd, 0x40003000);
-
-    // int memory_writer_fd = open("/dev/uio1", O_RDWR | O_SYNC);
-    // int* mm_image_writer_ptr = (int*) mmap(NULL, _SC_PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, memory_writer_fd, 0);
+    int* mm_image_writer_ptr = (int*)mmap(NULL, _SC_PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fifo_ctrl_fd, 0x40003000);
 
     auto frame = [&](int tail) -> uint8_t* {
         return img_ptr + (tail * 0x2100);
-    };
+        };
 
     auto frame_metadata = [&](int tail) -> metadata_frame* {
         return (metadata_frame*)((img_ptr + 0x2000 + tail * 0x2100));
-    };
+        };
 
     auto process_metadata = [&] -> metadata_process* {
-        return (metadata_process*) pmeta_ptr;
-    };
+        return (metadata_process*)pmeta_ptr;
+        };
 
-    auto cleanup = [&](){
+    auto cleanup = [&]() {
         munmap(mm_image_writer_ptr, _SC_PAGE_SIZE);
         close(fifo_ctrl_fd);
-    };
+        };
 
     auto available = [](int head, int tail) -> bool {
         auto next_tail = 0;
 
-        if (tail < (FIFO_LENGTH-1)) {
+        if (tail < (FIFO_LENGTH - 1)) {
             next_tail = tail + 1;
-        } else {
+        }
+        else {
             next_tail = 0;
         }
 
         return (head < next_tail) || next_tail < head;
 
-    };
+        };
 
     auto head = [&]() -> int {
         return *mm_image_writer_ptr;
-    };
+        };
 
     auto fifo_tail = 0;
     auto fifo_head = 1;
 
     auto frame_idx_last = 0;
+
+    metadata_frame _frame_metadata;
+    metadata_process metadata;
 
     while (!m_shutdown)
     {
@@ -784,7 +782,7 @@ void application::image_writer_legacy(int socket_fd)
 
         while (available(head(), fifo_tail)) {
 
-            auto _frame_metadata = *frame_metadata(fifo_tail);
+            _frame_metadata = *frame_metadata(fifo_tail);
 
             if (_frame_metadata.frame_number - frame_idx_last > 1) {
                 printf("missing frame %d -> %d (%d)\r\n", frame_idx_last, _frame_metadata.frame_number, _frame_metadata.frame_number - frame_idx_last);
@@ -792,7 +790,24 @@ void application::image_writer_legacy(int socket_fd)
 
             frame_idx_last = _frame_metadata.frame_number;
 
-            auto metadata = *process_metadata();
+            // metadata = {
+                metadata.power = _frame_metadata.power;
+                metadata.m00 = _frame_metadata.m00;
+                metadata.m01 = _frame_metadata.m01;
+                metadata.m10 = _frame_metadata.m10;
+                metadata.m11 = _frame_metadata.m11;
+                metadata.m02 = _frame_metadata.m02;
+                metadata.m20 = _frame_metadata.m20;
+                metadata.width = nit_process_core_laser_region_width_get(&nit_process_core_driver);
+                metadata.track_number = _frame_metadata.track_number;
+                metadata.frame_max = _frame_metadata.frame_max;
+                metadata.frame_number = _frame_metadata.frame_number;
+                metadata.timestamp = _frame_metadata.timestamp;
+                metadata.io_status = _frame_metadata.io_status;
+                metadata.t1 = nit_process_core_temperature_t1_get(&nit_process_core_driver);
+                metadata.t2 = nit_process_core_temperature_t2_get(&nit_process_core_driver);
+            // };
+
             if (write(socket_fd, &metadata, 60) < 0) {
                 cleanup();
                 return;
@@ -803,10 +818,11 @@ void application::image_writer_legacy(int socket_fd)
                 return;
             }
 
-            if (fifo_tail < (FIFO_LENGTH-1)) {
+            if (fifo_tail < (FIFO_LENGTH - 1)) {
                 fifo_tail++;
-            } else {
-                fifo_tail=0;
+            }
+            else {
+                fifo_tail = 0;
             }
 
             std::this_thread::yield();

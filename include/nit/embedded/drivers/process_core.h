@@ -60,7 +60,10 @@
     int nit_process_core_run(nit_process_core_state_t *state, std::shared_ptr<utils::waitable> timer, std::atomic_bool& shutdown);
 
     volatile int* nit_process_core_get_virtual_metadata_shm_ptr(nit_process_core_state_t *state);
-    
+
+    int& nit_process_core_laser_region_width_get(nit_process_core_state_t* state);
+    int& nit_process_core_temperature_t1_get(nit_process_core_state_t* state);
+    int& nit_process_core_temperature_t2_get(nit_process_core_state_t* state);
 
     NIT_PROCESS_CORE_FIELD_TABLE(NIT_PROCESS_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION)
 
