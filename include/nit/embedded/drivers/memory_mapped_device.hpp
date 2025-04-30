@@ -62,7 +62,7 @@ namespace nit::embedded::drivers
         protected:
         memory_mapped_device() {}
         memory_mapped_device(size_t offset, size_t size, std::string path = "/dev/mem", std::shared_ptr<memory_mapped_device> base = nullptr)
-            : m_path(path), m_offset(offset), m_size(size)
+            : m_offset(offset), m_size(size), m_path(path)
         {}
 
         public:

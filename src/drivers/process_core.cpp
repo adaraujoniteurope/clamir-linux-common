@@ -8,7 +8,7 @@
 #include <nit/embedded/drivers/bpc_table_core.h>
 #include <nit/embedded/drivers/framebuffer_core.h>
 #include <nit/embedded/drivers/process_core.h>
-#include <nit/embedded/drivers/pwm_core.hpp>
+#include <nit/embedded/drivers/led_core.hpp>
 
 #include <nit/embedded/utils/memory_map.hpp>
 

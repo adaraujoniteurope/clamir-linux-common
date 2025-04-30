@@ -790,23 +790,21 @@ void application::image_writer_legacy(int socket_fd)
 
             frame_idx_last = _frame_metadata.frame_number;
 
-            // metadata = {
-                metadata.power = _frame_metadata.power;
-                metadata.m00 = _frame_metadata.m00;
-                metadata.m01 = _frame_metadata.m01;
-                metadata.m10 = _frame_metadata.m10;
-                metadata.m11 = _frame_metadata.m11;
-                metadata.m02 = _frame_metadata.m02;
-                metadata.m20 = _frame_metadata.m20;
-                metadata.width = nit_process_core_laser_region_width_get(&nit_process_core_driver);
-                metadata.track_number = _frame_metadata.track_number;
-                metadata.frame_max = _frame_metadata.frame_max;
-                metadata.frame_number = _frame_metadata.frame_number;
-                metadata.timestamp = _frame_metadata.timestamp;
-                metadata.io_status = _frame_metadata.io_status;
-                metadata.t1 = nit_process_core_temperature_t1_get(&nit_process_core_driver);
-                metadata.t2 = nit_process_core_temperature_t2_get(&nit_process_core_driver);
-            // };
+            metadata.power = _frame_metadata.power;
+            metadata.m00 = _frame_metadata.m00;
+            metadata.m01 = _frame_metadata.m01;
+            metadata.m10 = _frame_metadata.m10;
+            metadata.m11 = _frame_metadata.m11;
+            metadata.m02 = _frame_metadata.m02;
+            metadata.m20 = _frame_metadata.m20;
+            metadata.width = nit_process_core_laser_region_width_get(&nit_process_core_driver);
+            metadata.track_number = _frame_metadata.track_number;
+            metadata.frame_max = _frame_metadata.frame_max;
+            metadata.frame_number = _frame_metadata.frame_number;
+            metadata.timestamp = _frame_metadata.timestamp;
+            metadata.io_status = _frame_metadata.io_status;
+            metadata.t1 = nit_process_core_temperature_t1_get(&nit_process_core_driver);
+            metadata.t2 = nit_process_core_temperature_t2_get(&nit_process_core_driver);
 
             if (write(socket_fd, &metadata, 60) < 0) {
                 cleanup();
