@@ -17,6 +17,12 @@ option(NIT_CLAMIR_ENABLE_DOCS "Enable Documentation" OFF)
 option(NIT_CLAMIR_ENABLE_PROFINET "Enable Profinet Extensio" OFF)
 option(NIT_CLAMIR_HOST_MOCKUP "Enable Host Mockup" OFF)
 option(NIT_CLAMIR_BUILD_UTILS "Enable Host Mockup" ON)
+option(NIT_CLAMIR_ENABLE_BLAS "Enable Host Mockup" OFF)
+option(NIT_CLAMIR_DEBUGGING "Enable Debugging" ON)
+
+message(STATUS "NIT_CLAMIR_HOST_MOCKUP: ${NIT_CLAMIR_HOST_MOCKUP}")
+message(STATUS "NIT_CLAMIR_DEBUGGING: ${NIT_CLAMIR_DEBUGGING}")
+message(STATUS "NIT_CLAMIR_ENABLE_BLAS: ${NIT_CLAMIR_ENABLE_BLAS}")
 
 include(FindPkgConfig)
 if(!${PKG_CONFIG_FOUND})
@@ -37,20 +43,22 @@ set(BUILD_SANDBOX NO CACHE INTERNAL "Turn off CEREAL Sandbox Build")
 
 find_package(Boost REQUIRED COMPONENTS system serialization)
 
-FetchContent_Declare(
-  Eigen
-  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-  GIT_TAG master
-  GIT_SHALLOW TRUE
-  GIT_PROGRESS TRUE
-)
+if(NIT_CLAMIR_ENABLE_BLAS)
+    FetchContent_Declare(
+    Eigen
+    GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+    GIT_TAG master
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
+    )
 
-set(EIGEN_BUILD_TESTING OFF)
-set(EIGEN_MPL2_ONLY ON)
-set(EIGEN_BUILD_PKGCONFIG OFF)
-set(EIGEN_BUILD_DOC OFF)
+    set(EIGEN_BUILD_TESTING OFF)
+    set(EIGEN_MPL2_ONLY ON)
+    set(EIGEN_BUILD_PKGCONFIG OFF)
+    set(EIGEN_BUILD_DOC OFF)
 
-FetchContent_MakeAvailable(Eigen)
+    FetchContent_MakeAvailable(Eigen)
+endif()
 
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 list(REMOVE_ITEM ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
@@ -63,14 +71,14 @@ message(STATUS "OSAL_INCLUDE_DIRS: ${OSAL_INCLUDE_DIR}")
 
 target_link_libraries(${PROJECT_NAME}-obj
     PUBLIC
-        # OSAL::OSAL
-        # PNET::PNET
         ${GSTREAMER_LIBRARIES}
         m
         ${Boost_LIBRARIES}
-        # cereal
-        Eigen3::Eigen
 )
+
+if(NIT_CLAMIR_ENABLE_BLAS)
+    target_link_libraries(${PROJECT_NAME}-obj PUBLIC Eigen3::Eigen)
+endif()
 
 target_include_directories(${PROJECT_NAME}-obj PUBLIC ${OSAL_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME}-obj PUBLIC ${PNET_INCLUDE_DIR})
@@ -79,13 +87,18 @@ target_compile_options(${PROJECT_NAME}-obj PUBLIC -Wall -Wdeprecated -Wdeprecate
 
 
 if (NIT_CLAMIR_HOST_MOCKUP)
-    message(STATUS "NIT_CLAMIR_HOST_MOCKUP: ${NIT_CLAMIR_HOST_MOCKUP}")
+    
     target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DNIT_CLAMIR_HOST_MOCKUP)
 endif()
 
 if (NIT_CLAMIR_DEBUGGING)
-    message(STATUS "NIT_CLAMIR_DEBUGGING: ${NIT_CLAMIR_DEBUGGING}")
+    
     target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DNIT_CLAMIR_DEBUGGING)
+endif()
+
+if (NIT_CLAMIR_ENABLE_BLAS)
+    
+    target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DNIT_CLAMIR_ENABLE_BLAS)
 endif()
 
 target_include_directories(${PROJECT_NAME}-obj PUBLIC ${BOOST_INCLUDE_DIRS})
