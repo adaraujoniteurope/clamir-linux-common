@@ -465,13 +465,13 @@ void application::run()
 
     auto legacy_command_server_worker = std::thread(tcp_server::create(4097, std::bind(&application::command_processor_legacy, this, std::placeholders::_1), shutdown));
     auto legacy_image_server_worker = std::thread(tcp_server::create(4096, std::bind(&application::image_writer_legacy, this, std::placeholders::_1), shutdown));
-    auto legacy_image_reader_worker = std::thread(std::bind(&application::image_reader, this));
+    // auto legacy_image_reader_worker = std::thread(std::bind(&application::image_reader, this));
 
     // m_server_threads.push_back(std::move(system_timer_thread));
 
     m_server_threads.push_back(std::move(legacy_command_server_worker));
     m_server_threads.push_back(std::move(legacy_image_server_worker));
-    m_server_threads.push_back(std::move(legacy_image_reader_worker));
+    // m_server_threads.push_back(std::move(legacy_image_reader_worker));
 
     m_server_threads.push_back(std::move(std::thread([this]() -> void {
         nit_process_core_run(&nit_process_core_driver, m_timer, m_shutdown);

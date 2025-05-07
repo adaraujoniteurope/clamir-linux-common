@@ -100,7 +100,9 @@
         "text_encoding": "cpp",
         "*.inc": "cpp",
         "filesystem": "cpp",
-        "*.hpp_": "cpp"
+        "*.hpp_": "cpp",
+        "queue": "cpp",
+        "stack": "cpp"
     },
     "cmake.configureArgs": [ "-DCMAKE_C_COMPILER_WORKS=TRUE", "-DCMAKE_CXX_COMPILER_WORKS=TRUE", "-DNIT_CLAMIR_HOST_MOCKUP=OFF", "-DNIT_CLAMIR_ENABLE_TESTING=OFF", "-DNIT_CLAMIR_ENABLE_TESTING=No", "-DNIT_CLAMIR_ENABLE_PROFINET=YES",  "-DCMAKE_BUILD_TYPE=Debug" ],
     "cmake.buildDirectory": "${workspaceFolder}/build-cmaketools",

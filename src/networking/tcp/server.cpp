@@ -60,7 +60,7 @@ std::function<void()> tcp_server::create(uint16_t port, std::function<void(int s
             throw std::runtime_error("Failed to add server socket to epoll");
         }
 
-        const int MAX_EVENTS = 10;
+        const int MAX_EVENTS = 1;
         struct epoll_event events[MAX_EVENTS];
 
         while (!shutdown.load())
@@ -85,7 +85,7 @@ std::function<void()> tcp_server::create(uint16_t port, std::function<void(int s
                         if (client_fd < 0) {
                             throw std::runtime_error("Failed to accept connection");
                         }
-
+                        
                         threads.emplace_back([&handler, client_fd](){
                             handler(client_fd);
                             close(client_fd);

@@ -722,39 +722,21 @@ struct __attribute__((packed)) mm_image_writer_ctrl
     int intr;
 };
 
+#include <cstdbool>
+
+auto uio_fd = -1;
+bool uio_initialized = false;
+
 void application::image_writer_legacy(int socket_fd)
 {
-    auto fifo_fd = open("stream.fifo", O_RDONLY);
 
-    uint8_t header[60];
-    uint8_t data[8192];
-
-    while(!m_shutdown) {
-
-        read(fifo_fd, header, 60);
-        read(fifo_fd, data, 8192);
-
-        if (write(socket_fd, &header, 60) < 0) {
-            return;
-        }
-
-        if (write(socket_fd, &data, 8192) < 0) {
-            return;
-        }
-
-        std::this_thread::yield();
-
+    if (!uio_initialized) {
+        uio_fd = open("/dev/uio0", O_RDWR | O_SYNC);
+        uio_initialized = true;
     }
-}
-
-void application::image_reader()
-{
-
-    auto uio_fd = open("/dev/uio0", O_RDWR);
 
     if (uio_fd < 0) {
         printf("Failed to open /dev/uio0: %s\n", strerror(errno));
-        exit(1);
     }
 
     uint8_t* mm_image_writer_buffer_ptr = (uint8_t*)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
@@ -802,16 +784,6 @@ void application::image_reader()
     metadata_frame _frame_metadata;
     metadata_process metadata;
 
-    mkfifo("stream.fifo", O_WRONLY);
-    auto fifo_fd = open("stream.fifo", O_WRONLY);
-
-    int size = (4096 + 60) * sizeof(int) * 2048;
-    
-    if (fcntl(fifo_fd, F_SETPIPE_SZ, &size) < 0) {
-        printf("Failed to set image fifo size to %d frames (%d bytes)", 2048, size);
-    }
-
-
     while (!m_shutdown)
     {
 
@@ -852,12 +824,12 @@ void application::image_reader()
             metadata.t1 = nit_process_core_temperature_t1_get(&nit_process_core_driver);
             metadata.t2 = nit_process_core_temperature_t2_get(&nit_process_core_driver);
 
-            if (write(fifo_fd, &metadata, 60) < 0) {
+            if (write(socket_fd, &metadata, 60) < 0) {
                 cleanup();
                 return;
             }
 
-            if (write(fifo_fd, frame(fifo_tail), 8192) < 0) {
+            if (write(socket_fd, frame(fifo_tail), 8192) < 0) {
                 cleanup();
                 return;
             }
