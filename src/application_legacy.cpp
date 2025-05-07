@@ -14,11 +14,13 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <signal.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -721,9 +723,51 @@ struct __attribute__((packed)) mm_image_writer_ctrl
 
 void application::image_writer_legacy(int socket_fd)
 {
+    auto fifo_fd = open("stream.fifo", O_RDONLY);
+
+    uint8_t header[60];
+    uint8_t data[8192];
+
+    while(!m_shutdown) {
+
+        read(fifo_fd, header, 60);
+        read(fifo_fd, data, 8192);
+
+        if (write(socket_fd, &header, 60) < 0) {
+            return;
+        }
+
+        if (write(socket_fd, &data, 8192) < 0) {
+            return;
+        }
+
+        std::this_thread::yield();
+
+    }
+}
+
+void application::image_reader()
+{
 
     int retval = 0;
     const auto FIFO_LENGTH = 6;
+
+    auto uio_fd = open("/dev/uio0", O_RDWR);
+
+    if (uio_fd < 0) {
+        printf("Failed to open UIO1: %s\n", strerror(errno));
+        exit(1);
+    }
+
+    // auto uio_mm = (int*) mmap(NULL, _SC_PAGE_SIZE, PROT_READ | PROT_WRITE , O_SYNC, uio_fd, 0);
+
+    // if (uio_mm == NULL) {
+    //     printf("Failed to open UIO Memory Map\n");
+    //     exit(1);
+    // }
+
+    // int& uio_intr_pending = uio_mm[1];
+
 
     uint8_t* img_ptr = (uint8_t*)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
     uint8_t* pmeta_ptr = (uint8_t*)nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
@@ -763,7 +807,7 @@ void application::image_writer_legacy(int socket_fd)
         };
 
     auto head = [&]() -> int {
-        return *mm_image_writer_ptr;
+        return mm_image_writer_ptr[0];
         };
 
     auto fifo_tail = 0;
@@ -774,9 +818,23 @@ void application::image_writer_legacy(int socket_fd)
     metadata_frame _frame_metadata;
     metadata_process metadata;
 
+    mkfifo("stream.fifo", O_WRONLY);
+    auto fifo_fd = open("stream.fifo", O_WRONLY);
+
+
     while (!m_shutdown)
     {
-        std::this_thread::yield();
+
+        int pending = 1;
+
+        if (write(uio_fd, &pending, sizeof(pending)) < 0) {
+            printf("Failed to write in uio_fd: %s\n", strerror(errno));
+            std::this_thread::yield();
+        } else {
+            if(read(uio_fd, &pending, sizeof(pending)) < 0) {
+                printf("Failed to read from uio_fd %s", strerror(errno));
+            }
+        }
 
         auto fifo_head = head();
 
@@ -806,12 +864,12 @@ void application::image_writer_legacy(int socket_fd)
             metadata.t1 = nit_process_core_temperature_t1_get(&nit_process_core_driver);
             metadata.t2 = nit_process_core_temperature_t2_get(&nit_process_core_driver);
 
-            if (write(socket_fd, &metadata, 60) < 0) {
+            if (write(fifo_fd, &metadata, 60) < 0) {
                 cleanup();
                 return;
             }
 
-            if (write(socket_fd, frame(fifo_tail), 8192) < 0) {
+            if (write(fifo_fd, frame(fifo_tail), 8192) < 0) {
                 cleanup();
                 return;
             }
@@ -822,8 +880,6 @@ void application::image_writer_legacy(int socket_fd)
             else {
                 fifo_tail = 0;
             }
-
-            std::this_thread::yield();
         }
     }
 }

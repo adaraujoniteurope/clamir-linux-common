@@ -112,7 +112,7 @@ private:
 
 	void legacy_control_function(volatile int *virtual_metadata_shm, volatile int *real_metadata_shm, volatile int *proc_var_shm, volatile int *gen_core_shm, volatile int *arm_core_shm, volatile int *control_unit_shm);
 
-	void image_writer(int socket_fd);
+	void image_reader();
 	void image_writer_legacy(int socket_fd);
 
 	void command_processor_legacy(int socket_fd);
