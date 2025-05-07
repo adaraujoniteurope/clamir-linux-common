@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -803,6 +804,12 @@ void application::image_reader()
 
     mkfifo("stream.fifo", O_WRONLY);
     auto fifo_fd = open("stream.fifo", O_WRONLY);
+
+    int size = (4096 + 60) * sizeof(int) * 2048;
+    
+    if (fcntl(fifo_fd, F_SETPIPE_SZ, &size) < 0) {
+        printf("Failed to set image fifo size to %d frames (%d bytes)", 2048, size);
+    }
 
 
     while (!m_shutdown)
