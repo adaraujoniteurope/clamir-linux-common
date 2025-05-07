@@ -749,53 +749,37 @@ void application::image_writer_legacy(int socket_fd)
 void application::image_reader()
 {
 
-    int retval = 0;
-    const auto FIFO_LENGTH = 6;
-
     auto uio_fd = open("/dev/uio0", O_RDWR);
 
     if (uio_fd < 0) {
-        printf("Failed to open UIO1: %s\n", strerror(errno));
+        printf("Failed to open /dev/uio0: %s\n", strerror(errno));
         exit(1);
     }
 
-    // auto uio_mm = (int*) mmap(NULL, _SC_PAGE_SIZE, PROT_READ | PROT_WRITE , O_SYNC, uio_fd, 0);
+    uint8_t* mm_image_writer_buffer_ptr = (uint8_t*)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
 
-    // if (uio_mm == NULL) {
-    //     printf("Failed to open UIO Memory Map\n");
-    //     exit(1);
-    // }
-
-    // int& uio_intr_pending = uio_mm[1];
-
-
-    uint8_t* img_ptr = (uint8_t*)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
-    uint8_t* pmeta_ptr = (uint8_t*)nit_process_core_get_virtual_metadata_shm_ptr(&nit_process_core_driver);
-
-    int fifo_ctrl_fd = open("/dev/mem", O_RDWR | O_SYNC);
-    int* mm_image_writer_ptr = (int*)mmap(NULL, _SC_PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fifo_ctrl_fd, 0x40003000);
+    int mm_image_writer_ctrl_fd = open("/dev/mem", O_RDWR | O_SYNC);
+    int* mm_image_writer_ctrl_ptr = (int*)mmap(NULL, _SC_PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, mm_image_writer_ctrl_fd, 0x40003000);
 
     auto frame = [&](int tail) -> uint8_t* {
-        return img_ptr + (tail * 0x2100);
+        return mm_image_writer_buffer_ptr + (tail * 0x2100);
         };
 
     auto frame_metadata = [&](int tail) -> metadata_frame* {
-        return (metadata_frame*)((img_ptr + 0x2000 + tail * 0x2100));
-        };
-
-    auto process_metadata = [&] -> metadata_process* {
-        return (metadata_process*)pmeta_ptr;
+        return (metadata_frame*)((mm_image_writer_buffer_ptr + 0x2000 + tail * 0x2100));
         };
 
     auto cleanup = [&]() {
-        munmap(mm_image_writer_ptr, _SC_PAGE_SIZE);
-        close(fifo_ctrl_fd);
-        };
+        munmap(mm_image_writer_ctrl_ptr, _SC_PAGE_SIZE);
+        close(mm_image_writer_ctrl_fd);
+    };
 
-    auto available = [](int head, int tail) -> bool {
+    int mm_image_writer_buffer_length = mm_image_writer_ctrl_ptr[3];
+
+    auto available = [mm_image_writer_buffer_length](int head, int tail) -> bool {
         auto next_tail = 0;
 
-        if (tail < (FIFO_LENGTH - 1)) {
+        if (tail < (mm_image_writer_buffer_length - 1)) {
             next_tail = tail + 1;
         }
         else {
@@ -807,11 +791,10 @@ void application::image_reader()
         };
 
     auto head = [&]() -> int {
-        return mm_image_writer_ptr[0];
+        return mm_image_writer_ctrl_ptr[0];
         };
 
     auto fifo_tail = 0;
-    auto fifo_head = 1;
 
     auto frame_idx_last = 0;
 
@@ -835,8 +818,6 @@ void application::image_reader()
                 printf("Failed to read from uio_fd %s", strerror(errno));
             }
         }
-
-        auto fifo_head = head();
 
         while (available(head(), fifo_tail)) {
 
@@ -874,7 +855,7 @@ void application::image_reader()
                 return;
             }
 
-            if (fifo_tail < (FIFO_LENGTH - 1)) {
+            if (fifo_tail < (mm_image_writer_buffer_length - 1)) {
                 fifo_tail++;
             }
             else {
