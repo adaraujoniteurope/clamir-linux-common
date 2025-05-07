@@ -154,6 +154,9 @@ private:
 
 	uint8_t m_image_buffer[8192];
 	uint8_t m_metadata_buffer[60];
+
+	int m_image_writer_uio_fd = -1;
+	bool m_image_writer_uio_initialized = false;
 };
 
 class application_connection_handler

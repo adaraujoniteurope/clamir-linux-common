@@ -722,22 +722,8 @@ struct __attribute__((packed)) mm_image_writer_ctrl
     int intr;
 };
 
-#include <cstdbool>
-
-auto uio_fd = -1;
-bool uio_initialized = false;
-
 void application::image_writer_legacy(int socket_fd)
 {
-
-    if (!uio_initialized) {
-        uio_fd = open("/dev/uio0", O_RDWR | O_SYNC);
-        uio_initialized = true;
-    }
-
-    if (uio_fd < 0) {
-        printf("Failed to open /dev/uio0: %s\n", strerror(errno));
-    }
 
     uint8_t* mm_image_writer_buffer_ptr = (uint8_t*)nit_framebuffer_core_get_memory_map(&nit_framebuffer_core_driver);
 
@@ -755,7 +741,7 @@ void application::image_writer_legacy(int socket_fd)
     auto cleanup = [&]() {
         munmap(mm_image_writer_ctrl_ptr, _SC_PAGE_SIZE);
         close(mm_image_writer_ctrl_fd);
-    };
+        };
 
     int mm_image_writer_buffer_length = mm_image_writer_ctrl_ptr[3];
 
@@ -789,11 +775,12 @@ void application::image_writer_legacy(int socket_fd)
 
         int pending = 1;
 
-        if (write(uio_fd, &pending, sizeof(pending)) < 0) {
+        if (write(m_image_writer_uio_fd, &pending, sizeof(pending)) < 0) {
             printf("Failed to write in uio_fd: %s\n", strerror(errno));
             std::this_thread::yield();
-        } else {
-            if(read(uio_fd, &pending, sizeof(pending)) < 0) {
+        }
+        else {
+            if (read(m_image_writer_uio_fd, &pending, sizeof(pending)) < 0) {
                 printf("Failed to read from uio_fd %s", strerror(errno));
             }
         }

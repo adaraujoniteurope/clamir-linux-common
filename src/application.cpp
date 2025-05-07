@@ -426,6 +426,16 @@ int application::initialize(int argc, char* argv[])
         fs >> config.serial_number;
     }
 
+    if (!m_image_writer_uio_initialized) {
+        m_image_writer_uio_fd = open("/dev/uio0", O_RDWR | O_SYNC);
+        m_image_writer_uio_initialized = true;
+    }
+
+    if (m_image_writer_uio_fd < 0) {
+        printf("Failed to open /dev/uio0: %s\n", strerror(errno));
+        exit(1);
+    }
+
     return 0;
 }
 
