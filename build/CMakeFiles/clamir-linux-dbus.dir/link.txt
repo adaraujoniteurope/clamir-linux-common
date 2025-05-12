@@ -1,0 +1,1 @@
+/usr/bin/c++ -g -Wl,--dependency-file=CMakeFiles/clamir-linux-dbus.dir/link.d "CMakeFiles/clamir-linux-dbus.dir/src/server_ctrl_dbus.cpp.o" -o clamir-linux-dbus  libclamir-linux-obj.a -lm /usr/lib/libboost_system.so.1.88.0 /usr/lib/libboost_serialization.so.1.88.0

@@ -92,7 +92,7 @@ namespace math::control
         utils::signal<value_type> output_changed;
 
         virtual ~pid_controller() {
-            std::cout << __func__ << std::endl;
+            syslog(LOG_INFO, __func__);
         }
 
         pid_controller()

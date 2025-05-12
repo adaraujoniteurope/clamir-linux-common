@@ -13,7 +13,7 @@ namespace utils
     {
     public:
         virtual ~pollable_worker() {
-            std::cout << __func__ << std::endl;
+            syslog(LOG_INFO, __func__);
         }
         template <class... types>
         std::function<void()> get_worker(std::atomic<bool> &shutdown, waitable& timer, types... args)

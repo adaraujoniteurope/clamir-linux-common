@@ -1,12 +1,14 @@
 #ifndef UTILS_RUNNABLE_HPP_
 #define UTILS_RUNNABLE_HPP_
 
+#include <syslog.h>
+
 namespace utils
 {
     class runnable
     {
     public:
-        virtual ~runnable() { std::cout << __func__ << std::endl; }
+        virtual ~runnable() { syslog(LOG_INFO, __func__); }
         virtual void run() = 0;
     };
 };

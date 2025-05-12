@@ -1,0 +1,1 @@
+/usr/bin/c++ -g -Wl,--dependency-file=CMakeFiles/clamir-linux-image.dir/link.d "CMakeFiles/clamir-linux-image.dir/src/server_image_tcp.cpp.o" -o clamir-linux-image  libclamir-linux-obj.a -lm /usr/lib/libboost_system.so.1.88.0 /usr/lib/libboost_serialization.so.1.88.0

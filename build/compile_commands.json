@@ -1,0 +1,188 @@
+[
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/components/timer.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/components/timer.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/components/timer.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/components/timer.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/arm_core.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/arm_core.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/arm_core.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/arm_core.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/bpc_table_core.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/bpc_table_core.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/bpc_table_core.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/bpc_table_core.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/control_unit_core.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/control_unit_core.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/control_unit_core.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/control_unit_core.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/control_unit_core.weak.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/control_unit_core.weak.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/control_unit_core.weak.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/control_unit_core.weak.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/framebuffer_core.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/framebuffer_core.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/framebuffer_core.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/framebuffer_core.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/framebuffer_core.weak.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/framebuffer_core.weak.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/framebuffer_core.weak.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/framebuffer_core.weak.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/framebuffer_core_debug.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/framebuffer_core_debug.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/framebuffer_core_debug.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/framebuffer_core_debug.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/gen_core.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/gen_core.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/gen_core.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/gen_core.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/gen_core.weak.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/gen_core.weak.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/gen_core.weak.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/gen_core.weak.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/mb_core.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/mb_core.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/mb_core.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/mb_core.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/mom_core.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/mom_core.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/mom_core.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/mom_core.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/mom_core.weak.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/mom_core.weak.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/mom_core.weak.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/mom_core.weak.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/process_core.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/process_core.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/process_core.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/process_core.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/process_core.weak.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/process_core.weak.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/process_core.weak.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/process_core.weak.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/pwm_core.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/pwm_core.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/pwm_core.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/pwm_core.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/pwm_core.weak.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/pwm_core.weak.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/pwm_core.weak.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/pwm_core.weak.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/roi_core.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/roi_core.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/roi_core.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/roi_core.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/roi_core.weak.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/roi_core.weak.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/roi_core.weak.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/roi_core.weak.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/scc_core.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/scc_core.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/scc_core.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/scc_core.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/drivers/scc_core.weak.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/drivers/scc_core.weak.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/drivers/scc_core.weak.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/drivers/scc_core.weak.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/main.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/main.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/main.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/main.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/networking/tcp/protocol_legacy.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/networking/tcp/protocol_legacy.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/networking/tcp/protocol_legacy.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/networking/tcp/protocol_legacy.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/server_ctrl_dbus.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/server_ctrl_dbus.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/server_ctrl_dbus.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/server_ctrl_dbus.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/server_ctrl_tcp.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/server_ctrl_tcp.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/server_ctrl_tcp.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/server_ctrl_tcp.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/server_image_tcp.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/server_image_tcp.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/server_image_tcp.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/server_image_tcp.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/utils/config_file.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/utils/config_file.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/utils/config_file.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/utils/config_file.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -Wall -Wdeprecated -Wdeprecated-declarations -g -O0 -o CMakeFiles/clamir-linux-obj.dir/src/utils/memory_map.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/utils/memory_map.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/utils/memory_map.cpp",
+  "output": "CMakeFiles/clamir-linux-obj.dir/src/utils/memory_map.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -g -Wall -Wdeprecated -Wdeprecated-declarations -O0 -o CMakeFiles/clamir-linux-dbus.dir/src/server_ctrl_dbus.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/server_ctrl_dbus.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/server_ctrl_dbus.cpp",
+  "output": "CMakeFiles/clamir-linux-dbus.dir/src/server_ctrl_dbus.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -g -Wall -Wdeprecated -Wdeprecated-declarations -O0 -o CMakeFiles/clamir-linux-ctrl.dir/src/server_ctrl_tcp.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/server_ctrl_tcp.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/server_ctrl_tcp.cpp",
+  "output": "CMakeFiles/clamir-linux-ctrl.dir/src/server_ctrl_tcp.cpp.o"
+},
+{
+  "directory": "/home/arthur/Work/Software/clamir-linux-daemon/build",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DNIT_CLAMIR_DEBUGGING -I/home/arthur/Work/Software/clamir-linux-daemon/include -g -std=gnu++23 -g -Wall -Wdeprecated -Wdeprecated-declarations -O0 -o CMakeFiles/clamir-linux-image.dir/src/server_image_tcp.cpp.o -c /home/arthur/Work/Software/clamir-linux-daemon/src/server_image_tcp.cpp",
+  "file": "/home/arthur/Work/Software/clamir-linux-daemon/src/server_image_tcp.cpp",
+  "output": "CMakeFiles/clamir-linux-image.dir/src/server_image_tcp.cpp.o"
+}
+]

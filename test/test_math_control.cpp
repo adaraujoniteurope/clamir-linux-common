@@ -148,8 +148,8 @@ TEST_F(pid_controller_test, open_loop_system) {
 
     ofs
     << "time (s)"
-    << "," << "input"
-    << "," << "output"
+    << ",%s", "input"
+    << ",%s", "output"
     << std::endl;
 
     for(auto t = std::chrono::high_resolution_clock::now() - start; t < experiment_duration; t = std::chrono::high_resolution_clock::now() - start)
@@ -173,8 +173,8 @@ TEST_F(pid_controller_test, open_loop_system) {
 
         ofs
             << to_seconds_double(t)
-            << "," << system_stub.input_get()
-            << "," << system_stub.output_get()
+            << ",%s", system_stub.input_get()
+            << ",%s", system_stub.output_get()
             << std::endl;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -206,8 +206,8 @@ TEST_F(pid_controller_test, closed_loop_system) {
 
     ofs
         << "time (s)"
-        << "," << "controller input"
-        << "," << "system output"
+        << ",%s", "controller input"
+        << ",%s", "system output"
         << std::endl;
 
     for(auto t = std::chrono::high_resolution_clock::now() - start; t < experiment_duration; t = std::chrono::high_resolution_clock::now() - start)
@@ -231,8 +231,8 @@ TEST_F(pid_controller_test, closed_loop_system) {
 
         ofs
             << to_seconds_double(t)
-            << "," << controller.set_point_get()
-            << "," << system_stub.output_get()
+            << ",%s", controller.set_point_get()
+            << ",%s", system_stub.output_get()
             << std::endl;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -273,8 +273,8 @@ TEST_F(pid_controller_test, closed_loop_diff_max_system) {
 
     ofs
         << "time (s)"
-        << "," << "controller input"
-        << "," << "system output"
+        << ",%s", "controller input"
+        << ",%s", "system output"
         << std::endl;
 
     for(auto t = std::chrono::high_resolution_clock::now() - start; t < experiment_duration; t = std::chrono::high_resolution_clock::now() - start)
@@ -298,8 +298,8 @@ TEST_F(pid_controller_test, closed_loop_diff_max_system) {
 
         ofs
             << to_seconds_double(t)
-            << "," << controller.set_point_get()
-            << "," << system_stub.output_get()
+            << ",%s", controller.set_point_get()
+            << ",%s", system_stub.output_get()
             << std::endl;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));

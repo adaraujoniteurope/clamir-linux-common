@@ -12,6 +12,7 @@
 
 #include <nit/embedded/utils/signal.hpp>
 #include <fcntl.h>
+#include <syslog.h>
 
 class abstract_timer : public utils::waitable, public utils::runnable_worker
 {
@@ -20,7 +21,7 @@ public:
     utils::signal<abstract_timer*, long> elapsed;
 
     abstract_timer(long ns, std::atomic_bool &shutdown) : m_interval(ns), m_shutdown(shutdown) {}
-    virtual ~abstract_timer() { std::cout << __func__ << std::endl; }
+    virtual ~abstract_timer() { syslog(LOG_INFO, __func__); }
 
     virtual long now() = 0;
 
@@ -58,7 +59,7 @@ class uio_timer : public abstract_timer
 public:
 
     uio_timer(std::atomic_bool &shutdown) : abstract_timer(std::numeric_limits<long>::min(), shutdown) {}
-    ~uio_timer() { std::cout << __func__ << std::endl; }
+    ~uio_timer() { syslog(LOG_INFO, __func__); }
     
     long now() override
     {
@@ -95,7 +96,7 @@ class linux_generic_timer : public abstract_timer
 {
     public:
     linux_generic_timer(long ns, std::atomic_bool &shutdown) : abstract_timer(ns, shutdown) {}
-    virtual ~linux_generic_timer() { std::cout << __func__ << std::endl; }
+    virtual ~linux_generic_timer() { syslog(LOG_INFO, __func__); }
 
     long now() override
     {
@@ -118,7 +119,7 @@ class linux_rtc_timer : public abstract_timer
 public:
 
     linux_rtc_timer(long ns, std::atomic_bool &shutdown) : abstract_timer(ns, shutdown) {}
-    ~linux_rtc_timer() { std::cout << __func__ << std::endl; }
+    ~linux_rtc_timer() { syslog(LOG_INFO, __func__); }
     
     long now() override
     {

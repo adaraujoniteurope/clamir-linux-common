@@ -6,13 +6,14 @@
 
 #include <functional>
 #include <atomic>
+#include <syslog.h>
 
 namespace utils
 {
     class runnable_worker : public runnable
     {
     public:
-        virtual ~runnable_worker() { std::cout << __func__ << std::endl; }
+        virtual ~runnable_worker() { syslog(LOG_INFO, __func__); }
         template <class... types>
         std::function<void()> get_worker(types... args)
         {

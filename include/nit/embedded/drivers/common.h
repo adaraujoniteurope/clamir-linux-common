@@ -83,9 +83,9 @@ constexpr type unsafe_set(state_type *state, size_t offset, type value)
 }
 
 #ifdef NIT_CLAMIR_DEBUGGING
-#define print_debug(...) printf(__VA_ARGS__)
+#define log_debug(LOG_INFO, ...) syslog(LOG_INFO, __VA_ARGS__)
 #else
-#define print_debug(...)
+#define syslog(LOG_INFO, ...)
 #endif
 
 #ifndef NIT_CLAMIR_HOST_MOCKUP

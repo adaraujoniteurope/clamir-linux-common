@@ -7,7 +7,7 @@ if(CMAKE_VERSION VERSION_GREATER "3.30.0")
 else()
 endif()
 
-project(clamir-linux-daemon LANGUAGES C CXX)
+project(clamir-linux LANGUAGES C CXX)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -42,6 +42,7 @@ set(BUILD_DOC NO CACHE INTERNAL "Turn off CEREAL Build Documentation")
 set(BUILD_SANDBOX NO CACHE INTERNAL "Turn off CEREAL Sandbox Build")
 
 find_package(Boost REQUIRED COMPONENTS system serialization)
+find_package(Simppl REQUIRED)
 
 if(NIT_CLAMIR_ENABLE_BLAS)
     FetchContent_Declare(
@@ -61,7 +62,9 @@ if(NIT_CLAMIR_ENABLE_BLAS)
 endif()
 
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-list(REMOVE_ITEM ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+list(REMOVE_ITEM ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/server_dbus.cpp)
+list(REMOVE_ITEM ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/server_ctrl.cpp)
+list(REMOVE_ITEM ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/server_image.cpp)
 
 add_library(${PROJECT_NAME}-obj ${${PROJECT_NAME}_SOURCES})
 
@@ -111,26 +114,53 @@ set_property(TARGET ${PROJECT_NAME}-obj
 
 configure_file(version.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/include/nit/embedded/core/version.hpp @ONLY)
 configure_file(config.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/include/nit/embedded/core/config.hpp @ONLY)
-configure_file(share/${PROJECT_NAME}.service.in ${CMAKE_SOURCE_DIR}/share/${PROJECT_NAME}.service @ONLY)
+# configure_file(share/${PROJECT_NAME}-ct.service.in ${CMAKE_SOURCE_DIR}/share/${PROJECT_NAME}.service @ONLY)
 
 configure_file(scripts/build.sh.in ${CMAKE_SOURCE_DIR}/build.sh @ONLY)
 configure_file(scripts/debug.sh.in ${CMAKE_SOURCE_DIR}/debug.sh @ONLY)
 configure_file(scripts/deploy.sh.in ${CMAKE_SOURCE_DIR}/deploy.sh @ONLY)
 configure_file(scripts/launch-debug.sh.in ${CMAKE_SOURCE_DIR}/launch-debug.sh @ONLY)
 
-add_executable(${PROJECT_NAME} src/main.cpp)
+add_executable(${PROJECT_NAME}-dbus src/server_ctrl_dbus.cpp)
+add_executable(${PROJECT_NAME}-ctrl src/server_ctrl_tcp.cpp)
+add_executable(${PROJECT_NAME}-image src/server_image_tcp.cpp)
 
-set_property(TARGET ${PROJECT_NAME}
+set_property(TARGET ${PROJECT_NAME}-obj
     PROPERTY
       CXX_STANDARD 23
       CXX_STANDARD_REQUIRED true
 )
 
-target_compile_options(${PROJECT_NAME} PUBLIC -g)
+set_property(TARGET ${PROJECT_NAME}-dbus
+    PROPERTY
+      CXX_STANDARD 23
+      CXX_STANDARD_REQUIRED true
+)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}-obj)
+set_property(TARGET ${PROJECT_NAME}-ctrl
+    PROPERTY
+      CXX_STANDARD 23
+      CXX_STANDARD_REQUIRED true
+)
 
-install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+set_property(TARGET ${PROJECT_NAME}-image
+    PROPERTY
+      CXX_STANDARD 23
+      CXX_STANDARD_REQUIRED true
+)
+
+target_compile_options(${PROJECT_NAME}-dbus PUBLIC -g)
+target_link_libraries(${PROJECT_NAME}-dbus PUBLIC ${PROJECT_NAME}-obj)
+
+target_compile_options(${PROJECT_NAME}-ctrl PUBLIC -g)
+target_link_libraries(${PROJECT_NAME}-ctrl PUBLIC ${PROJECT_NAME}-obj)
+
+target_compile_options(${PROJECT_NAME}-image PUBLIC -g)
+target_link_libraries(${PROJECT_NAME}-image PUBLIC ${PROJECT_NAME}-obj)
+
+install(TARGETS ${PROJECT_NAME}-dbus DESTINATION bin)
+install(TARGETS ${PROJECT_NAME}-ctrl DESTINATION bin)
+install(TARGETS ${PROJECT_NAME}-image DESTINATION bin)
 
 file(GLOB_RECURSE ${PROJECT_NAME}_CONF_SOURCES ${CMAKE_SOURCE_DIR}/share/*)
 
@@ -158,8 +188,3 @@ if(NIT_CLAMIR_ENABLE_TESTING)
     include(GoogleTest)
     add_subdirectory(test)
 endif()
-
-
-# if(NIT_CLAMIR_BUILD_UTILS)
-#     add_subdirectory(utils/clamir-scc-util-convert-scale)
-# endif()

@@ -46,7 +46,7 @@ public:
     catch (const std::runtime_error& err)
     {
       std::ostringstream oss;
-      oss << '[' << kv.name() << "] : " << err.what();
+      oss << '[' << kv.name() << "] : %s", err.what();
       throw json_archive_exception{oss.str()};
     }
     // ctx_start --> std::logic_error intentionally not caught

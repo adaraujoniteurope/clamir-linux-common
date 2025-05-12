@@ -7,7 +7,7 @@ namespace utils
     {
     public:
         virtual ~pollable() {
-            std::cout << __func__ << std::endl;
+            syslog(LOG_INFO, __func__);
         }
         virtual void poll() = 0;
     };
