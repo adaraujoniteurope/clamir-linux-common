@@ -1,11 +1,10 @@
-#include <errno.h>
+#include <atomic>
 #include <fcntl.h>
-#include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 #include <termios.h>
 #include <unistd.h>
+#include <syslog.h>
 
 #include <netinet/if_fddi.h>
 #include <netinet/in.h>
@@ -18,43 +17,40 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include <iostream>
-#include <thread>
-#include <chrono>
+#include <csignal>
 
-#include <nit/embedded/server_ctrl_dbus.hpp>
+#include <nit/embedded/clamir_service_dbus.hpp>
 
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
+using namespace nit::embedded;
+std::shared_ptr<clamir_service_dbus> server;
 
-std::shared_ptr<server_ctrl_dbus> server;
+int main(int argc, char *argv[]) {
 
-int main(int argc, char *argv[])
-{
+  static std::atomic_bool shutdown = false;
 
-	server = server_ctrl_dbus::get_instance();
+  std::signal(SIGINT, [](int) { shutdown.store(true); });
+  std::signal(SIGTERM, [](int) { shutdown.store(true); });
+  std::signal(SIGPIPE, SIG_IGN);
 
-	try
-	{
-		auto retval = server->initialize(argc, argv);
-		if (retval < 0) {
-			exit(retval);
-		}
+  server = clamir_service_dbus::get_instance();
 
-	}
-	catch (std::exception &ex)
-	{
-		syslog(LOG_INFO, "%s", ex.what());
-	}
+  try {
+    auto retval = server->initialize(argc, argv);
+    if (retval < 0) {
+      exit(retval);
+    }
 
-	try
-	{
-		server->run();
-	}
-	catch (std::exception &ex)
-	{
-		syslog(LOG_INFO, "%s", ex.what());
-	}
+  } catch (std::exception &ex) {
+    syslog(LOG_INFO, "%s", ex.what());
+  }
 
-	return EXIT_SUCCESS;
+  try {
+    server->run(shutdown);
+  } catch (std::exception &ex) {
+    syslog(LOG_INFO, "%s", ex.what());
+  }
+
+  clamir_service_dbus applcation;
+
+  return EXIT_SUCCESS;
 }

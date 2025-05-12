@@ -8,7 +8,7 @@ ssh -t root@$1 'mkdir -p /usr/local/bin'
 scp build-target/clamir-linux-daemon root@$1:/usr/local/bin
 
 # echo "Copying clamir-linux-daemon.service"
-# scp /home/arthur/Work/Software/clamir-linux-daemon/share/clamir-linux-daemon.service root@$1:/lib/systemd/system
+# scp /home/arthur/Work/Software/clamir-linux-server-dbus/share/clamir-linux-daemon.service root@$1:/lib/systemd/system
 
 # echo "Reloading SystemD daemon"
 # ssh -t root@$1 'systemctl daemon-reload'

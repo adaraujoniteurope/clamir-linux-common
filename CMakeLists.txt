@@ -7,10 +7,9 @@ if(CMAKE_VERSION VERSION_GREATER "3.30.0")
 else()
 endif()
 
-project(clamir-linux LANGUAGES C CXX)
+project(clamir-linux-server-dbus LANGUAGES C CXX)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
 
 option(NIT_CLAMIR_ENABLE_TESTING "Enable Testing" OFF)
 option(NIT_CLAMIR_ENABLE_DOCS "Enable Documentation" OFF)
@@ -42,7 +41,8 @@ set(BUILD_DOC NO CACHE INTERNAL "Turn off CEREAL Build Documentation")
 set(BUILD_SANDBOX NO CACHE INTERNAL "Turn off CEREAL Sandbox Build")
 
 find_package(Boost REQUIRED COMPONENTS system serialization)
-find_package(Simppl REQUIRED)
+pkg_check_modules(popt REQUIRED IMPORTED_TARGET popt)
+pkg_check_modules(dbus-cxx REQUIRED IMPORTED_TARGET dbus-cxx-2.0)
 
 if(NIT_CLAMIR_ENABLE_BLAS)
     FetchContent_Declare(
@@ -62,9 +62,7 @@ if(NIT_CLAMIR_ENABLE_BLAS)
 endif()
 
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-list(REMOVE_ITEM ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/server_dbus.cpp)
-list(REMOVE_ITEM ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/server_ctrl.cpp)
-list(REMOVE_ITEM ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/server_image.cpp)
+list(REMOVE_ITEM ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 add_library(${PROJECT_NAME}-obj ${${PROJECT_NAME}_SOURCES})
 
@@ -72,11 +70,14 @@ target_include_directories(${PROJECT_NAME}-obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR
 
 message(STATUS "OSAL_INCLUDE_DIRS: ${OSAL_INCLUDE_DIR}")
 
+target_include_directories(${PROJECT_NAME}-obj PUBLIC ${dbus-cxx_INCLUDE_DIRECTORIES})
 target_link_libraries(${PROJECT_NAME}-obj
     PUBLIC
         ${GSTREAMER_LIBRARIES}
         m
         ${Boost_LIBRARIES}
+        PkgConfig::popt
+        PkgConfig::dbus-cxx
 )
 
 if(NIT_CLAMIR_ENABLE_BLAS)
@@ -121,9 +122,7 @@ configure_file(scripts/debug.sh.in ${CMAKE_SOURCE_DIR}/debug.sh @ONLY)
 configure_file(scripts/deploy.sh.in ${CMAKE_SOURCE_DIR}/deploy.sh @ONLY)
 configure_file(scripts/launch-debug.sh.in ${CMAKE_SOURCE_DIR}/launch-debug.sh @ONLY)
 
-add_executable(${PROJECT_NAME}-dbus src/server_ctrl_dbus.cpp)
-add_executable(${PROJECT_NAME}-ctrl src/server_ctrl_tcp.cpp)
-add_executable(${PROJECT_NAME}-image src/server_image_tcp.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp)
 
 set_property(TARGET ${PROJECT_NAME}-obj
     PROPERTY
@@ -131,36 +130,16 @@ set_property(TARGET ${PROJECT_NAME}-obj
       CXX_STANDARD_REQUIRED true
 )
 
-set_property(TARGET ${PROJECT_NAME}-dbus
+set_property(TARGET ${PROJECT_NAME}
     PROPERTY
       CXX_STANDARD 23
       CXX_STANDARD_REQUIRED true
 )
 
-set_property(TARGET ${PROJECT_NAME}-ctrl
-    PROPERTY
-      CXX_STANDARD 23
-      CXX_STANDARD_REQUIRED true
-)
+target_compile_options(${PROJECT_NAME} PUBLIC -g)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}-obj)
 
-set_property(TARGET ${PROJECT_NAME}-image
-    PROPERTY
-      CXX_STANDARD 23
-      CXX_STANDARD_REQUIRED true
-)
-
-target_compile_options(${PROJECT_NAME}-dbus PUBLIC -g)
-target_link_libraries(${PROJECT_NAME}-dbus PUBLIC ${PROJECT_NAME}-obj)
-
-target_compile_options(${PROJECT_NAME}-ctrl PUBLIC -g)
-target_link_libraries(${PROJECT_NAME}-ctrl PUBLIC ${PROJECT_NAME}-obj)
-
-target_compile_options(${PROJECT_NAME}-image PUBLIC -g)
-target_link_libraries(${PROJECT_NAME}-image PUBLIC ${PROJECT_NAME}-obj)
-
-install(TARGETS ${PROJECT_NAME}-dbus DESTINATION bin)
-install(TARGETS ${PROJECT_NAME}-ctrl DESTINATION bin)
-install(TARGETS ${PROJECT_NAME}-image DESTINATION bin)
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
 file(GLOB_RECURSE ${PROJECT_NAME}_CONF_SOURCES ${CMAKE_SOURCE_DIR}/share/*)
 

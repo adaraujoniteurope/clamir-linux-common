@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/home/arthur/Work/Software/clamir-linux-daemon/build/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
