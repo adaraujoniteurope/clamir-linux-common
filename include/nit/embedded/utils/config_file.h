@@ -21,7 +21,7 @@ int config_file_save_to_file(state_type* state, const char *path)
         archive <<  boost::make_nvp("config", state->config);
     } catch (std::exception & ex)
     {
-        syslog(LOG_INFO, ex.what());
+        syslog(LOG_INFO, "%s", ex.what());
         return -1;
     }
 
@@ -41,7 +41,7 @@ int config_file_load_from_file(state_type* state, const char *path)
         archive >> boost::make_nvp("config", state->config);
     } catch (std::exception & ex)
     {
-        syslog(LOG_INFO, ex.what());
+        syslog(LOG_INFO, "%s", ex.what());
         return -1;
     }
 

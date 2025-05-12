@@ -1,48 +1,47 @@
-#include <unistd.h>
-#include <thread>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <sys/mman.h>
-#include <sys/fcntl.h>
-#include <string>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <netinet/tcp.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <map>
-#include <filesystem>
-#include <fcntl.h>
-#include <boost/signals2.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <atomic>
 #include <arpa/inet.h>
+#include <atomic>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/signals2.hpp>
+#include <fcntl.h>
+#include <filesystem>
+#include <map>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
+#include <sys/fcntl.h>
+#include <sys/mman.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <thread>
+#include <unistd.h>
 
-#include <nit/embedded/vision/frame_generator.hpp>
-#include <nit/embedded/utils/time.hpp>
-#include <nit/embedded/utils/runnable_worker.hpp>
-#include <nit/embedded/networking/tcp/protocol_legacy.hpp>
-#include <nit/embedded/math/control.hpp>
-#include <nit/embedded/math/algorithm.hpp>
-#include <nit/embedded/drivers/scc_core.h>
-#include <nit/embedded/drivers/roi_core_field_table.h>
-#include <nit/embedded/drivers/pwm_core_field_table.h>
+#include <nit/embedded/clamir_service.hpp>
+#include <nit/embedded/components/filter.hpp>
+#include <nit/embedded/components/timer.hpp>
+#include <nit/embedded/drivers/arm_core.h>
+#include <nit/embedded/drivers/bpc_table_core.h>
+#include <nit/embedded/drivers/common.h>
+#include <nit/embedded/drivers/control_unit_core.h>
+#include <nit/embedded/drivers/framebuffer_core.h>
+#include <nit/embedded/drivers/gen_core_field_table.h>
+#include <nit/embedded/drivers/mom_core_field_table.h>
 #include <nit/embedded/drivers/process_core.h>
 #include <nit/embedded/drivers/process_core_field_table.h>
-#include <nit/embedded/drivers/mom_core_field_table.h>
-#include <nit/embedded/drivers/gen_core_field_table.h>
-#include <nit/embedded/drivers/framebuffer_core.h>
-#include <nit/embedded/drivers/control_unit_core.h>
-#include <nit/embedded/drivers/common.h>
-#include <nit/embedded/drivers/bpc_table_core.h>
-#include <nit/embedded/drivers/arm_core.h>
-#include <nit/embedded/components/timer.hpp>
-#include <nit/embedded/components/filter.hpp>
-#include <nit/embedded/clamir_service.hpp>
-
+#include <nit/embedded/drivers/pwm_core_field_table.h>
+#include <nit/embedded/drivers/roi_core_field_table.h>
+#include <nit/embedded/drivers/scc_core.h>
+#include <nit/embedded/math/algorithm.hpp>
+#include <nit/embedded/math/control.hpp>
+#include <nit/embedded/networking/tcp/protocol_legacy.hpp>
+#include <nit/embedded/utils/runnable_worker.hpp>
+#include <nit/embedded/utils/time.hpp>
+#include <nit/embedded/vision/frame_generator.hpp>
 
 #define DEFINE_COMMAND_TARGET_WRITE_CALLBACK(driver_type, prefix, var_type,    \
                                              var)                              \
@@ -85,7 +84,7 @@ bool operator==(const std::thread &a, std::thread &b) {
 }
 } // namespace std
 
-int clamir_service::sensor_calibrate() {
+int sensor_calibrate() {
   nit_control_unit_core_offset_en_set(&nit_control_unit_core_driver, 1);
   nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
 
@@ -101,11 +100,6 @@ int clamir_service::sensor_calibrate() {
       &nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MIN);
 
   nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);
-  if (host_mockup) {
-    nit_framebuffer_core_operating_mode_set(
-        &nit_framebuffer_core_driver,
-        NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_CLOSED);
-  }
 
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
   nit_scc_core_stub_eval_calibrate_acquire_min(&nit_scc_core_driver);
@@ -119,11 +113,6 @@ int clamir_service::sensor_calibrate() {
   nit_scc_core_calibration_mode_set(
       &nit_scc_core_driver, NIT_SCC_CORE_CALIBRATION_STATUS_ACQUIRING_MAX);
 
-  if (host_mockup) {
-    nit_framebuffer_core_operating_mode_set(
-        &nit_framebuffer_core_driver,
-        NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_UNIFORM_SHUTTER_OPEN);
-  }
   nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 0);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
@@ -136,12 +125,6 @@ int clamir_service::sensor_calibrate() {
   // nit_scc_core_calibration_mode_wait_idle(&nit_scc_core_driver);
 
   nit_scc_core_opmode_set(&nit_scc_core_driver, NIT_SCC_CORE_OPMODE_PROCESS);
-
-  if (host_mockup) {
-    nit_framebuffer_core_operating_mode_set(
-        &nit_framebuffer_core_driver,
-        NIT_FRAMEBUFFER_CORE_OPERATING_MODE_TEST_PATTERN_BALL);
-  }
 
   if (!nit_scc_core_driver.config.calibration_bypass) {
     nit_scc_core_calibration_bypass_set(&nit_scc_core_driver, 0);
@@ -453,16 +436,6 @@ int clamir_service::initialize(int argc, char *argv[]) {
     fs >> config.serial_number;
   }
 
-  if (!m_image_writer_uio_initialized) {
-    m_image_writer_uio_fd = open("/dev/uio0", O_RDWR | O_SYNC);
-    m_image_writer_uio_initialized = true;
-  }
-
-  if (m_image_writer_uio_fd < 0) {
-    printf("Failed to open /dev/uio0: %s\n", strerror(errno));
-    exit(1);
-  }
-
   return 0;
 }
 
@@ -488,17 +461,24 @@ std::shared_ptr<clamir_service> clamir_service::get_instance() {
   return instance;
 }
 
-void clamir_service::run(std::atomic_bool& shutdown) {
+void clamir_service::run(std::atomic_bool &shutdown) {
 
-  m_server_threads.push_back(std::thread([this]() -> void {
-    nit_process_core_run(&nit_process_core_driver, m_timer, m_shutdown);
-  }));
+  if (!std::filesystem::exists("/run/lock/clamir/ctrl")) {
+    std::filesystem::create_directories("/run/lock/clamir/ctrl");
+  }
+
+  if (!std::filesystem::exists("/run/lock/clamir/ctrl/process.lock")) {
+    system("touch /run/lock/clamir/ctrl/process.lock");
+    m_server_threads.push_back(std::thread([this]() -> void {
+      nit_process_core_run(&nit_process_core_driver, m_timer, m_shutdown);
+    }));
+  }
 
   std::shared_ptr<linux_generic_timer> image_timer = nullptr;
 
   while (!shutdown) {
     try {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      std::this_thread::sleep_for(std::chrono::milliseconds(  1000));
     } catch (std::exception &) {
     }
   }
@@ -509,7 +489,7 @@ void clamir_service::run(std::atomic_bool& shutdown) {
       thread.join();
     }
   }
-
+  system("rm /run/lock/clamir/ctrl/process.lock");
   syslog(LOG_INFO, "shutting down system");
 }
 
@@ -878,7 +858,7 @@ int command_target_nit_process_core_background_remove_write(
     packet &req) {
 
   if (!app->config_get().sensor_calibation_disable) {
-    app->sensor_calibrate();
+    sensor_calibrate();
   }
 
   nit_control_unit_core_shutter_set(&nit_control_unit_core_driver, 1);

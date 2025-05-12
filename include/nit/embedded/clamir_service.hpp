@@ -102,7 +102,6 @@ public:
 
 	}
 
-	int sensor_calibrate();
 	clamir_service_config& config_get() { return config; }
 
 	int command_processor_legacy(int request);
@@ -110,7 +109,6 @@ public:
 private:
 
 	void legacy_control_function(volatile int *virtual_metadata_shm, volatile int *real_metadata_shm, volatile int *proc_var_shm, volatile int *gen_core_shm, volatile int *arm_core_shm, volatile int *control_unit_shm);
-
 
 	utils::signal<std::shared_ptr<clamir_service>, uint8_t *, size_t, uint8_t *, size_t> image_read;
 	
@@ -130,9 +128,6 @@ private:
 	};
 	clamir_service_config config;
 
-	struct sigaction m_sigint_handler;
-	struct sigaction m_pipe_handler;
-
 	std::atomic_bool m_shutdown = false;
 	std::shared_ptr<abstract_timer> m_timer;
 
@@ -140,12 +135,6 @@ private:
 
 	std::list<std::thread> m_server_threads;
 	std::unordered_map<int, std::function<int(const unsigned char *, int)>> m_command_server_router;
-
-	uint8_t m_image_buffer[8192];
-	uint8_t m_metadata_buffer[60];
-
-	int m_image_writer_uio_fd = -1;
-	bool m_image_writer_uio_initialized = false;
 };
 
 class application_connection_handler

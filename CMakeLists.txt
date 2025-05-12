@@ -41,7 +41,7 @@ set(BUILD_DOC NO CACHE INTERNAL "Turn off CEREAL Build Documentation")
 set(BUILD_SANDBOX NO CACHE INTERNAL "Turn off CEREAL Sandbox Build")
 
 find_package(Boost REQUIRED COMPONENTS system serialization)
-pkg_check_modules(popt REQUIRED IMPORTED_TARGET popt)
+# pkg_check_modules(popt REQUIRED IMPORTED_TARGET popt)
 pkg_check_modules(dbus-cxx REQUIRED IMPORTED_TARGET dbus-cxx-2.0)
 
 if(NIT_CLAMIR_ENABLE_BLAS)
@@ -76,8 +76,9 @@ target_link_libraries(${PROJECT_NAME}-obj
         ${GSTREAMER_LIBRARIES}
         m
         ${Boost_LIBRARIES}
-        PkgConfig::popt
+        # PkgConfig::popt
         PkgConfig::dbus-cxx
+        # lockfile
 )
 
 if(NIT_CLAMIR_ENABLE_BLAS)

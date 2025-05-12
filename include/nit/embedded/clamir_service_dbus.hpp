@@ -22,8 +22,8 @@ public:
     _object = _connection->create_object(
         "/org/nit/clamir/ctrl", DBus::ThreadForCalling::DispatcherThread);
 
-        // Register Clamir CTRL Interface in the BUS
-        // for now, just the server packet decoder directly...
+    // Register Clamir CTRL Interface in the BUS
+    // for now, just the server packet decoder directly...
     _object->create_method<int32_t(int32_t)>(
         "clamir.ctrl.server", "command_processor_legacy",
         sigc::mem_fun(*_clamir_service,
