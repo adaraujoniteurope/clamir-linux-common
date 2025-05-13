@@ -76,7 +76,7 @@ void buttons_to_leds(void *base)
   btns = gpio_read(base, XGPIO_DATA3_OFFSET);
 
   // Print button status
-  printf("Interrupt detected, button register = 0x%08x\n", btns);
+  syslog(LOG_INFO,"Interrupt detected, button register = 0x%08x\n", btns);
 
   // Determine LED bar width
   for (unsigned int i=0; i<=7; i++) {
@@ -172,7 +172,7 @@ unsigned int get_device_size(char *filename)
   // Open ASCII file
   fp = fopen(filename, "r");
   if (!fp) {
-    printf("Error: Failed to open %s file\n", filename);
+    syslog(LOG_INFO,"Error: Failed to open %s file\n", filename);
     exit(EXIT_FAILURE);
   }
 
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
   // Open GPIO device with read/write access
   fd = open(devicename, O_RDWR);
   if (fd < 1) {
-    printf("Error: Failed to open %s device\n", devicename);
+    syslog(LOG_INFO,"Error: Failed to open %s device\n", devicename);
     exit(EXIT_FAILURE);
   }
 
@@ -209,21 +209,21 @@ int main(int argc, char *argv[])
   // Map GPIO device memory region
   deviceptr = mmap(NULL, devicesize, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
   if (deviceptr == MAP_FAILED) {
-    printf("Error: Failed to mmap");
+    syslog(LOG_INFO,"Error: Failed to mmap");
     exit(EXIT_FAILURE);
   }
 
   // Print header
-  printf("Simple User Space device driver example with interrupts\n\n");
-  printf("Device in use ... %s\n", devicename);
-  printf("Memory size ..... %u (obtained from %s)\n\n", devicesize, filename);
-  printf("Use the buttons to control the LED's :-\n\n");
-  printf("Centre - Reset LED's to 00111100\n");
-  printf("Left   - Rotate LED's left\n");
-  printf("Right  - Rotate LED's right\n");
-  printf("Up     - Increase illuminated LED's\n");
-  printf("Down   - Decrease illuminated LED's\n\n");
-  printf("Press Ctrl-C to quit application\n");
+  syslog(LOG_INFO,"Simple User Space device driver example with interrupts\n\n");
+  syslog(LOG_INFO,"Device in use ... %s\n", devicename);
+  syslog(LOG_INFO,"Memory size ..... %u (obtained from %s)\n\n", devicesize, filename);
+  syslog(LOG_INFO,"Use the buttons to control the LED's :-\n\n");
+  syslog(LOG_INFO,"Centre - Reset LED's to 00111100\n");
+  syslog(LOG_INFO,"Left   - Rotate LED's left\n");
+  syslog(LOG_INFO,"Right  - Rotate LED's right\n");
+  syslog(LOG_INFO,"Up     - Increase illuminated LED's\n");
+  syslog(LOG_INFO,"Down   - Decrease illuminated LED's\n\n");
+  syslog(LOG_INFO,"Press Ctrl-C to quit application\n");
 
   // Enable Interrupts for GPIO Channel 3
   gpio_write(deviceptr, XGPIO_GIE_OFFSET, XGPIO_GIE_GINTR_ENABLE_MASK);

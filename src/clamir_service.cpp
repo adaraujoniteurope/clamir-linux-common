@@ -140,44 +140,42 @@ int sensor_calibrate() {
 
 int clamir_service::initialize(int argc, char *argv[]) {
 
-  const char *CONFIGURATION_DIRECTORY = std::getenv("CONFIGURATION_DIRECTORY");
+  std::string CONFIGURATION_DIRECTORY = std::getenv("CONFIGURATION_DIRECTORY");
 
-  if (CONFIGURATION_DIRECTORY != nullptr) {
-    syslog(LOG_INFO, "CONFIGURATION_DIRECTORY: %s", CONFIGURATION_DIRECTORY);
+  if (std::filesystem::exists(CONFIGURATION_DIRECTORY)) {
+    syslog(LOG_INFO, "CONFIGURATION_DIRECTORY: %s",
+           CONFIGURATION_DIRECTORY.c_str());
   } else {
     syslog(LOG_INFO,
            "CONFIGURATION_DIRECTORY environment variable is not set.");
-    CONFIGURATION_DIRECTORY = std::filesystem::current_path().c_str();
+    CONFIGURATION_DIRECTORY = std::filesystem::current_path();
+    if (!std::filesystem::exists(CONFIGURATION_DIRECTORY))
+      std::filesystem::create_directory(CONFIGURATION_DIRECTORY);
   }
 
-  std::filesystem::path configuration_path = CONFIGURATION_DIRECTORY;
+  {
+    auto CONFIGURATION_FILE_PATH =
+        CONFIGURATION_DIRECTORY + "/clamir-linux-server-dbus-config.xml";
 
-  try {
-    std::filesystem::create_directory(configuration_path);
-  } catch (std::exception &ex) {
-    syslog(LOG_INFO, "%s", ex.what());
-  }
+    if (!std::filesystem::exists(CONFIGURATION_FILE_PATH)) {
+      try {
+        std::ofstream ofs(CONFIGURATION_FILE_PATH);
+        boost::archive::xml_oarchive xoa(ofs);
+        xoa &boost::make_nvp("config", config_default);
+      } catch (std::exception &ex) {
+        syslog(LOG_INFO, "%s", ex.what());
+        return -1;
+      }
+    }
 
-  auto app_config_path = std::string(CONFIGURATION_DIRECTORY) + "/clamir.xml";
-
-  if (!std::filesystem::exists(app_config_path)) {
     try {
-      std::ofstream ofs(app_config_path);
-      boost::archive::xml_oarchive xoa(ofs);
-      xoa &boost::make_nvp("config", this->config_default);
+      std::ifstream ifs(CONFIGURATION_FILE_PATH);
+      boost::archive::xml_iarchive xia(ifs);
+      xia &boost::make_nvp("config", config);
     } catch (std::exception &ex) {
       syslog(LOG_INFO, "%s", ex.what());
       return -1;
     }
-  }
-
-  try {
-    std::ifstream ifs(app_config_path);
-    boost::archive::xml_iarchive xia(ifs);
-    xia &boost::make_nvp("config", this->config);
-  } catch (std::exception &ex) {
-    syslog(LOG_INFO, "%s", ex.what());
-    return -1;
   }
 
   {
@@ -228,22 +226,23 @@ int clamir_service::initialize(int argc, char *argv[]) {
   }
 
   {
-    auto save_path = configuration_path;
-    save_path += "/nit_scc_core_config.xml";
+    auto CONFIGURATION_FILE_PATH =
+        CONFIGURATION_DIRECTORY + "/clamir-scc-core-config.xml";
 
-    syslog(LOG_INFO, "loading configuration from: %s", save_path.c_str());
+    syslog(LOG_INFO, "loading configuration from: %s",
+           CONFIGURATION_FILE_PATH.c_str());
 
-    if (nit_scc_core_config_load_from_file(&nit_scc_core_driver,
-                                           save_path.c_str()) < 0) {
-      if (nit_scc_core_config_save_to_file(&nit_scc_core_driver,
-                                           save_path.c_str()) < 0) {
+    if (nit_scc_core_config_load_from_file(
+            &nit_scc_core_driver, CONFIGURATION_FILE_PATH.c_str()) < 0) {
+      if (nit_scc_core_config_save_to_file(
+              &nit_scc_core_driver, CONFIGURATION_FILE_PATH.c_str()) < 0) {
         syslog(LOG_INFO, "loading configuration failed!");
         return -1;
       }
     }
 
-    if (nit_scc_core_config_load_from_file(&nit_scc_core_driver,
-                                           save_path.c_str()) < 0) {
+    if (nit_scc_core_config_load_from_file(
+            &nit_scc_core_driver, CONFIGURATION_FILE_PATH.c_str()) < 0) {
       syslog(LOG_INFO, "loading configuration failed!");
       return -1;
     }
@@ -346,15 +345,15 @@ int clamir_service::initialize(int argc, char *argv[]) {
   nit_control_unit_core_offset_update_set(&nit_control_unit_core_driver, 1);
 
   {
-    auto save_path = configuration_path;
-    save_path += "/nit_arm_core_config.xml";
+    auto CONFIGURATION_FILE_PATH =
+        CONFIGURATION_DIRECTORY + "/clamir-arm-core-config.xml";
+    syslog(LOG_INFO, "loading configuration from: %s",
+           CONFIGURATION_FILE_PATH.c_str());
 
-    syslog(LOG_INFO, "loading configuration from: %s", save_path.c_str());
-
-    if (nit_arm_core_config_load_from_file(&nit_arm_core_driver,
-                                           save_path.c_str()) < 0) {
-      if (nit_arm_core_config_save_to_file(&nit_arm_core_driver,
-                                           save_path.c_str()) < 0) {
+    if (nit_arm_core_config_load_from_file(
+            &nit_arm_core_driver, CONFIGURATION_FILE_PATH.c_str()) < 0) {
+      if (nit_arm_core_config_save_to_file(
+              &nit_arm_core_driver, CONFIGURATION_FILE_PATH.c_str()) < 0) {
         syslog(LOG_INFO, "loading configuration failed!");
         return -1;
       }
@@ -362,15 +361,18 @@ int clamir_service::initialize(int argc, char *argv[]) {
   }
 
   {
-    auto save_path = configuration_path;
-    save_path += "/nit_control_unit_core_config.xml";
+    auto CONFIGURATION_FILE_PATH =
+        CONFIGURATION_DIRECTORY + "/clamir-control-unit-core-config.xml";
 
-    syslog(LOG_INFO, "loading configuration from: %s", save_path.c_str());
+    syslog(LOG_INFO, "loading configuration from: %s",
+           CONFIGURATION_FILE_PATH.c_str());
 
     if (nit_control_unit_core_config_load_from_file(
-            &nit_control_unit_core_driver, save_path.c_str()) < 0) {
+            &nit_control_unit_core_driver, CONFIGURATION_FILE_PATH.c_str()) <
+        0) {
       if (nit_control_unit_core_config_save_to_file(
-              &nit_control_unit_core_driver, save_path.c_str()) < 0) {
+              &nit_control_unit_core_driver, CONFIGURATION_FILE_PATH.c_str()) <
+          0) {
         syslog(LOG_INFO, "loading configuration failed!");
         return -1;
       }
@@ -378,15 +380,16 @@ int clamir_service::initialize(int argc, char *argv[]) {
   }
 
   {
-    auto save_path = configuration_path;
-    save_path += "/nit_mb_core_config.xml";
+    auto CONFIGURATION_FILE_PATH =
+        CONFIGURATION_DIRECTORY + "/clamir-mb-core-config.xml";
 
-    syslog(LOG_INFO, "loading configuration from: %s", save_path.c_str());
+    syslog(LOG_INFO, "loading configuration from: %s",
+           CONFIGURATION_FILE_PATH.c_str());
 
-    if (nit_mb_core_config_load_from_file(&nit_mb_core_driver,
-                                          save_path.c_str()) < 0) {
-      if (nit_mb_core_config_save_to_file(&nit_mb_core_driver,
-                                          save_path.c_str()) < 0) {
+    if (nit_mb_core_config_load_from_file(
+            &nit_mb_core_driver, CONFIGURATION_FILE_PATH.c_str()) < 0) {
+      if (nit_mb_core_config_save_to_file(
+              &nit_mb_core_driver, CONFIGURATION_FILE_PATH.c_str()) < 0) {
         syslog(LOG_INFO, "loading configuration failed!");
         return -1;
       }
@@ -404,15 +407,16 @@ int clamir_service::initialize(int argc, char *argv[]) {
   }
 
   {
-    auto save_path = configuration_path;
-    save_path += "/nit_process_core_config.xml";
+    auto CONFIGURATION_FILE_PATH =
+        CONFIGURATION_DIRECTORY + "/clamir-process-core-config.xml";
 
-    syslog(LOG_INFO, "loading configuration from: %s", save_path.c_str());
+    syslog(LOG_INFO, "loading configuration from: %s",
+           CONFIGURATION_FILE_PATH.c_str());
 
-    if (nit_process_core_config_load_from_file(&nit_process_core_driver,
-                                               save_path.c_str()) < 0) {
-      if (nit_process_core_config_save_to_file(&nit_process_core_driver,
-                                               save_path.c_str()) < 0) {
+    if (nit_process_core_config_load_from_file(
+            &nit_process_core_driver, CONFIGURATION_FILE_PATH.c_str()) < 0) {
+      if (nit_process_core_config_save_to_file(
+              &nit_process_core_driver, CONFIGURATION_FILE_PATH.c_str()) < 0) {
         syslog(LOG_INFO, "loading configuration failed!");
         return -1;
       }
@@ -430,9 +434,9 @@ int clamir_service::initialize(int argc, char *argv[]) {
    * load serial number from BPC file
    * (old behaviour)
    */
-  const char *bpcc_path = "/mnt/mmc/sys/bpcc.sys";
-  if (std::filesystem::exists(bpcc_path)) {
-    std::fstream fs(bpcc_path);
+  const char *CONFIGURATION_DRIVER_BPCC = "/mnt/mmc/sys/bpcc.sys";
+  if (std::filesystem::exists(CONFIGURATION_DRIVER_BPCC)) {
+    std::fstream fs(CONFIGURATION_DRIVER_BPCC);
     fs >> config.serial_number;
   }
 
@@ -445,15 +449,16 @@ clamir_service::clamir_service()
           {{1, std::bind(&clamir_service::default_handler, this,
                          std::placeholders::_1, std::placeholders::_2)}}) {
   m_timer = std::make_shared<linux_generic_timer>(
-      this->config.global_timer_update_interval_us, m_shutdown);
+      config.global_timer_update_interval_us, m_shutdown);
 }
 
 int clamir_service::default_handler(const unsigned char *buffer, int) {
   return 0;
 }
 
-std::shared_ptr<clamir_service> clamir_service::instance = nullptr;
+
 std::shared_ptr<clamir_service> clamir_service::get_instance() {
+  static std::shared_ptr<clamir_service> instance = nullptr;
   if (instance == nullptr) {
     instance = std::shared_ptr<clamir_service>(new clamir_service());
   }
@@ -467,18 +472,18 @@ void clamir_service::run(std::atomic_bool &shutdown) {
     std::filesystem::create_directories("/run/lock/clamir/ctrl");
   }
 
-  if (!std::filesystem::exists("/run/lock/clamir/ctrl/process.lock")) {
-    system("touch /run/lock/clamir/ctrl/process.lock");
-    m_server_threads.push_back(std::thread([this]() -> void {
-      nit_process_core_run(&nit_process_core_driver, m_timer, m_shutdown);
-    }));
-  }
+  // if (!std::filesystem::exists("/run/lock/clamir/ctrl/process.lock")) {
+  //   system("touch /run/lock/clamir/ctrl/process.lock");
+  //   m_server_threads.push_back(std::thread([this]() -> void {
+  //     nit_process_core_run(&nit_process_core_driver, m_timer, m_shutdown);
+  //   }));
+  // }
 
   std::shared_ptr<linux_generic_timer> image_timer = nullptr;
 
   while (!shutdown) {
     try {
-      std::this_thread::sleep_for(std::chrono::milliseconds(  1000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     } catch (std::exception &) {
     }
   }
@@ -489,7 +494,7 @@ void clamir_service::run(std::atomic_bool &shutdown) {
       thread.join();
     }
   }
-  system("rm /run/lock/clamir/ctrl/process.lock");
+  // system("rm /run/lock/clamir/ctrl/process.lock");
   syslog(LOG_INFO, "shutting down system");
 }
 
@@ -1377,7 +1382,7 @@ int32_t clamir_service::command_processor_legacy(int32_t request) {
   auto it = command_processor_routes_legacy.find(route_id);
 
   if (it == command_processor_routes_legacy.end()) {
-    printf("couldn't find route %04x\n", route_id);
+    syslog(LOG_INFO, "couldn't find route %04x\n", route_id);
     return p.value;
   }
 

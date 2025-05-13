@@ -111,8 +111,6 @@ private:
 	void legacy_control_function(volatile int *virtual_metadata_shm, volatile int *real_metadata_shm, volatile int *proc_var_shm, volatile int *gen_core_shm, volatile int *arm_core_shm, volatile int *control_unit_shm);
 
 	utils::signal<std::shared_ptr<clamir_service>, uint8_t *, size_t, uint8_t *, size_t> image_read;
-	
-	static std::shared_ptr<clamir_service> instance;
 
 	clamir_service_config config_default = {
 		.version_major = 6,

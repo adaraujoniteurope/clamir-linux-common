@@ -12,6 +12,7 @@ class clamir_service_dbus : public abstract_application<clamir_service_dbus> {
 public:
   int initialize(int argc, char *argv[]) override {
 
+    _clamir_service = clamir_service::get_instance();
     /// Initialize CLAMIR Controller
     _clamir_service->initialize(argc, argv);
 

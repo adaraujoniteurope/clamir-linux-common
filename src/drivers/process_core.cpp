@@ -832,7 +832,7 @@ int nit_process_core_run(nit_process_core_state_t *state,
       priv->mode = priv->mb_core_shm[MODE];
       if (priv->mode == 2) {
         priv->estadoAutomata = MANUAL;
-        printf("\nCambio a estado MANUAL\n");
+        syslog(LOG_INFO,"\nCambio a estado MANUAL\n");
         // if (logging == 1)
         // {
         // 	stop_logging = 1;
@@ -841,7 +841,7 @@ int nit_process_core_run(nit_process_core_state_t *state,
         // }
       } else {
         priv->estadoAutomata = IDLE;
-        printf("\nCambio a estado IDLE\n");
+        syslog(LOG_INFO,"\nCambio a estado IDLE\n");
         priv->mb_core_shm[CHANGE_OP_MODE] = 1;
       }
     }
@@ -939,7 +939,7 @@ int nit_process_core_run(nit_process_core_state_t *state,
       priv->potencia_t0 = priv->proc_var_shm[POWER_MAN];
       if (priv->mode != 2) {
         priv->estadoAutomata = IDLE;
-        printf("\nCambio a estado IDLE\n");
+        syslog(LOG_INFO,"\nCambio a estado IDLE\n");
         priv->mb_core_shm[CHANGE_OP_MODE] = 1;
       }
       priv->track_cnt = 0;
@@ -955,10 +955,10 @@ int nit_process_core_run(nit_process_core_state_t *state,
         if (priv->proc_var_shm[PREHEATING_ENA]) {
           priv->cont_preheating = 0;
           priv->estadoAutomata = PREHEATING;
-          printf("\nCambio a estado PREHEATING\n");
+          syslog(LOG_INFO,"\nCambio a estado PREHEATING\n");
         } else {
           priv->estadoAutomata = MIDIENDO;
-          printf("\nCambio a estado MIDIENDO\n");
+          syslog(LOG_INFO,"\nCambio a estado MIDIENDO\n");
           priv->contadorFramesMidiendo = 0;
           // pthread_mutex_unlock(&lock);
         }
@@ -983,7 +983,7 @@ int nit_process_core_run(nit_process_core_state_t *state,
         priv->estadoAutomata = MIDIENDO;
         priv->contadorFramesMidiendo = 0;
         // pthread_mutex_unlock(&lock);
-        printf("\nCambio a estado MIDIENDO\n");
+        syslog(LOG_INFO,"\nCambio a estado MIDIENDO\n");
       }
       break;
 
@@ -1022,7 +1022,7 @@ int nit_process_core_run(nit_process_core_state_t *state,
       // if (metadatos[7] >= mb_core_shm[REFERENCE_TRACK]){
       if (priv->track >= priv->mb_core_shm[REFERENCE_TRACK]) {
         priv->estadoAutomata = CONTROL;
-        printf("\nCambio a estado CONTROL\n");
+        syslog(LOG_INFO,"\nCambio a estado CONTROL\n");
         if (priv->contadorFramesMidiendo == 0) {
           priv->contadorFramesMidiendo = 1;
         }
@@ -1071,7 +1071,7 @@ int nit_process_core_run(nit_process_core_state_t *state,
         if ((!priv->laser_status) || (priv->control_NAP)) {
           if (priv->contadorFramesStop++ > priv->endP) {
             priv->estadoAutomata = IDLE;
-            printf("\nCambio a estado IDLE\n");
+            syslog(LOG_INFO,"\nCambio a estado IDLE\n");
             priv->contadorFramesStop = 0;
             priv->cont = 0;
           }
@@ -1104,13 +1104,13 @@ int nit_process_core_run(nit_process_core_state_t *state,
 
           priv->delta_potencia = priv->potencia_t1 - priv->potencia_t0;
           if (abs(priv->delta_potencia) > priv->limiteSlew) {
-            // printf("potencia_t0 : %f", potencia_t0);
+            // syslog(LOG_INFO,"potencia_t0 : %f", potencia_t0);
             if (priv->potencia_t0 < priv->potencia_t1) {
               priv->potencia_t0 = priv->potencia_t1 - priv->limiteSlew;
             } else {
               priv->potencia_t0 = priv->potencia_t1 + priv->limiteSlew;
             }
-            // printf(" potencia_t0 despues de limit : %f\n", potencia_t0);
+            // syslog(LOG_INFO," potencia_t0 despues de limit : %f\n", potencia_t0);
           }
         }
       }

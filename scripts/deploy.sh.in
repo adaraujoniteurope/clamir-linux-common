@@ -3,9 +3,9 @@
 # echo "Reloading Stopping Clamir Linux Daemon"
 # ssh -t root@$1 'systemctl stop clamir-linux-daemon'
 
-echo "Copying clamir-linux-daemon"
+echo "Copying @PROJECT_NAME@"
 ssh -t root@$1 'mkdir -p /usr/local/bin'
-scp build-target/clamir-linux-daemon root@$1:@CMAKE_INSTALL_PREFIX@/bin
+scp build-target/@PROJECT_NAME@ root@$1:@CMAKE_INSTALL_PREFIX@/bin
 
 # echo "Copying clamir-linux-daemon.service"
 # scp @CMAKE_SOURCE_DIR@/share/clamir-linux-daemon.service root@$1:/lib/systemd/system
