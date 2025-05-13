@@ -2,4 +2,3 @@ build
 build-target
 build-cmaketools
 .cache
-*.sh

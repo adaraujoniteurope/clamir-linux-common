@@ -1,5 +1,0 @@
-#!/usr/bin/bash -e
-
-./build.sh
-./deploy.sh $1
-./debug.sh $1
