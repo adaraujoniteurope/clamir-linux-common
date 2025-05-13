@@ -1,6 +1,6 @@
 #!/usr/bin/bash -e
 
-ssh -t root@$1 'CONFIGURATION_DIRECTORY=/home/clamir/conf gdbserver 0.0.0.0:2000 /usr/local/bin/clamir-linux-server-dbus'
+ssh -t root@$1 'CONFIGURATION_DIRECTORY=/home/clamir/conf gdbserver 0.0.0.0:2000 /usr/local/bin/clamir-linux-common'
 
 # echo "Starting SysteD Start"
 # ssh -t root@$1 'systemctl start clamir-linux-daemon'

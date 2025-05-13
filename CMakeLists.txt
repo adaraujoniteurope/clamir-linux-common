@@ -7,7 +7,7 @@ if(CMAKE_VERSION VERSION_GREATER "3.30.0")
 else()
 endif()
 
-project(clamir-linux-server-dbus LANGUAGES C CXX)
+project(clamir-linux-common LANGUAGES C CXX)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -123,7 +123,7 @@ configure_file(scripts/debug.sh.in ${CMAKE_SOURCE_DIR}/debug.sh @ONLY)
 configure_file(scripts/deploy.sh.in ${CMAKE_SOURCE_DIR}/deploy.sh @ONLY)
 configure_file(scripts/launch-debug.sh.in ${CMAKE_SOURCE_DIR}/launch-debug.sh @ONLY)
 
-add_executable(${PROJECT_NAME} src/main.cpp)
+add_library(${PROJECT_NAME} SHARED src/shared.cpp)
 
 set_property(TARGET ${PROJECT_NAME}-obj
     PROPERTY
