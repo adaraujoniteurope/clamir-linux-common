@@ -4,7 +4,7 @@
 #include <list>
 #include <future>
 
-namespace utils
+namespace nit::embedded::utils
 {
 
     template<typename... args_types>

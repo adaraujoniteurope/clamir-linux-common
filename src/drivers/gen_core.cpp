@@ -1,8 +1,7 @@
-#include <nit/embedded/common/defs.h>
 #include <nit/embedded/drivers/gen_core.h>
 #include <nit/embedded/drivers/mb_core.h>
-#include <nit/embedded/utils/config_file.h>
-#include <nit/embedded/utils/memory_map.hpp>
+#include <nit/embedded/drivers/config_file.h>
+#include <nit/embedded/drivers/memory_map.hpp>
 
 #include <stddef.h>
 #include <stdio.h>
@@ -11,7 +10,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-using namespace utils;
+using namespace nit::embedded::drivers;;
 
 int gen_core_open(nit_mb_core_state_t *state) {
   if (state == NULL) {

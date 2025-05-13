@@ -7,8 +7,8 @@
 
 using namespace math::control;
 
-using namespace utils::time;
-using namespace utils::numeric;
+using namespace nit::embedded::utils::time;
+using namespace nit::embedded::utils::numeric;
 
 class dynamic_system : public utils::pollable_worker
 {

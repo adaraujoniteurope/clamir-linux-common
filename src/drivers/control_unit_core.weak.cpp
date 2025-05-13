@@ -1,6 +1,6 @@
 #include "math.h"
 #include <nit/embedded/drivers/control_unit_core.h>
-#include <nit/embedded/utils/config_file.h>
+#include <nit/embedded/drivers/config_file.h>
 
 #include <stddef.h>
 #include <stdio.h>

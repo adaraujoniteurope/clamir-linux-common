@@ -8,12 +8,12 @@
 #include <nit/embedded/drivers/common.h>
 #include <nit/embedded/drivers/mb_core.h>
 
-#include <nit/embedded/utils/config_file.h>
-#include <nit/embedded/utils/memory_map.hpp>
+#include <nit/embedded/drivers/config_file.h>
+#include <nit/embedded/drivers/memory_map.hpp>
 
 nit_mb_core_state_t nit_mb_core_driver = {0};
 
-using namespace utils;
+using namespace nit::embedded::drivers;
 
 int nit_mb_core_open(nit_mb_core_state_t *state) {
   if (state == NULL) {

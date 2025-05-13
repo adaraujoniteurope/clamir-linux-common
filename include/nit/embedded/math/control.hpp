@@ -1,23 +1,17 @@
 #ifndef _MATH_CONTROL_H_
 #define _MATH_CONTROL_H_
 
-#include <atomic>
 #include <chrono>
-#include <thread>
-#include <deque>
 #include <limits>
 
-#include <ostream>
-#include <fstream>
 #include <cmath>
 
 #include <nit/embedded/utils/waitable.hpp>
 #include <nit/embedded/components/timer.hpp>
 #include <nit/embedded/utils/pollable_worker.hpp>
-#include <nit/embedded/utils/numeric.hpp>
 #include <nit/embedded/utils/signal.hpp>
 
-using namespace utils::numeric;
+using namespace nit::embedded;
 
 namespace math::control
 {
@@ -85,9 +79,9 @@ namespace math::control
     {
     public:
 
-        const value_type& max = traits::max<value_type>::value;
-        const value_type& min = traits::min<value_type>::value;
-        const value_type& zero = traits::zero<value_type>::value;
+        const value_type& max = std::numeric_limits<value_type>::value;
+        const value_type& min = std::numeric_limits<value_type>::value;
+        const value_type& zero = 0;
 
         utils::signal<value_type> output_changed;
 

@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <iostream>
 
+using namespace nit::embedded::neworking;
+
 std::ostream &operator<<(std::ostream &os, packet &req) {
   // os
   // << "{ "

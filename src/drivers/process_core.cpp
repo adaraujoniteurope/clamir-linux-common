@@ -1,5 +1,5 @@
-#include <nit/embedded/common/defs.h>
-#include <nit/embedded/utils/config_file.h>
+
+#include <nit/embedded/drivers/config_file.h>
 #include <nit/embedded/utils/waitable.hpp>
 
 #include <nit/embedded/drivers/arm_core.h>
@@ -10,7 +10,7 @@
 #include <nit/embedded/drivers/mb_core.h>
 #include <nit/embedded/drivers/process_core.h>
 
-#include <nit/embedded/utils/memory_map.hpp>
+#include <nit/embedded/drivers/memory_map.hpp>
 
 #include <fcntl.h>
 #include <inttypes.h>
@@ -203,7 +203,7 @@
 
 #define SEM_NAME "semaforo"
 
-using namespace utils;
+#define CLK_100MHZ 100000000
 
 struct nit_process_core_private_state {
   int estadoAutomata = 0;
@@ -681,7 +681,7 @@ int nit_process_core_config_load_from_file(nit_process_core_state_t *state,
 }
 
 int nit_process_core_run(nit_process_core_state_t *state,
-                         std::shared_ptr<utils::waitable> timer,
+                         std::shared_ptr<nit::embedded::utils::waitable> timer,
                          std::atomic_bool &shutdown) {
   auto priv = nit_process_core_process_data_ptr_get(state);
 

@@ -3,21 +3,12 @@
 
 #include <atomic>
 #include <cstdint>
-#include <memory>
-
-#include "common.h"
-
-#include "arm_core.h"
-#include "mb_core.h"
-#include "control_unit_core.h"
-#include "framebuffer_core.h"
-#include "gen_core.h"
-#include "pwm_core.h"
-#include "roi_core.h"
-
-#include "framebuffer_core_field_table.h"
 
 #include <nit/embedded/utils/waitable.hpp>
+#include <nit/embedded/drivers/common.h>
+#include <nit/embedded/drivers/framebuffer_core_field_table.h>
+
+using namespace nit::embedded;
 
 #define NIT_FRAMEBUFFER_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DECLARATION(nit_framebuffer_core_state_t, name, parameter, type, size, offset)
 #define NIT_FRAMEBUFFER_CORE_DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(name, parameter, type, size, offset) DRIVER_FIELD_AS_WEAK_FUNCTION_DEFINITION(nit_framebuffer_core_state_t, name, parameter, type, size, offset)

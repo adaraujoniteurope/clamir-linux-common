@@ -1,7 +1,7 @@
 #ifndef UTILS_POLLABLE_HPP_
 #define UTILS_POLLABLE_HPP_
 
-namespace utils
+namespace nit::embedded::utils
 {
     class pollable
     {

@@ -1,8 +1,4 @@
-#include <nit/embedded/drivers/framebuffer_core.h>
-#include <nit/embedded/math/algorithm.hpp>
-#include <nit/embedded/utils/config_file.h>
-#include <nit/embedded/utils/memory_map.hpp>
-#include <nit/embedded/vision/frame_generator.hpp>
+#include <random>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -10,6 +6,11 @@
 #include <sys/fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+
+#include <nit/embedded/drivers/framebuffer_core.h>
+#include <nit/embedded/math/algorithm.hpp>
+#include <nit/embedded/drivers/config_file.h>
+#include <nit/embedded/drivers/memory_map.hpp>
 
 typedef struct metadata_wrapper_struct {
 
@@ -19,12 +20,6 @@ typedef struct nit_framebuffer_core_state_priv_struct {
   volatile int *metadata;
   volatile int16_t *frame;
 } nit_framebuffer_core_state_priv_t;
-
-const nit_framebuffer_core_config_t framebuffer_core_config_default = {
-    // TBD
-};
-
-#include <random>
 
 template <typename type> class sensor {
 public:
@@ -100,7 +95,7 @@ int nit_framebuffer_core_loop(nit_framebuffer_core_state_t *state);
 
 nit_framebuffer_core_state_t nit_framebuffer_core_driver;
 
-using namespace utils;
+using namespace nit::embedded::drivers;
 
 int nit_framebuffer_core_open(nit_framebuffer_core_state_t *state,
                               nit_framebuffer_core_config_t *config) {

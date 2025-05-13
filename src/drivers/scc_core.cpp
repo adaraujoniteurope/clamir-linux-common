@@ -1,7 +1,7 @@
 #include "math.h"
 #include <nit/embedded/drivers/scc_core.h>
-#include <nit/embedded/utils/config_file.h>
-#include <nit/embedded/utils/memory_map.hpp>
+#include <nit/embedded/drivers/config_file.h>
+#include <nit/embedded/drivers/memory_map.hpp>
 
 #include <stddef.h>
 #include <stdio.h>
@@ -17,7 +17,7 @@
 
 nit_scc_core_state_t nit_scc_core_driver;
 
-using namespace utils;
+using namespace nit::embedded::drivers;
 
 typedef struct scc_core_private_state_struct {
   int dev_fd;

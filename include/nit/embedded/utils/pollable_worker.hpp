@@ -7,7 +7,7 @@
 #include <functional>
 #include <atomic>
 
-namespace utils
+namespace nit::embedded::utils
 {
     class pollable_worker : public pollable
     {

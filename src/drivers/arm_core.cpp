@@ -1,6 +1,6 @@
 #include <nit/embedded/drivers/arm_core.h>
-#include <nit/embedded/utils/config_file.h>
-#include <nit/embedded/utils/memory_map.hpp>
+#include <nit/embedded/drivers/config_file.h>
+#include <nit/embedded/drivers/memory_map.hpp>
 
 #include <stddef.h>
 #include <stdio.h>
@@ -17,7 +17,7 @@ DRIVER_DEFINE_NAMES_TABLE_END(arm_core)
 
 nit_arm_core_state_t nit_arm_core_driver;
 
-using namespace utils;
+using namespace nit::embedded::drivers;
 
 int nit_arm_core_assert(nit_arm_core_state_t *state) {
 

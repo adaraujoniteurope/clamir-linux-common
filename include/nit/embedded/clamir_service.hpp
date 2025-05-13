@@ -6,12 +6,11 @@
 #include <unordered_map>
 #include <map>
 #include <memory>
+#include <functional>
 
-#include <signal.h>
 
 #include <syslog.h>
 
-#include <nit/embedded/common/defs.h>
 #include <nit/embedded/drivers/arm_core.h>
 #include <nit/embedded/drivers/gen_core.h>
 #include <nit/embedded/drivers/mom_core.h>
@@ -23,8 +22,6 @@
 #include <nit/embedded/drivers/framebuffer_core.h>
 #include <nit/embedded/drivers/scc_core.h>
 
-// #include <nit/embedded/networking/tcp/server.hpp>
-#include <nit/embedded/signals/event_emitter.hpp>
 #include <nit/embedded/components/timer.hpp>
 
 #include <nit/embedded/math/control.hpp>
@@ -33,6 +30,8 @@
 #include <nit/embedded/clamir_service_config.hpp>
 
 #include <boost/signals2.hpp>
+
+using namespace nit::embedded::neworking;
 
 #define DRIVER_CALLBACK_INDEX_TABLE_ITEM(name, parameter, type, size, offset) nit_##name##_##parameter##_command_descriptor_offset,
 

@@ -1,7 +1,7 @@
 #ifndef _UTILS_WAITABLE_HPP_
 #define _UTILS_WAITABLE_HPP_
 
-namespace utils
+namespace nit::embedded::utils
 {
     class waitable
     {

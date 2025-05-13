@@ -1,11 +1,12 @@
 #ifndef _nit_embedded_abstract_application_hpp_
 #define _nit_embedded_abstract_application_hpp_
 
-#include "nit/embedded/clamir_service.hpp"
+
 #include <atomic>
 #include <dbus-cxx.h>
 #include <memory>
-#include <nit/embedded/abstract_application.hpp>
+#include <nit/embedded/utils/abstract_application.hpp>
+#include <nit/embedded/clamir_service.hpp>
 
 namespace nit::embedded {
 class clamir_service_dbus : public abstract_application<clamir_service_dbus> {

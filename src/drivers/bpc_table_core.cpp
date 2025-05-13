@@ -1,10 +1,10 @@
 #include <nit/embedded/drivers/bpc_table_core.h>
-#include <nit/embedded/utils/config_file.h>
+#include <nit/embedded/drivers/config_file.h>
 
 #include "math.h"
 #include <nit/embedded/drivers/control_unit_core.h>
-#include <nit/embedded/utils/config_file.h>
-#include <nit/embedded/utils/memory_map.hpp>
+#include <nit/embedded/drivers/config_file.h>
+#include <nit/embedded/drivers/memory_map.hpp>
 
 #include <stddef.h>
 #include <stdio.h>
@@ -31,7 +31,7 @@ const nit_bpc_table_core_config_t bpc_table_core_config_default = {
 
 };
 
-using namespace utils;
+using namespace nit::embedded::drivers;
 
 int nit_bpc_table_core_open(nit_bpc_table_core_state_t *state) {
 

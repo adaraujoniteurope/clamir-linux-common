@@ -1,7 +1,6 @@
 #ifndef _nit_embedded_clamir_service_config_hpp_
 #define _nit_embedded_clamir_service_config_hpp_
 
-#include <cinttypes>
 #include <string>
 
 #include <boost/serialization/nvp.hpp>

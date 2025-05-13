@@ -1,9 +1,9 @@
-#include <nit/embedded/utils/memory_map.hpp>
+#include <nit/embedded/drivers/memory_map.hpp>
 #include <sys/mman.h>
 #include <cstdlib>
 
 #ifdef NIT_CLAMIR_HOST_MOCKUP
-namespace utils
+namespace drivers
 {
     void* memory_map_open(void* __addr, size_t __len, int __prot, int __flags, int __fd, size_t __offset)
     {
@@ -17,7 +17,7 @@ namespace utils
     }
 }
 #else
-namespace utils
+namespace drivers
 {
     void* memory_map_open(void* __addr, size_t __len, int __prot, int __flags, int __fd, size_t __offset)
     {

@@ -5,13 +5,10 @@
 #include <boost/signals2.hpp>
 #include <fcntl.h>
 #include <filesystem>
-#include <map>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <string>
 #include <sys/fcntl.h>
 #include <sys/mman.h>
@@ -20,6 +17,7 @@
 #include <sys/types.h>
 #include <thread>
 #include <unistd.h>
+#include <fstream>
 
 #include <nit/embedded/clamir_service.hpp>
 #include <nit/embedded/components/filter.hpp>
@@ -41,7 +39,9 @@
 #include <nit/embedded/networking/tcp/protocol_legacy.hpp>
 #include <nit/embedded/utils/runnable_worker.hpp>
 #include <nit/embedded/utils/time.hpp>
-#include <nit/embedded/vision/frame_generator.hpp>
+#include <nit/embedded/networking/tcp/protocol_legacy.hpp>
+
+using namespace nit::embedded::neworking;
 
 #define DEFINE_COMMAND_TARGET_WRITE_CALLBACK(driver_type, prefix, var_type,    \
                                              var)                              \
@@ -73,8 +73,7 @@
   }
 
 using namespace math::control;
-using namespace utils::time;
-using namespace utils::numeric;
+using namespace nit::embedded::utils::time;
 
 // namespace po = boost::program_options;
 

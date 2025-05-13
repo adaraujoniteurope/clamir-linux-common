@@ -1,7 +1,7 @@
 #include "math.h"
 #include <nit/embedded/drivers/control_unit_core.h>
-#include <nit/embedded/utils/config_file.h>
-#include <nit/embedded/utils/memory_map.hpp>
+#include <nit/embedded/drivers/config_file.h>
+#include <nit/embedded/drivers/memory_map.hpp>
 
 #include <stddef.h>
 #include <stdio.h>
@@ -12,7 +12,7 @@
 
 nit_control_unit_core_state_t nit_control_unit_core_driver;
 
-using namespace utils;
+using namespace nit::embedded::drivers;
 
 int nit_control_unit_core_open(nit_control_unit_core_state_t *state) {
   if (state == NULL) {

@@ -1,9 +1,7 @@
 #ifndef _COMPONENTS_FILTER_HPP_
 #define _COMPONENTS_FILTER_HPP_
 
-#include <thread>
 #include <condition_variable>
-#include <functional>
 #include <atomic>
 
 #include <nit/embedded/utils/runnable.hpp>

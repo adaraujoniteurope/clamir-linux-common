@@ -3,10 +3,13 @@
 
 #include <atomic>
 #include <memory>
-namespace nit::embedded
+
+#include <nit/embedded/utils/singleton.hpp>
+
+namespace nit::embedded::utils
 {
     template<typename derived>
-    class abstract_application : public std::enable_shared_from_this<derived> {
+    class abstract_application : public utils::singleton<derived> {
         public:
 
         static std::shared_ptr<derived> get_instance() {

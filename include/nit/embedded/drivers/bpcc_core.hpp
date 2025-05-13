@@ -7,7 +7,7 @@
 
 #include <nit/embedded/utils/bitfield.h>
 
-using namespace nit::embedded::drivers::utils;
+using namespace nit::embedded::drivers;
 
 namespace nit::embedded::drivers
 {

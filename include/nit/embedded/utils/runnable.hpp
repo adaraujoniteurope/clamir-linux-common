@@ -3,7 +3,7 @@
 
 #include <syslog.h>
 
-namespace utils
+namespace nit::embedded::utils
 {
     class runnable
     {

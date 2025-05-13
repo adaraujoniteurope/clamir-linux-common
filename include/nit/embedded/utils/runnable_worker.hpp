@@ -8,7 +8,7 @@
 #include <atomic>
 #include <syslog.h>
 
-namespace utils
+namespace nit::embedded::utils
 {
     class runnable_worker : public runnable
     {
