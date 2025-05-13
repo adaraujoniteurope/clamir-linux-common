@@ -1,2 +1,0 @@
-# Sensor Closed Lood Adjustment
-

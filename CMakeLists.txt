@@ -35,13 +35,7 @@ message(STATUS "CMAKE_SYSTEM_INCLUDE_PATH: ${CMAKE_SYSTEM_INCLUDE_PATH}")
 
 include(FetchContent)
 
-set(SKIP_PORTABILITY_TEST YES CACHE INTERNAL "Turn off CEREAL Compatibility Tests")
-set(SKIP_PERFORMANCE_COMPARISON YES CACHE INTERNAL "Turn off CEREAL Performance Tests")
-set(BUILD_DOC NO CACHE INTERNAL "Turn off CEREAL Build Documentation")
-set(BUILD_SANDBOX NO CACHE INTERNAL "Turn off CEREAL Sandbox Build")
-
 find_package(Boost REQUIRED COMPONENTS system serialization)
-# pkg_check_modules(popt REQUIRED IMPORTED_TARGET popt)
 pkg_check_modules(dbus-cxx REQUIRED IMPORTED_TARGET dbus-cxx-2.0)
 
 if(NIT_CLAMIR_ENABLE_BLAS)
@@ -62,53 +56,51 @@ if(NIT_CLAMIR_ENABLE_BLAS)
 endif()
 
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-list(REMOVE_ITEM ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+list(REMOVE_ITEM ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/shared.cpp)
 
-add_library(${PROJECT_NAME}-obj ${${PROJECT_NAME}_SOURCES})
+add_library(${PROJECT_NAME}-static STATIC ${${PROJECT_NAME}_SOURCES})
 
-target_include_directories(${PROJECT_NAME}-obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${OSAL_INCLUDE_DIRS} )
+target_include_directories(${PROJECT_NAME}-static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${OSAL_INCLUDE_DIRS} )
 
 message(STATUS "OSAL_INCLUDE_DIRS: ${OSAL_INCLUDE_DIR}")
 
-target_include_directories(${PROJECT_NAME}-obj PUBLIC ${dbus-cxx_INCLUDE_DIRECTORIES})
-target_link_libraries(${PROJECT_NAME}-obj
+target_include_directories(${PROJECT_NAME}-static PUBLIC ${dbus-cxx_INCLUDE_DIRECTORIES})
+target_link_libraries(${PROJECT_NAME}-static
     PUBLIC
         ${GSTREAMER_LIBRARIES}
         m
         ${Boost_LIBRARIES}
-        # PkgConfig::popt
         PkgConfig::dbus-cxx
-        # lockfile
 )
 
 if(NIT_CLAMIR_ENABLE_BLAS)
-    target_link_libraries(${PROJECT_NAME}-obj PUBLIC Eigen3::Eigen)
+    target_link_libraries(${PROJECT_NAME}-static PUBLIC Eigen3::Eigen)
 endif()
 
-target_include_directories(${PROJECT_NAME}-obj PUBLIC ${OSAL_INCLUDE_DIR})
-target_include_directories(${PROJECT_NAME}-obj PUBLIC ${PNET_INCLUDE_DIR})
+target_include_directories(${PROJECT_NAME}-static PUBLIC ${OSAL_INCLUDE_DIR})
+target_include_directories(${PROJECT_NAME}-static PUBLIC ${PNET_INCLUDE_DIR})
 
-target_compile_options(${PROJECT_NAME}-obj PUBLIC -Wall -Wdeprecated -Wdeprecated-declarations -g -O0)
+target_compile_options(${PROJECT_NAME}-static PUBLIC -Wall -Wdeprecated -Wdeprecated-declarations -g -O0)
 
 
 if (NIT_CLAMIR_HOST_MOCKUP)
     
-    target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DNIT_CLAMIR_HOST_MOCKUP)
+    target_compile_definitions(${PROJECT_NAME}-static PUBLIC -DNIT_CLAMIR_HOST_MOCKUP)
 endif()
 
 if (NIT_CLAMIR_DEBUGGING)
     
-    target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DNIT_CLAMIR_DEBUGGING)
+    target_compile_definitions(${PROJECT_NAME}-static PUBLIC -DNIT_CLAMIR_DEBUGGING)
 endif()
 
 if (NIT_CLAMIR_ENABLE_BLAS)
     
-    target_compile_definitions(${PROJECT_NAME}-obj PUBLIC -DNIT_CLAMIR_ENABLE_BLAS)
+    target_compile_definitions(${PROJECT_NAME}-static PUBLIC -DNIT_CLAMIR_ENABLE_BLAS)
 endif()
 
-target_include_directories(${PROJECT_NAME}-obj PUBLIC ${BOOST_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME}-static PUBLIC ${BOOST_INCLUDE_DIRS})
 
-set_property(TARGET ${PROJECT_NAME}-obj
+set_property(TARGET ${PROJECT_NAME}-static
     PROPERTY
     CXX_STANDARD 23
     CXX_STANDARD_REQUIRED true
@@ -116,36 +108,33 @@ set_property(TARGET ${PROJECT_NAME}-obj
 
 configure_file(version.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/include/nit/embedded/core/version.hpp @ONLY)
 configure_file(config.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/include/nit/embedded/core/config.hpp @ONLY)
-# configure_file(share/${PROJECT_NAME}-ct.service.in ${CMAKE_SOURCE_DIR}/share/${PROJECT_NAME}.service @ONLY)
 
 configure_file(scripts/build.sh.in ${CMAKE_SOURCE_DIR}/build.sh @ONLY)
 configure_file(scripts/debug.sh.in ${CMAKE_SOURCE_DIR}/debug.sh @ONLY)
 configure_file(scripts/deploy.sh.in ${CMAKE_SOURCE_DIR}/deploy.sh @ONLY)
 configure_file(scripts/launch-debug.sh.in ${CMAKE_SOURCE_DIR}/launch-debug.sh @ONLY)
 
-add_library(${PROJECT_NAME} SHARED src/shared.cpp)
+add_library(${PROJECT_NAME}-shared SHARED src/shared.cpp)
 
-set_property(TARGET ${PROJECT_NAME}-obj
+set_property(TARGET ${PROJECT_NAME}-static
     PROPERTY
       CXX_STANDARD 23
       CXX_STANDARD_REQUIRED true
 )
 
-set_property(TARGET ${PROJECT_NAME}
+set_property(TARGET ${PROJECT_NAME}-shared
     PROPERTY
       CXX_STANDARD 23
       CXX_STANDARD_REQUIRED true
 )
 
-target_compile_options(${PROJECT_NAME} PUBLIC -g)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}-obj)
+target_compile_options(${PROJECT_NAME}-shared PUBLIC -Wall -Wdeprecated -Wdeprecated-declarations -g -O0)
+target_link_libraries(${PROJECT_NAME}-shared PUBLIC ${PROJECT_NAME}-static)
 
-install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+install(TARGETS ${PROJECT_NAME}-static DESTINATION lib)
+install(TARGETS ${PROJECT_NAME}-shared DESTINATION lib)
 
 file(GLOB_RECURSE ${PROJECT_NAME}_CONF_SOURCES ${CMAKE_SOURCE_DIR}/share/*)
-
-install(FILES ${CMAKE_SOURCE_DIR}/share/${PROJECT_NAME}.service DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
-install(FILES ${CMAKE_SOURCE_DIR}/share/${PROJECT_NAME}.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/etc/avahi/services)
 
 if(NIT_CLAMIR_ENABLE_RAW)
 endif()
